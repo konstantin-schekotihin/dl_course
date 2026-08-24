@@ -2,7 +2,7 @@
 
 Interactive lecture slides and laboratory notebooks for an AI, Machine Learning, and Deep Learning course.
 
-- **Repository**: [https://git-ainf.aau.at/teaching/deeplearning.git](https://git-ainf.aau.at/teaching/deeplearning.git)
+- **Repository**: [https://github.com/kschekotihin/DL_course.git](https://github.com/kschekotihin/DL_course.git)
 
 ---
 
@@ -39,8 +39,8 @@ Clone the repository and run `uv sync`:
 
 ```bash
 # Clone the repository
-git clone https://git-ainf.aau.at/teaching/deeplearning.git
-cd deeplearning
+git clone https://github.com/kschekotihin/DL_course.git
+cd DL_course
 
 # Install dependencies and create .venv
 uv sync
@@ -49,32 +49,50 @@ uv sync
 This single command (`uv sync`) will:
 1. Automatically fetch the pinned Python runtime (Python 3.12).
 2. Create the isolated `.venv` virtual environment.
-3. Install all required packages (PyTorch, PyTorch Geometric, Scikit-Learn, JupyterLab, RISE slide extension, Matplotlib, Seaborn, Pandas, NLTK, etc.).
+3. Install all required packages (PyTorch, PyTorch Geometric, Scikit-Learn, Jupyter Notebook, RISE slide extension, Matplotlib, Seaborn, Pandas, NLTK, etc.).
 
 ### 3. Launch the Course Environment
 
-You can directly start JupyterLab or classic Jupyter Notebook with:
+You can directly start Jupyter Notebook with:
 
 ```bash
-uv run jupyter lab
+source .venv/bin/activate
+jupyter notebook
 ```
-*or*
+*or directly with `uv`:*
 ```bash
 uv run jupyter notebook
 ```
 
 ### 4. Using with VS Code / Cursor / PyCharm
 
-- Open the cloned `deeplearning` folder in VS Code, Cursor, or PyCharm.
+- Open the cloned `DL_course` folder in VS Code, Cursor, or PyCharm.
 - When opening any `.ipynb` notebook, click on the **Kernel / Python Environment** selector in the top right.
 - Select the Python interpreter located inside `.venv/bin/python` (macOS/Linux) or `.venv\Scripts\python.exe` (Windows).
+
+> [!NOTE]
+> **Formula Rendering in VS Code (KaTeX):**
+> VS Code uses a built-in KaTeX renderer for Markdown cells which does not execute Python initialization cells. If you see `Undefined control sequence` errors for course notation macros (`\vec`, `\rvar`, `\tens`, `\st`, `\diag`), add a hidden Markdown cell at the top of the notebook:
+> ```markdown
+> ::: {.hidden}
+> $$
+> \gdef\rvar#1{\mathrm{#1}}
+> \gdef\rvec#1{\mathbf{#1}}
+> \gdef\vec#1{\boldsymbol{#1}}
+> \gdef\tens#1{\boldsymbol{\mathsf{#1}}}
+> \gdef\tensel#1{\mathsf{#1}}
+> \gdef\st#1{\mathcal{#1}}
+> \gdef\diag#1{\mathrm{diag}(\vec{#1})}
+> $$
+> :::
+> ```
 
 ---
 
 ## 📽️ Presenting Slides (RISE / Reveal.js)
 
 All lecture notebooks are equipped with Reveal.js / RISE slide metadata:
-- In **JupyterLab**, click the **RISE Slide** button in the toolbar (or press `Alt + R`) to launch fullscreen interactive slides.
+- In **Jupyter Notebook**, click the **RISE Slide** button in the toolbar (or press `Alt + R`) to launch fullscreen interactive slides.
 - Custom slide callouts (styled in `custom.html` and `rise.css`) are automatically loaded:
   - `<div class="myalert">...</div>` - Highlight key takeaway boxes.
   - `<div class="mydef">...</div>` - Formal definitions with blue sidebars.
@@ -85,26 +103,40 @@ All lecture notebooks are equipped with Reveal.js / RISE slide metadata:
 
 ## ☁️ Google Colab Compatibility & Usage
 
-The notebooks are fully compatible with Google Colab. Because Google Colab runs notebooks in an isolated `/content` directory without local repository files by default, use the following simple setup cell when opening notebooks in Colab:
+Because the repository is hosted on GitHub, you can open any notebook directly in Google Colab with native 1-click integration:
 
-### 1. Colab Bootstrap Cell
+### 1. Open Directly via Colab's GitHub Tab
 
-Add or run this snippet at the top of a notebook when running in Google Colab:
+1. Open [Google Colab](https://colab.research.google.com/).
+2. Select **File > Open notebook** and choose the **GitHub** tab.
+3. Enter `kschekotihin/DL_course` (or paste `https://github.com/kschekotihin/DL_course`).
+4. Select any `.ipynb` notebook from the course to open it immediately.
+
+*(Alternatively, construct a direct link: `https://colab.research.google.com/github/kschekotihin/DL_course/blob/master/<module>/<notebook>.ipynb`)*
+
+### 2. Colab Setup Cell (In-Notebook)
+
+When running on Colab, add and execute this bootstrap cell at the top of the notebook to clone course assets (`images/`, `data/`, `init.py`) and set paths:
 
 ```python
 # --- Google Colab Setup ---
 import sys, os
 if 'google.colab' in sys.modules:
-    # 1. Clone the repository if not already present
-    if not os.path.exists('deeplearning'):
-        !git clone https://git-ainf.aau.at/teaching/deeplearning.git
-    %cd deeplearning
+    # 1. Clone repository to access init.py, data, and images
+    if not os.path.exists('DL_course'):
+        !git clone https://github.com/kschekotihin/DL_course.git
     
-    # 2. Install missing Colab dependencies
+    # 2. Change working directory into the module folder so %run ../init.py works
+    # Example for 01_Introduction notebooks (adjust folder name accordingly):
+    %cd /content/DL_course/01_Introduction
+    
+    # 3. Install packages not pre-installed on Colab
     !pip install -q torch-geometric wandb
 ```
 
-### 2. Colab Suitability Summary
+---
+
+### Colab Suitability Summary
 
 | Feature / Requirement | Local (`uv`) | Google Colab | Colab Notes |
 |---|---|---|---|

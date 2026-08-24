@@ -32,18 +32,26 @@ plt.rc('ytick', labelsize=14)
 plt.rc('xtick', labelsize=14)
 plt.rc('legend', fontsize=14)
 
-# Load custom CSS styles (supports local relative paths, repo root, and inline fallback for Colab)
-_custom_html_paths = [
+# Load custom CSS styles (supports local relative paths, repo root, rise.css, and inline fallback for Colab)
+_custom_css_paths = [
+    './rise.css',
+    '../rise.css',
     '../custom.html',
     './custom.html',
+    os.path.join(_current_dir, 'rise.css'),
+    os.path.join(_repo_root, 'rise.css'),
     os.path.join(_repo_root, 'custom.html'),
     os.path.join(_current_dir, 'custom.html')
 ]
 _css_loaded = False
-for _path in _custom_html_paths:
+for _path in _custom_css_paths:
     if os.path.isfile(_path):
         try:
-            display(HTML(filename=_path))
+            if _path.endswith('.css'):
+                with open(_path, 'r') as _f:
+                    display(HTML(f"<style>\n{_f.read()}\n</style>"))
+            else:
+                display(HTML(filename=_path))
             _css_loaded = True
             break
         except Exception:

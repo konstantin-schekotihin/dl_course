@@ -53,7 +53,11 @@ wandb/
 runs/
 **/runs/
 lightning_logs/
+# --- Generated HTML & Log Files ---
+*.html
+!custom.html
 *.log
+
 
 # --- OS Specific Files ---
 # macOS
