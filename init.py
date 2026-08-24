@@ -96,16 +96,7 @@ if not _css_loaded:
 </style>
 """))
 
-# Course LaTeX macros
-display(Latex("""$$
-\\def\\rvar#1{\\mathrm{#1}}
-\\def\\rvec#1{\\mathbf{#1}}
-\\def\\vec#1{\\boldsymbol{#1}}
-\\def\\tens#1{\\boldsymbol{\\mathsf{#1}}}
-\\def\\tensel#1{\\mathsf{#1}}
-\\def\\st#1{\\mathcal{#1}}
-\\def\\diag#1{\\mathrm{diag}(\\vec{#1})}
-$$"""))
+
 
 # Colab-specific setup (quietly fetch NLTK data if in Colab environment)
 if 'google.colab' in sys.modules:
