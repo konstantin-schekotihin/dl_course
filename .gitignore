@@ -76,8 +76,7 @@ $RECYCLE.BIN/
 *~
 
 # --- IDEs & Editors ---
-.vscode/*
-!.vscode/settings.json
+.vscode/
 *.code-workspace
 .idea/
 *.sublime-project
