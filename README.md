@@ -71,18 +71,20 @@ uv run jupyter notebook
 - Select the Python interpreter located inside `.venv/bin/python` (macOS/Linux) or `.venv\Scripts\python.exe` (Windows).
 
 > [!NOTE]
-> **Formula Rendering in Colab / VS Code:**
-> If you open notebooks directly in Google Colab or VS Code before running the initialization code, LaTeX shorthand macros (`\vec`, `\tens`, `\diag`, `\st`, `\rvar`, `\rvec`, `\tensel`) can be registered by placing this standard Markdown math cell at the top of the notebook:
-> ```markdown
+> **Formula Rendering in VS Code (KaTeX) & Colab:**
+> VS Code (via KaTeX) and Google Colab (before running code cells) render Markdown cells statically. If you need formula macros registered immediately in Markdown without executing Python cells, add this standard HTML-wrapped Markdown cell at the top of the notebook:
+> ```html
+> <div style="display:none">
 > $$
-> \newcommand{\vec}[1]{\mathbf{#1}}
-> \newcommand{\tens}[1]{\mathsf{#1}}
-> \newcommand{\diag}[1]{\mathrm{diag}(#1)}
-> \newcommand{\st}[1]{\mathcal{#1}}
-> \newcommand{\rvar}[1]{\mathrm{#1}}
-> \newcommand{\rvec}[1]{\mathbf{#1}}
-> \newcommand{\tensel}[1]{\mathcal{#1}}
+> \gdef\rvar#1{\mathrm{#1}}
+> \gdef\rvec#1{\mathbf{#1}}
+> \gdef\vec#1{\mathbf{#1}}
+> \gdef\tens#1{\boldsymbol{\mathsf{#1}}}
+> \gdef\tensel#1{\mathsf{#1}}
+> \gdef\st#1{\mathcal{#1}}
+> \gdef\diag#1{\mathrm{diag}(\vec{#1})}
 > $$
+> </div>
 > ```
 
 ---
@@ -112,24 +114,10 @@ Because the repository is hosted on GitHub, you can open any notebook directly i
 
 *(Alternatively, construct a direct link: `https://colab.research.google.com/github/konstantin-schekotihin/dl_course/blob/master/<module>/<notebook>.ipynb`)*
 
-### 2. Colab Setup Cells (In-Notebook)
+### 2. Colab Setup Cell (In-Notebook)
 
-When opening notebooks in Google Colab:
+When running on Colab, add and execute this bootstrap cell at the top of the notebook to clone course assets (`images/`, `data/`, `init.py`) and set paths:
 
-**A. Markdown Math Cell (for immediate formula rendering):**
-```markdown
-$$
-\newcommand{\vec}[1]{\mathbf{#1}}
-\newcommand{\tens}[1]{\mathsf{#1}}
-\newcommand{\diag}[1]{\mathrm{diag}(#1)}
-\newcommand{\st}[1]{\mathcal{#1}}
-\newcommand{\rvar}[1]{\mathrm{#1}}
-\newcommand{\rvec}[1]{\mathbf{#1}}
-\newcommand{\tensel}[1]{\mathcal{#1}}
-$$
-```
-
-**B. Code Setup Cell (to access repository assets and dependencies):**
 ```python
 # --- Google Colab Setup ---
 import sys, os
