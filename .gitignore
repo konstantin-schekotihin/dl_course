@@ -75,7 +75,9 @@ $RECYCLE.BIN/
 # Linux
 *~
 
-# --- IDEs & Editors ---
+# --- IDEs & Local Agent Config ---
+.agents/
+.agent/
 .vscode/
 *.code-workspace
 .idea/
