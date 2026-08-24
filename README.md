@@ -114,24 +114,23 @@ Because the repository is hosted on GitHub, you can open any notebook directly i
 
 *(Alternatively, construct a direct link: `https://colab.research.google.com/github/konstantin-schekotihin/dl_course/blob/master/<module>/<notebook>.ipynb`)*
 
-### 2. Colab Setup Cell (In-Notebook)
+### 2. Automatic Colab Setup (Pre-configured)
 
-When running on Colab, add and execute this bootstrap cell at the top of the notebook to clone course assets (`images/`, `data/`, `init.py`) and set paths:
+All course notebooks already include automatic Colab bootstrap logic in their very first cell:
+- **On Google Colab:** It automatically clones the course repository in the background, sets the module working directory, and installs any missing packages (`torch-geometric`, `wandb`).
+- **On Local Jupyter / VS Code:** The Colab check is automatically skipped and executes standard `%run ../init.py` without network calls.
 
 ```python
-# --- Google Colab Setup ---
+# Setup for Google Colab (pre-configured in cell 1)
 import sys, os
 if 'google.colab' in sys.modules:
-    # 1. Clone repository to access init.py, data, and images
     if not os.path.exists('dl_course'):
-        !git clone https://github.com/konstantin-schekotihin/dl_course.git
-    
-    # 2. Change working directory into the module folder so %run ../init.py works
-    # Example for 01_Introduction notebooks (adjust folder name accordingly):
-    %cd /content/dl_course/01_Introduction
-    
-    # 3. Install packages not pre-installed on Colab
+        !git clone -q --depth 1 https://github.com/konstantin-schekotihin/dl_course.git
+    %cd -q /content/dl_course/01_Introduction
     !pip install -q torch-geometric wandb
+
+%run ../init.py
+%matplotlib inline
 ```
 
 ---
