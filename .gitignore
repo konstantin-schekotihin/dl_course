@@ -1,0 +1,86 @@
+# --- Python & Virtual Environments ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Environment Variables & Secrets ---
+.env
+.env.*
+*.env
+.netrc
+*.key
+*.pem
+*.cert
+*.crt
+*.pfx
+*.p12
+
+# --- Jupyter Notebooks & Checkpoints ---
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+.jupyter/
+
+# --- Experiment Tracking & Log Files ---
+wandb/
+**/wandb/
+*.wandb
+runs/
+**/runs/
+lightning_logs/
+*.log
+
+# --- OS Specific Files ---
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+# Linux
+*~
+
+# --- IDEs & Editors ---
+.vscode/
+*.code-workspace
+.idea/
+*.sublime-project
+*.sublime-workspace
+.project
+.pydevproject
+.settings/
+
+# --- Data Caches ---
+nltk_data/
+.cache/

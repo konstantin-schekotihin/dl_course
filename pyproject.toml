@@ -1,0 +1,33 @@
+[project]
+name = "ml-dl-course"
+version = "0.1.0"
+description = "Jupyter Notebooks and Slides for AI and Deep Learning Course"
+readme = "README.md"
+requires-python = ">=3.10, <3.13"
+dependencies = [
+    "torch>=2.2.0",
+    "torchvision>=0.17.0",
+    "torch-geometric>=2.5.0",
+    "tensorboard>=2.16.0",
+    "numpy>=1.24.0",
+    "scipy>=1.11.0",
+    "pandas>=2.0.0",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.13.0",
+    "scikit-learn>=1.3.0",
+    "imbalanced-learn>=0.12.0",
+    "statsmodels>=0.14.0",
+    "networkx>=3.1",
+    "nltk>=3.8.1",
+    "pillow>=10.0.0",
+    "wandb>=0.16.0",
+    "sortedcontainers>=2.4.0",
+    "ipywidgets>=8.1.0",
+    "ipykernel>=6.29.0",
+    "jupyterlab>=4.1.0",
+    "notebook>=7.1.0",
+    "jupyterlab-rise>=0.42.0",
+]
+
+[tool.uv]
+package = false
