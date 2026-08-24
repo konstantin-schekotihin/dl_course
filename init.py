@@ -98,13 +98,13 @@ if not _css_loaded:
 
 # Course LaTeX macros
 display(Latex("""$$
-\\newcommand{\\rvar}[1]{\\mathrm{#1}}
-\\newcommand{\\rvec}[1]{\\mathbf{#1}}
-\\newcommand{\\vec}[1]{\\boldsymbol{#1}}
-\\newcommand{\\tens}[1]{\\boldsymbol{\\mathsf{#1}}}
-\\newcommand{\\tensel}[1]{\\mathsf{#1}}
-\\newcommand{\\st}[1]{\\mathcal{#1}}
-\\newcommand{\\diag}[1]{\\mathrm{diag}(\\vec{#1})}
+\\def\\rvar#1{\\mathrm{#1}}
+\\def\\rvec#1{\\mathbf{#1}}
+\\def\\vec#1{\\boldsymbol{#1}}
+\\def\\tens#1{\\boldsymbol{\\mathsf{#1}}}
+\\def\\tensel#1{\\mathsf{#1}}
+\\def\\st#1{\\mathcal{#1}}
+\\def\\diag#1{\\mathrm{diag}(\\vec{#1})}
 $$"""))
 
 # Colab-specific setup (quietly fetch NLTK data if in Colab environment)
