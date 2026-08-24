@@ -2,7 +2,7 @@
 
 Interactive lecture slides and laboratory notebooks for an AI, Machine Learning, and Deep Learning course.
 
-- **Repository**: [https://github.com/kschekotihin/DL_course.git](https://github.com/kschekotihin/DL_course.git)
+- **Repository**: [https://github.com/konstantin-schekotihin/dl_course.git](https://github.com/konstantin-schekotihin/dl_course.git)
 
 ---
 
@@ -39,8 +39,8 @@ Clone the repository and run `uv sync`:
 
 ```bash
 # Clone the repository
-git clone https://github.com/kschekotihin/DL_course.git
-cd DL_course
+git clone https://github.com/konstantin-schekotihin/dl_course.git
+cd dl_course
 
 # Install dependencies and create .venv
 uv sync
@@ -66,7 +66,7 @@ uv run jupyter notebook
 
 ### 4. Using with VS Code / Cursor / PyCharm
 
-- Open the cloned `DL_course` folder in VS Code, Cursor, or PyCharm.
+- Open the cloned `dl_course` folder in VS Code, Cursor, or PyCharm.
 - When opening any `.ipynb` notebook, click on the **Kernel / Python Environment** selector in the top right.
 - Select the Python interpreter located inside `.venv/bin/python` (macOS/Linux) or `.venv\Scripts\python.exe` (Windows).
 
@@ -109,10 +109,10 @@ Because the repository is hosted on GitHub, you can open any notebook directly i
 
 1. Open [Google Colab](https://colab.research.google.com/).
 2. Select **File > Open notebook** and choose the **GitHub** tab.
-3. Enter `kschekotihin/DL_course` (or paste `https://github.com/kschekotihin/DL_course`).
+3. Enter `konstantin-schekotihin/dl_course` (or paste `https://github.com/konstantin-schekotihin/dl_course`).
 4. Select any `.ipynb` notebook from the course to open it immediately.
 
-*(Alternatively, construct a direct link: `https://colab.research.google.com/github/kschekotihin/DL_course/blob/master/<module>/<notebook>.ipynb`)*
+*(Alternatively, construct a direct link: `https://colab.research.google.com/github/konstantin-schekotihin/dl_course/blob/master/<module>/<notebook>.ipynb`)*
 
 ### 2. Colab Setup Cell (In-Notebook)
 
@@ -123,12 +123,12 @@ When running on Colab, add and execute this bootstrap cell at the top of the not
 import sys, os
 if 'google.colab' in sys.modules:
     # 1. Clone repository to access init.py, data, and images
-    if not os.path.exists('DL_course'):
-        !git clone https://github.com/kschekotihin/DL_course.git
+    if not os.path.exists('dl_course'):
+        !git clone https://github.com/konstantin-schekotihin/dl_course.git
     
     # 2. Change working directory into the module folder so %run ../init.py works
     # Example for 01_Introduction notebooks (adjust folder name accordingly):
-    %cd /content/DL_course/01_Introduction
+    %cd /content/dl_course/01_Introduction
     
     # 3. Install packages not pre-installed on Colab
     !pip install -q torch-geometric wandb
