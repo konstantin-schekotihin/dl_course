@@ -105,12 +105,25 @@ display(Latex("""$$
 \\newcommand{\\st}[1]{\\mathcal{#1}}
 \\newcommand{\\diag}[1]{\\mathrm{diag}(\\vec{#1})}
 $$"""))
-# Colab-specific setup (quietly fetch NLTK data if in Colab environment)
+# Colab-specific setup (quietly fetch NLTK data & bridge Colab userdata secrets)
 if 'google.colab' in sys.modules:
     try:
         import nltk
         nltk.download('wordnet', quiet=True)
         nltk.download('omw-1.4', quiet=True)
+    except Exception:
+        pass
+
+    try:
+        from google.colab import userdata
+        if 'WANDB_API_KEY' not in os.environ:
+            wandb_key = userdata.get('WANDB_API_KEY')
+            if wandb_key:
+                os.environ['WANDB_API_KEY'] = wandb_key
+        if 'HF_TOKEN' not in os.environ:
+            hf_token = userdata.get('HF_TOKEN')
+            if hf_token:
+                os.environ['HF_TOKEN'] = hf_token
     except Exception:
         pass
 
