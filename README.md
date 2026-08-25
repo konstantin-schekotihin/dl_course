@@ -123,19 +123,6 @@ We provide an interactive **`colab_setup.ipynb`** notebook to automate the entir
 
 ---
 
-### Colab Suitability Summary
-
-| Feature / Requirement | Local (`uv`) | Google Colab | Colab Notes |
-|---|---|---|---|
-| **PyTorch & Torchvision** | Pre-configured in `.venv` | Pre-installed | Native GPU acceleration available (T4 / A100) |
-| **PyTorch Geometric (PyG)** | Installed via `uv sync` | `!pip install torch-geometric` | Needed for `03_DL/06-Graphs.ipynb` |
-| **Scikit-Learn, SciPy, Pandas** | Installed via `uv sync` | Pre-installed | Fully compatible |
-| **`init.py` & Custom CSS** | Loaded via `%run ../init.py` | Auto-fallback | `init.py` handles missing paths & injects CSS inline |
-| **Datasets & Local Images** | Available locally | Available after clone | Clone repo to access `data/` and `images/` |
-| **Slideshow Presentation** | Full interactive RISE | Focus / Presentation View | Colab offers section folding and presentation view |
-
----
-
 ## 🛠️ Maintenance & Dependency Updates
 
 To add new dependencies or update existing ones:
