@@ -101,37 +101,25 @@ All lecture notebooks are equipped with Reveal.js / RISE slide metadata:
 
 ---
 
-## ☁️ Google Colab Compatibility & Usage
+## ☁️ Google Colab Usage & Drive Setup
 
-Because the repository is hosted on GitHub, you can open any notebook directly in Google Colab with native 1-click integration:
+Students can run and edit all notebooks directly in Google Colab with free GPU acceleration (NVIDIA T4 / A100).
 
-### 1. Open Directly via Colab's GitHub Tab
+### 🚀 1-Click Setup Utility (`colab_setup.ipynb`)
 
-1. Open [Google Colab](https://colab.research.google.com/).
-2. Select **File > Open notebook** and choose the **GitHub** tab.
-3. Enter `konstantin-schekotihin/dl_course` (or paste `https://github.com/konstantin-schekotihin/dl_course`).
-4. Select any `.ipynb` notebook from the course to open it immediately.
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/konstantin-schekotihin/dl_course/blob/master/colab_setup.ipynb)
 
-*(Alternatively, construct a direct link: `https://colab.research.google.com/github/konstantin-schekotihin/dl_course/blob/master/<module>/<notebook>.ipynb`)*
+We provide an interactive **`colab_setup.ipynb`** notebook to automate the entire Google Drive workflow:
+1. **One-Time Clone to Google Drive:** Mounts your Google Drive and clones `dl_course` so your work, exercise solutions, and model weights (`.pth`) are saved permanently.
+2. **Automatic Syncing:** Re-running `colab_setup.ipynb` pulls the latest lecture slides, datasets, and updates from GitHub (`git pull --autostash`).
+3. **Hardware & GPU Verification:** Checks PyTorch version, CUDA availability, and installed packages.
 
-### 2. Automatic Colab Setup (Pre-configured)
+---
 
-All course notebooks already include automatic Colab bootstrap logic in their very first cell:
-- **On Google Colab:** It automatically clones the course repository in the background, sets the module working directory, and installs any missing packages (`torch-geometric`, `wandb`).
-- **On Local Jupyter / VS Code:** The Colab check is automatically skipped and executes standard `%run ../init.py` without network calls.
+### Opening Lecture Notebooks in Colab
 
-```python
-# Setup for Google Colab (pre-configured in cell 1)
-import sys, os
-if 'google.colab' in sys.modules:
-    if not os.path.exists('dl_course'):
-        !git clone -q --depth 1 https://github.com/konstantin-schekotihin/dl_course.git
-    %cd -q /content/dl_course/01_Introduction
-    !pip install -q torch-geometric wandb
-
-%run ../init.py
-%matplotlib inline
-```
+- **From Google Drive (Recommended):** After running `colab_setup.ipynb`, open [Google Drive](https://drive.google.com/), navigate to `MyDrive/dl_course/`, right-click any `.ipynb` notebook $\rightarrow$ **Open with $\rightarrow$ Google Colaboratory**.
+- **Directly from GitHub:** In [Google Colab](https://colab.research.google.com/), go to **File $\rightarrow$ Open notebook $\rightarrow$ GitHub** tab, search `konstantin-schekotihin/dl_course`, and select any notebook.
 
 ---
 
