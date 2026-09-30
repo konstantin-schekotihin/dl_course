@@ -53,7 +53,7 @@ wandb/
 runs/
 **/runs/
 lightning_logs/
-# --- Generated HTML & Log Files ---
+# --- HTML & Log Files ---
 *.html
 !custom.html
 *.log
@@ -75,9 +75,16 @@ $RECYCLE.BIN/
 # Linux
 *~
 
-# --- IDEs & Local Agent Config ---
+# --- IDEs Config ---
 .agents/
 .agent/
+.claude/
+AGENTS.md
+/scripts/
+/scratch/
+*.ses
+:memory:.ses
+**/review.md
 .vscode/
 *.code-workspace
 .idea/
@@ -90,3 +97,4 @@ $RECYCLE.BIN/
 # --- Data Caches ---
 nltk_data/
 .cache/
+literature/

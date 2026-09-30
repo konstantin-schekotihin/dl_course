@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 420" width="100%" height="100%" style="background: transparent; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <style>
+      .phase-box { rx: 12px; ry: 12px; stroke-width: 2px; }
+      .phase-title { font-size: 15px; font-weight: bold; fill: #1a202c; text-anchor: middle; }
+      .phase-desc { font-size: 11.5px; fill: #4a5568; text-anchor: middle; }
+      .arrow { stroke: #4a5568; stroke-width: 2.5; fill: none; marker-end: url(#arrowhead); }
+      .loop-arrow { stroke: #e53e3e; stroke-width: 2.5; stroke-dasharray: 6,4; fill: none; marker-end: url(#arrowhead-red); }
+      .loop-text { font-size: 12px; font-weight: bold; fill: #c53030; text-anchor: middle; }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4a5568" />
+    </marker>
+    <marker id="arrowhead-red" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#e53e3e" />
+    </marker>
+  </defs>
+
+  <!-- Title & Context -->
+  <text x="460" y="32" font-size="18" font-weight="bold" fill="#2b6cb0" text-anchor="middle">CRISP-ML(Q) Process Model: The Continuous MLOps Lifecycle</text>
+  <text x="460" y="52" font-size="12" fill="#718096" text-anchor="middle">Cross-Industry Standard Process for Machine Learning with Quality Assurance (ml-ops.org)</text>
+
+  <!-- Top Row (Phases 1, 2, 3) -->
+  <!-- Phase 1: Business & Data Understanding -->
+  <g transform="translate(40, 80)">
+    <rect class="phase-box" width="240" height="100" fill="#ebf8ff" stroke="#3182ce" />
+    <text x="120" y="30" class="phase-title">1. Business &amp; Data Scope</text>
+    <text x="120" y="52" class="phase-desc">• KPIs &amp; Non-ML Baseline</text>
+    <text x="120" y="70" class="phase-desc">• Feasibility &amp; ML Canvas</text>
+    <text x="120" y="88" class="phase-desc">• Requirements &amp; Constraints</text>
+  </g>
+
+  <!-- Arrow 1 -> 2 -->
+  <path d="M 280 130 L 330 130" class="arrow" />
+
+  <!-- Phase 2: Data Engineering -->
+  <g transform="translate(340, 80)">
+    <rect class="phase-box" width="240" height="100" fill="#e6fffa" stroke="#319795" />
+    <text x="120" y="30" class="phase-title">2. Data Engineering</text>
+    <text x="120" y="52" class="phase-desc">• Ingestion &amp; Exploration</text>
+    <text x="120" y="70" class="phase-desc">• Cleaning &amp; Imputation</text>
+    <text x="120" y="88" class="phase-desc">• Data Versioning (DVC)</text>
+  </g>
+
+  <!-- Arrow 2 -> 3 -->
+  <path d="M 580 130 L 630 130" class="arrow" />
+
+  <!-- Phase 3: Model Engineering -->
+  <g transform="translate(640, 80)">
+    <rect class="phase-box" width="240" height="100" fill="#faf5ff" stroke="#805ad5" />
+    <text x="120" y="30" class="phase-title">3. Model Engineering</text>
+    <text x="120" y="52" class="phase-desc">• Algorithm Selection &amp; Bias</text>
+    <text x="120" y="70" class="phase-desc">• Model Training &amp; Tuning</text>
+    <text x="120" y="88" class="phase-desc">• Packaging (ONNX, Containers)</text>
+  </g>
+
+  <!-- Transition Arrow Down: 3 -> 4 -->
+  <path d="M 760 180 L 760 230" class="arrow" />
+
+  <!-- Bottom Row (Phases 6, 5, 4 reversed for circular flow) -->
+  <!-- Phase 6: Monitoring & Maintenance -->
+  <g transform="translate(40, 240)">
+    <rect class="phase-box" width="240" height="100" fill="#fffaf0" stroke="#dd6b20" />
+    <text x="120" y="30" class="phase-title">6. Monitor &amp; Maintain</text>
+    <text x="120" y="52" class="phase-desc">• Data Drift: P(X) Shift</text>
+    <text x="120" y="70" class="phase-desc">• Concept Drift: P(Y|X) Shift</text>
+    <text x="120" y="88" class="phase-desc">• Performance &amp; Alert Logging</text>
+  </g>
+
+  <!-- Arrow 5 -> 6 -->
+  <path d="M 340 290 L 290 290" class="arrow" />
+
+  <!-- Phase 5: Deployment -->
+  <g transform="translate(340, 240)">
+    <rect class="phase-box" width="240" height="100" fill="#f0fff4" stroke="#38a169" />
+    <text x="120" y="30" class="phase-title">5. Deployment &amp; Serving</text>
+    <text x="120" y="52" class="phase-desc">• Serving: REST / Batch / Edge</text>
+    <text x="120" y="70" class="phase-desc">• Canary &amp; Shadow Rollout</text>
+    <text x="120" y="88" class="phase-desc">• CI/CD Automation</text>
+  </g>
+
+  <!-- Arrow 4 -> 5 -->
+  <path d="M 640 290 L 590 290" class="arrow" />
+
+  <!-- Phase 4: Quality Assurance -->
+  <g transform="translate(640, 240)">
+    <rect class="phase-box" width="240" height="100" fill="#fff5f5" stroke="#e53e3e" />
+    <text x="120" y="30" class="phase-title">4. Quality Assurance</text>
+    <text x="120" y="52" class="phase-desc">• Confusion Matrix &amp; ROC/AUC</text>
+    <text x="120" y="70" class="phase-desc">• S-fold Cross-Validation</text>
+    <text x="120" y="88" class="phase-desc">• Robustness &amp; Fairness</text>
+  </g>
+
+  <!-- Continuous Training (CT) Red Feedback Loop: 6 -> 2/3 -->
+  <path d="M 160 240 C 160 200, 160 190, 330 190" class="loop-arrow" />
+  <rect x="150" y="195" width="240" height="24" rx="6" ry="6" fill="#fff5f5" stroke="#feb2b2" />
+  <text x="270" y="212" class="loop-text">Continuous Training (CT) Trigger</text>
+
+  <!-- Traditional Software vs MLOps Footer Note -->
+  <text x="460" y="380" font-size="13" font-weight="bold" fill="#2d3748" text-anchor="middle">The Three Pillars of ML-Powered Software: Code + Data + Model</text>
+  <text x="460" y="400" font-size="11.5" fill="#718096" text-anchor="middle">Traditional CI/CD deploys Code. MLOps governs CI (Code/Data), CD (Model/Service), CT (Retraining), and CM (Monitoring).</text>
+</svg>
+
