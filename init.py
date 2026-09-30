@@ -95,16 +95,6 @@ if not _css_loaded:
 }
 </style>
 """))
-# Legacy course LaTeX macros (maintained for backwards compatibility with unconverted notebooks)
-display(Latex("""$$
-\\newcommand{\\rvar}[1]{#1}
-\\newcommand{\\rvec}[1]{\\mathbf{#1}}
-\\newcommand{\\vec}[1]{\\mathbf{#1}}
-\\newcommand{\\tens}[1]{\\mathbf{#1}}
-\\newcommand{\\tensel}[1]{#1}
-\\newcommand{\\st}[1]{\\mathcal{#1}}
-\\newcommand{\\diag}[1]{\\mathrm{diag}(\\mathbf{#1})}
-$$"""))
 # Colab-specific setup (quietly fetch NLTK data & bridge Colab userdata secrets)
 if 'google.colab' in sys.modules:
     try:
