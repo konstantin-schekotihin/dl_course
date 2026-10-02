@@ -55,6 +55,9 @@ c. *(extension)* Name one practical fix for the above condition and explain why.
 
 In the `linear_regression.ipynb` notebook, you will find two practical exercises. **Complete them both.**
 
+Submit your answers to the worded and analytical questions in a pdf file, along with the completed `linear_regression.ipynb` notebook.
+Additionally, submit the two `.npy` files containing the predictions and the MSE.
+
 
 
 \* denotes exam-level questions
