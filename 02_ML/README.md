@@ -1,9 +1,10 @@
-# 🤖 AI and Machine Learning Course
+# 🤖 AI and Machine Learning Course (Module 02_ML)
 
 Welcome to the **AI and Machine Learning** course module. This course is designed to develop practical analytical skills:
 - Formulating real-world learning tasks $(T, P, E)$.
 - Selecting appropriate machine learning algorithms based on problem characteristics.
-- Rigorously training, tuning, and evaluating models.
+- Rigorously training, tuning, and evaluating models with leak-free pipelines.
+- Tracking experiments with Weights & Biases (W&B).
 - Interpreting results to make informed domain decisions.
 
 ---
@@ -57,14 +58,16 @@ uv run jupyter lab 02_ML/
 
 ## 📂 Curriculum Progression
 
-1. **`00_introduction.ipynb`**: Machine Learning Foundations, Learning Tasks $(T, P, E)$, MLOps, Validation Strategy.
-2. **`01_classifiers-kNN.ipynb`**: Instance-Based Classification, Distance Metrics, Feature Scaling, Grid Search *(Semester Project Baseline Template)*.
-3. **`02_regression.ipynb`**: Continuous Prediction, Parameters $\mathbf{w}$, Design Matrix $\mathbf{X}$, OLS, Residuals, $R^2$, MSE, Overfitting.
-4. **`03_logistic_regression.ipynb`**: Single Artificial Neuron, The Sigmoid Bridge $\sigma(\mathbf{w}^\mathrm{T}\mathbf{x} + w_0)$, Decision Boundaries, ROC-AUC.
-5. **`04_NN.ipynb`**: Multi-Layer Perceptrons (MLP), Stacking Linear Layers with Non-Linear Activations, Scikit-Learn Pipelines.
-6. **`05_classifiers-NB.ipynb`**: Probabilistic Generative Models, Bayes' Theorem, Priors, Conditional Independence, Text Classification.
+1. **`00_introduction.ipynb`**: AI and Machine Learning Foundations, Learning Tasks $(T, P, E)$, MLOps, Validation Strategy.
+2. **`01_classifiers-kNN.ipynb`**: Instance-Based Classification, Distance Metrics, Feature Scaling, Grid Search, W&B Tracking *(Semester Project Baseline Template)*.
+3. **`02_regression.ipynb`**: Continuous Prediction, Parameters $\mathbf{w}$, Design Matrix $\mathbf{X}$, OLS, Residuals, $R^2$, MSE, Regularization (Ridge/Lasso).
+4. **`03_logistic_regression.ipynb`**: Single Artificial Neuron, The Sigmoid Bridge $\sigma(\mathbf{w}^\mathrm{T}\mathbf{x} + w_0)$, Decision Boundaries, Imbalance, ROC-AUC.
+5. **`04_NN.ipynb`**: Multi-Layer Perceptrons (MLP), Stacking Linear Layers with Non-Linear Activations, Loss Curves, Scikit-Learn Pipelines.
+6. **`05_ensembles.ipynb`**: Tree Ensembles: Decision Tree Induction & Pruning (AI 2 refresh), Bagging, Random Forests, Boosting (AdaBoost, Gradient Boosting), W&B Logging.
 7. **`06_SVM.ipynb`**: Geometric Margin Maximization, Support Vectors, Soft Margin $C$, Non-Linear Kernels (RBF).
 8. **`07_unsupervised.ipynb`**: Unsupervised Structure Discovery without Labels, $k$-Means, Hierarchical Clustering, PCA.
+9. **`08_classifiers-NB.ipynb`**: Probabilistic Generative Models, Bayes' Theorem, Priors, Conditional Independence, Laplace Smoothing, Text & Categorical Classification.
+10. **`09_ml_agents.ipynb`** *(Optional)*: AI Coding Agents in Applied ML, Leak-Free Pipelines, Defensio Readiness.
 
 ---
 

@@ -1,5 +1,5 @@
 """
-Self-contained helper utilities for Module 02_ML (Applied Machine Learning).
+Self-contained helper utilities for Module 02_ML (AI and Machine Learning).
 Provides standalone plotting and data helpers decoupled from 03_DL.
 """
 
