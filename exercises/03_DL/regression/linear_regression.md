@@ -1,4 +1,4 @@
-# Exercise Set 1 - Regression Draft
+# Exercise Set 1 - Linear Regression Draft
 
 > **complete all**
 
@@ -18,7 +18,7 @@ What tasks would you solve with linear regression? When would it not be suitable
 
 **Question 1**
 
-You are investigating the relationship between aging and the amount of exercise people do. You take a survey of 10 people at a local park and record their age and the amount of hours they exercise for per week. The results are as follows:
+You are investigating the relationship between age and the amount of exercise people do. You take a survey of 10 people at a local park and record their age and the amount of hours they exercise for per week. The results are as follows:
 
 | Age | Hours of Exercise Per Week |
 | --- | -------------------------- |
@@ -52,6 +52,8 @@ c. *(extension)* Name one practical fix for the above condition and explain why.
 
 
 ## Practical Exercises
+
+In the `linear_regression.ipynb` notebook, you will find two practical exercises. **Complete them both.**
 
 
 
