@@ -23,14 +23,19 @@ for _sub in ['', '01_Introduction', '02_ML', '03_DL', '04_RL']:
         sys.path.append(_p)
 
 # Global styling configuration
-sns.set(style="whitegrid", palette="deep")
-plt.rc('figure', figsize = (10,10))
-plt.rc('font', size=16)
-plt.rc('figure', titlesize=20)
-plt.rc('axes', labelsize=16)
-plt.rc('ytick', labelsize=14)
-plt.rc('xtick', labelsize=14)
-plt.rc('legend', fontsize=14)
+sns.set_theme(
+    style="whitegrid",
+    palette="deep",
+    rc={
+        'figure.figsize': (10, 10),
+        'font.size': 16,
+        'figure.titlesize': 20,
+        'axes.labelsize': 16,
+        'ytick.labelsize': 14,
+        'xtick.labelsize': 14,
+        'legend.fontsize': 14,
+    }
+)
 
 # Load custom CSS styles (supports local relative paths, repo root, rise.css, and inline fallback for Colab)
 _custom_css_paths = [
@@ -95,16 +100,6 @@ if not _css_loaded:
 }
 </style>
 """))
-# Course LaTeX macros
-display(Latex("""$$
-\\newcommand{\\rvar}[1]{\\mathrm{#1}}
-\\newcommand{\\rvec}[1]{\\mathbf{#1}}
-\\newcommand{\\vec}[1]{\\pmb{#1}}
-\\newcommand{\\tens}[1]{\\pmb{\\mathsf{#1}}}
-\\newcommand{\\tensel}[1]{\\mathsf{#1}}
-\\newcommand{\\st}[1]{\\mathcal{#1}}
-\\newcommand{\\diag}[1]{\\mathrm{diag}(\\vec{#1})}
-$$"""))
 # Colab-specific setup (quietly fetch NLTK data & bridge Colab userdata secrets)
 if 'google.colab' in sys.modules:
     try:
