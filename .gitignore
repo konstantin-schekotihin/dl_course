@@ -98,3 +98,7 @@ AGENTS.md
 nltk_data/
 .cache/
 literature/
+
+# --- Output Files ---
+/exercises/03_DL/linear_regression/linear_regression_predictions.npy
+/exercises/03_DL/linear_regression/linear_regression_mse.npy
