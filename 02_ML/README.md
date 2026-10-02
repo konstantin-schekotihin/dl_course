@@ -1,6 +1,6 @@
-# 🤖 AI and Machine Learning Course (Module 02_ML)
+# 🤖 AI and Machine Learning Course
 
-Welcome to the **AI and Machine Learning** course module. This course is designed to develop practical analytical skills:
+Welcome to the **AI and Machine Learning** course. This course is designed to develop practical analytical skills:
 - Formulating real-world learning tasks $(T, P, E)$.
 - Selecting appropriate machine learning algorithms based on problem characteristics.
 - Rigorously training, tuning, and evaluating models with leak-free pipelines.
