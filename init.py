@@ -10,17 +10,38 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import sys, os
 
-# Resolve repository root and ensure course modules are in sys.path
+# Resolve repository root dynamically by walking upwards until pyproject.toml is found
 _current_dir = os.path.abspath(os.path.dirname(__file__)) if '__file__' in globals() else os.getcwd()
 _repo_root = _current_dir
-# If current_dir is a module subdirectory (e.g. 01_Introduction), repo root is its parent
-if os.path.basename(_current_dir) in ['01_Introduction', '02_ML', '03_DL', '04_RL']:
-    _repo_root = os.path.dirname(_current_dir)
+while _repo_root != os.path.dirname(_repo_root):
+    if os.path.exists(os.path.join(_repo_root, 'pyproject.toml')):
+        break
+    _repo_root = os.path.dirname(_repo_root)
 
-for _sub in ['', '01_Introduction', '02_ML', '03_DL', '04_RL']:
+# Register course modules and shared packages in sys.path
+for _sub in [
+    '',
+    os.path.join('ML-DL', '01_foundations'),
+    os.path.join('ML-DL', '02_deep_learning'),
+    'AI-ML',
+    os.path.join('Extended', '01_reinforcement_learning'),
+    'shared',
+]:
     _p = os.path.abspath(os.path.join(_repo_root, _sub))
     if _p not in sys.path:
         sys.path.append(_p)
+
+# Canonical asset directories and remote base URLs
+DATA_DIR = os.path.join(_repo_root, "shared", "data")
+IMAGES_DIR = os.path.join(_repo_root, "shared", "images")
+DATA_BASE_URL = os.environ.get(
+    "COURSE_DATA_URL",
+    "https://raw.githubusercontent.com/konstantin-schekotihin/dl_course/master/shared/data"
+)
+IMAGE_BASE_URL = os.environ.get(
+    "COURSE_IMAGE_URL",
+    "https://raw.githubusercontent.com/konstantin-schekotihin/dl_course/master/shared/images"
+)
 
 # Global styling configuration
 sns.set_theme(
@@ -37,11 +58,15 @@ sns.set_theme(
     }
 )
 
-# Load custom CSS styles (supports local relative paths, repo root, rise.css, and inline fallback for Colab)
+# Load custom CSS styles (supports shared/styles, local relative paths, repo root, and inline fallback for Colab)
 _custom_css_paths = [
+    os.path.join(_repo_root, 'shared', 'styles', 'rise.css'),
+    os.path.join(_repo_root, 'shared', 'styles', 'custom.html'),
     './rise.css',
     '../rise.css',
+    '../../rise.css',
     '../custom.html',
+    '../../custom.html',
     './custom.html',
     os.path.join(_current_dir, 'rise.css'),
     os.path.join(_repo_root, 'rise.css'),
