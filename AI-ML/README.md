@@ -66,8 +66,8 @@ uv run jupyter lab AI-ML/
 6. **`05_ensembles.ipynb`**: Tree Ensembles: Decision Tree Induction & Pruning (AI 2 refresh), Bagging, Random Forests, Boosting (AdaBoost, Gradient Boosting), W&B Logging.
 7. **`06_SVM.ipynb`**: Geometric Margin Maximization, Support Vectors, Soft Margin $C$, Non-Linear Kernels (RBF).
 8. **`07_unsupervised.ipynb`**: Unsupervised Structure Discovery without Labels, $k$-Means, Hierarchical Clustering, PCA.
-9. **`08_classifiers-NB.ipynb`**: Probabilistic Generative Models, Bayes' Theorem, Priors, Conditional Independence, Laplace Smoothing, Text & Categorical Classification.
-10. **`09_ml_agents.ipynb`** *(Optional)*: AI Coding Agents in Applied ML, Leak-Free Pipelines, Defensio Readiness.
+9. **`08_ml_agents.ipynb`**: AI Coding Agents in Applied ML: Specification-Driven Engineering, $(T, P, E)$ Invariants, TDD, Modular Architectures, W&B Tracking, Defensio Readiness.
+10. **`aux1_BN.ipynb`** *(Auxiliary)*: Probabilistic Generative Models, Bayes' Theorem, Priors, Conditional Independence, Laplace Smoothing, Text & Categorical Classification.
 
 ---
 

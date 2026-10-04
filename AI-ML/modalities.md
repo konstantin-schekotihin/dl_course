@@ -78,7 +78,7 @@ Students are permitted to utilize modern AI coding assistants (e.g., **Antigravi
      - **Data Leakage**: Preprocessing (e.g. `StandardScaler`, `SimpleImputer`) fitted before train/test splitting.
      - **Metric Mismatches**: Optimizing raw accuracy on severely imbalanced datasets instead of ROC-AUC or $F_1$-score.
      - **Hallucinated Parameters**: Using deprecated or fictitious scikit-learn hyperparameters.
-   - *Course Reference*: Consult the optional lecture **`09_ml_agents.ipynb`** for the *5-Point Defensio Readiness Checklist*.
+   - *Course Reference*: Consult Lecture **`08_ml_agents.ipynb`** for the Specification-Driven Agent Engineering methodology and the *5-Point Defensio Readiness Checklist*.
 
 ---
 

@@ -94,7 +94,12 @@ AGENTS.md
 .pydevproject
 .settings/
 
-# --- Data Caches ---
+# --- Data Caches & Downloaded Datasets ---
 nltk_data/
 .cache/
 literature/
+shared/data/MNIST/
+shared/data/cifar*
+**/MNIST/
+**/cifar*
+**/data/
