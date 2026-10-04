@@ -3,12 +3,70 @@ Self-contained helper utilities for the AI and Machine Learning course.
 Provides standalone plotting and data helpers decoupled from 03_DL.
 """
 
+import os
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 import numpy as np
 import scipy.stats as stats
 import seaborn as sns
 import sklearn.metrics as metrics
 import torch
+
+DATA_BASE_URL = os.environ.get(
+    "COURSE_DATA_URL",
+    "https://raw.githubusercontent.com/konstantin-schekotihin/dl_course/master/shared/data"
+)
+
+def get_data_path(filename):
+    """Resolve local dataset path with fallback to remote course repository for Colab."""
+    local_paths = [
+        os.path.join("../../shared/data", filename),
+        os.path.join("../shared/data", filename),
+        os.path.join("shared/data", filename),
+        os.path.join("data", filename),
+        filename
+    ]
+    for p in local_paths:
+        if os.path.exists(p):
+            return p
+    return f"{DATA_BASE_URL}/{filename}"
+
+def setup_theme():
+    """Apply unified course-standard Seaborn plotting aesthetics."""
+    sns.set_theme(
+        style="whitegrid",
+        palette="deep",
+        rc={
+            "figure.figsize": (8, 6),
+            "font.size": 14,
+            "axes.labelsize": 14,
+            "xtick.labelsize": 12,
+            "ytick.labelsize": 12,
+        }
+    )
+
+# Automatically configure unified course theme on import
+setup_theme()
+
+cm_binary = ListedColormap(['green', 'blue'])
+
+def get_boundaries(X):
+    """Compute 2D coordinate plot boundaries with padding."""
+    X_arr = np.asarray(X)
+    xlim = (float(np.min(X_arr[:, 0] - 1)), float(np.max(X_arr[:, 0] + 1)))
+    ylim = (float(np.min(X_arr[:, 1] - 1)), float(np.max(X_arr[:, 1] + 1)))
+    return xlim, ylim
+
+def plot_knn_intuition(iris, show=False):
+    """Render kNN neighborhood decision radius illustration."""
+    plt.figure(figsize=(8, 8))
+    ax = sns.scatterplot(x=iris.sepal_length, y=iris.petal_length, hue=iris.species)
+    ax.set_xlim(0, 8)
+    ax.set_ylim(0, 8)
+    if show:
+        plt.scatter(x=5.5, y=4.7, color='m')
+        ax.add_artist(plt.Circle((5.5, 4.7), radius=0.3, color='m', alpha=0.3))
+    plt.show()
 
 
 def annotate(x, y, **kws):
@@ -21,21 +79,78 @@ def annotate(x, y, **kws):
 
 def plot_residuals(f, pred, resp, show=False):
     """Plot regression line and residuals between predictions and responses."""
-    est = f(pred.reshape(-1, 1))
-    if show:
-        rss = np.sum(np.power(resp - est, 2))
-        tss = np.sum(np.power(resp - np.average(resp), 2))
-        print("TSS = {:.3f} - total sum of squares - squared error of an average predictor".format(tss))
-        print("RSS = {:.3f} - residual sum of squares".format(rss))
-        print("ESS = TSS - RSS =  {:.3f} - {:.3f} = {:.3f} - explained sum of squares".format(tss, rss, tss - rss))
-        print("MSE = {:.3f} - mean squared error".format(rss / est.shape[0]))
-        print("MAE = {:.3f} - mean absolute error".format(np.sum(np.abs(resp - est)) / est.shape[0]))
+    pred_arr = np.asarray(pred).ravel()
+    resp_arr = np.asarray(resp).ravel()
+    if callable(f):
+        try:
+            est_arr = np.asarray(f(pred_arr.reshape(-1, 1))).ravel()
+        except Exception:
+            est_arr = np.asarray(f(pred_arr)).ravel()
+    else:
+        est_arr = np.asarray(f).ravel()
 
-    l = np.linspace(0, 300, num=1000).reshape(-1, 1)
-    plt.figure(figsize=(10, 10))
-    plt.plot([pred, pred], [resp, est], "bo--")
-    plt.plot(pred, est, "ro")
-    plt.plot(l, f(l), "r")
+    if show:
+        rss = np.sum((resp_arr - est_arr) ** 2)
+        tss = np.sum((resp_arr - np.mean(resp_arr)) ** 2)
+        print("TSS = {:.3f} - total sum of squares".format(tss))
+        print("RSS = {:.3f} - residual sum of squares".format(rss))
+        print("ESS = TSS - RSS = {:.3f} - explained sum of squares".format(tss - rss))
+        print("MSE = {:.3f} - mean squared error".format(rss / len(resp_arr)))
+        print("MAE = {:.3f} - mean absolute error".format(np.mean(np.abs(resp_arr - est_arr))))
+
+    l = np.linspace(0, 300, num=1000)
+    plt.figure(figsize=(8, 6))
+    plt.vlines(pred_arr, resp_arr, est_arr, colors="blue", linestyles="dashed", alpha=0.5, label="Residuals")
+    plt.scatter(pred_arr, resp_arr, color="blue", alpha=0.6, label="Observations")
+    plt.scatter(pred_arr, est_arr, color="red", s=25, label="Predictions")
+    try:
+        l_pred = np.asarray(f(l.reshape(-1, 1))).ravel()
+    except Exception:
+        l_pred = np.asarray(f(l)).ravel()
+    plt.plot(l, l_pred, "r-", lw=2, label="Fit")
+    plt.xlabel("TV Budget")
+    plt.ylabel("Sales")
+    plt.legend()
+    plt.show()
+
+
+def plot_linear_fit(X, y, predict_fn):
+    """Plot scatter data and regression predictor curve."""
+    X_arr = np.asarray(X).ravel()
+    y_arr = np.asarray(y).ravel()
+    l = np.linspace(X_arr.min() - 0.5, X_arr.max() + 0.5, num=200).reshape(-1, 1)
+    plt.figure(figsize=(8, 5))
+    plt.scatter(X_arr, y_arr, alpha=0.5, label="Observations")
+    plt.plot(l, predict_fn(l), "r-", lw=2, label="Linear fit")
+    plt.xlabel("Standardized Balance ($x$)")
+    plt.ylabel("Default Class ($y$)")
+    plt.legend()
+    plt.show()
+
+
+def plot_positive_vs_log(l, f_vals, log_vals, is_positive=True):
+    """Plot positive surrogate function f and its monotonic log transform."""
+    plt.figure(figsize=(8, 5))
+    plt.plot(l, f_vals, "b-", lw=2, label=r"$f(x)$")
+    if not is_positive:
+        plt.title("Warning: The function is not strictly positive!")
+    elif log_vals is not None:
+        plt.plot(l, log_vals, "r--", lw=2, label=r"$\ln f(x)$")
+    plt.xlabel("$x$")
+    plt.ylabel("Value")
+    plt.legend()
+    plt.show()
+
+
+def plot_logistic_curve(x_vals, y_vals, w_0, w_1):
+    """Plot logistic sigmoid response curve over standardized feature range."""
+    plt.figure(figsize=(8, 5))
+    plt.plot(x_vals, y_vals, "b-", lw=2, label=r"$\sigma(%.1f + %.1fx)$" % (w_0, w_1))
+    plt.axhline(0.5, color="gray", linestyle="--", label="Decision threshold = 0.5")
+    plt.xlabel("Standardized Balance ($x$)")
+    plt.ylabel("Predicted Probability ($y$)")
+    plt.ylim(-0.05, 1.05)
+    plt.legend()
     plt.show()
 
 
@@ -60,47 +175,13 @@ def plot_binary(predictor, X, y):
     plt.show()
 
 
-def rescale(X, min_val=-1, max_val=1):
-    """
-    Rescale tensor or array into [min_val, max_val].
-    """
-    X_std = (X - X.min()) / (X.max() - X.min())
-    return X_std * (max_val - min_val) + min_val
-
-
-def fn_and(X):
-    """Logical AND for 2D inputs."""
-    return torch.logical_and(X[:, 0], X[:, 1]).float()
-
-
-def fn_or(X):
-    """Logical OR for 2D inputs."""
-    return torch.logical_or(X[:, 0], X[:, 1]).float()
-
-
-def fn_xor(X):
-    """Logical XOR for 2D inputs."""
-    return torch.logical_xor(X[:, 0], X[:, 1]).float()
-
-
-def switch_fn(fn_name):
-    """Return logic function by name."""
-    return {"and": fn_and, "or": fn_or, "xor": fn_xor}.get(fn_name)
-
-
-def plot_knn_results(classifier, train_X, train_y, test_X, test_y, target_names=None, feature_cols=None):
+def plot_knn_results(train_X, train_y, test_X, test_y, pred_y, target_names=None, feature_cols=None):
     """
     Plot dual-subplot evaluation for kNN:
     - Left: Confusion matrix heatmap.
     - Right: 2D scatter plot showing training data and test classification errors (faults).
     """
-    pred_y = classifier.predict(test_X)
     fig, axs = plt.subplots(1, 2, figsize=(15, 6))
-
-    acc = np.sum(pred_y == test_y) / float(len(test_y))
-    print("Accuracy: {:.4f}".format(acc))
-    print("Correctly classified:", np.where(pred_y == test_y)[0])
-    print("Samples incorrectly classified:", np.where(pred_y != test_y)[0])
 
     cm = metrics.confusion_matrix(test_y, pred_y)
     sns.heatmap(cm, cmap="Blues", annot=True, fmt="d", ax=axs[0], annot_kws={"size": 14})
@@ -137,7 +218,6 @@ def plot_knn_results(classifier, train_X, train_y, test_X, test_y, target_names=
                     label="Fault: %s" % target_names[k], ax=axs[1], s=64
                 )
 
-    print("Colors indicate correct classes and markers an error")
     if feature_cols:
         axs[1].set_xlabel(feature_cols[d1] if d1 < len(feature_cols) else "Feature %d" % d1)
         axs[1].set_ylabel(feature_cols[d2] if d2 < len(feature_cols) else "Feature %d" % d2)
