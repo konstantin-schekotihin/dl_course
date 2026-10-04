@@ -7,6 +7,7 @@ import os
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import numpy as np
+import pandas as pd
 import scipy.stats as stats
 import seaborn as sns
 import sklearn.metrics as metrics
@@ -223,6 +224,24 @@ def plot_knn_results(train_X, train_y, test_X, test_y, pred_y, target_names=None
         axs[1].set_ylabel(feature_cols[d2] if d2 < len(feature_cols) else "Feature %d" % d2)
     axs[1].legend(loc="upper left")
     axs[1].set_title("Classification Results")
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_confusion_matrix(y_true, y_pred, labels=None, title="Confusion Matrix"):
+    """
+    Render a styled confusion matrix heatmap from precomputed true and predicted labels.
+    """
+    cm = metrics.confusion_matrix(y_true, y_pred)
+    if labels is None:
+        labels = np.unique(np.concatenate([y_true, y_pred]))
+    plt.figure(figsize=(7, 6))
+    df_cm = pd.DataFrame(cm, columns=labels, index=labels)
+    df_cm.index.name = "Actual"
+    df_cm.columns.name = "Predicted"
+    sns.heatmap(df_cm, cmap="Blues", annot=True, fmt="d", annot_kws={"size": 16})
+    if title:
+        plt.title(title)
     plt.tight_layout()
     plt.show()
 
