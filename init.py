@@ -43,6 +43,16 @@ IMAGE_BASE_URL = os.environ.get(
     "https://raw.githubusercontent.com/konstantin-schekotihin/dl_course/master/shared/images"
 )
 
+# Configure local NLTK data paths
+_venv_nltk = os.path.join(_repo_root, ".venv", "share", "nltk_data")
+if os.path.exists(_venv_nltk):
+    try:
+        import nltk
+        if _venv_nltk not in nltk.data.path:
+            nltk.data.path.insert(0, _venv_nltk)
+    except ImportError:
+        pass
+
 # Global styling configuration
 sns.set_theme(
     style="whitegrid",
