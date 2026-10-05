@@ -6,12 +6,37 @@ Interactive lecture slides and laboratory notebooks for an AI, Machine Learning,
 
 ---
 
-## 📚 Course Structure
+## 📚 Courses & Repository Structure
 
-- **`01_Introduction/`**: Notation, Probability & Information Theory, Linear Algebra, Continuous Functions, Numerical Optimization.
-- **`02_ML/`**: k-NN Classifiers, Naive Bayes, Support Vector Machines (SVM), Linear & Logistic Regression, Neural Networks, Unsupervised Learning.
-- **`03_DL/`**: Artificial Neural Networks (ANN), Deep ANNs & TensorBoard, Convolutional Neural Networks (CNNs) & Architectures, Recurrent Neural Networks (RNN), Transformers & Attention, Graph Neural Networks (GNN via PyTorch Geometric).
-- **`04_RL/`**: Reinforcement Learning (Multi-Armed Bandits).
+This repository hosts interactive lecture slides, laboratory notebooks, and course materials organized into two distinct academic tracks and specialized electives:
+
+### 🎓 1. [ML-DL/](file:///Users/kostya/Documents/Teaching/ML-DL/ML-DL/README.md) — Machine Learning & Deep Learning
+*Target Audience: Master's in Computer Science & Artificial Intelligence.*
+- **`01_foundations/`**: Mathematical Foundations (Bishop & Bishop 2024, Ch 1–3) — Notation, Probability Theory, Information Theory & Entropy, Linear Algebra, Continuous Functions, and MLOps.
+- **`02_deep_learning/`**: Deep Neural Architectures (Bishop & Bishop 2024, Ch 4–13) — Single-layer Networks (ANN), Deep MLPs & TensorBoard, CNNs & Vision Backbones, Recurrent Networks (RNN/LSTM), Transformers & Self-Attention, Graph Neural Networks (GNN via PyG), and Stochastic Numerical Optimization.
+
+### 💼 2. [AI-ML/](file:///Users/kostya/Documents/Teaching/ML-DL/AI-ML/README.md) — AI and Machine Learning
+*Target Audience: Applied AI, Data Science & Management (Non-CS Students).*
+- Complete 10-module applied curriculum structured around the CRISP-DM lifecycle:
+  1. AI Landscape, Paradigms & MLOps
+  2. k-NN & Complete ML Project Lifecycle with Weights & Biases (W&B)
+  3. Simple & Multiple Linear Regression
+  4. Logistic Regression & Classification Diagnostics
+  5. Neural Networks Intuition & Backpropagation
+  6. Decision Tree Ensembles (Bagging, Random Forests, Boosting)
+  7. Support Vector Machines & Kernels
+  8. Unsupervised Learning (Clustering & Dimensionality Reduction)
+  9. Naive Bayes & Text Classification
+  10. AI Coding Agents in Data Science & Machine Learning
+- Includes [AI-ML/modalities.md](file:///Users/kostya/Documents/Teaching/ML-DL/AI-ML/modalities.md) (grading scale, group project, deadlines, and GenAI policy).
+
+### 🔬 3. [Extended/](file:///Users/kostya/Documents/Teaching/ML-DL/Extended/README.md) — Specialized & Advanced Electives
+- **`01_reinforcement_learning/`**: Reinforcement Learning (Multi-Armed Bandits, Exploration vs. Exploitation, $\epsilon$-greedy, UCB, Thompson Sampling).
+
+### 📦 4. `shared/` — Canonical Asset Repository
+- **`shared/data/`**: Centralized datasets (`Advertising.csv`, `Default.csv`, `USArrests.csv`, `breast-cancer.csv`, `MNIST`).
+- **`shared/images/`**: Deduplicated canonical figures and illustrations.
+- **`shared/styles/`**: RISE presentation styles (`rise.css` and `custom.html`).
 
 ---
 
