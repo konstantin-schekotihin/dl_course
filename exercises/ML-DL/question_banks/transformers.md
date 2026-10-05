@@ -1,7 +1,7 @@
 # Question Bank: Transformers
 Here is a collection of questions related to transformers that can be taken for the examples in class, questions for homework or even the exams.
 
-The questions are given a perceived level of difficulty and the corresponding answers are in the `answers_transformers.md` file.
+TODO: The questions are given a perceived level of difficulty and the corresponding answers are in the `answers_transformers.md` file.
 
 **Question 1**: Difficulty (1/10)
 
