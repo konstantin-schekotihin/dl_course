@@ -16,7 +16,29 @@ try:
 except ImportError:
     PYG_AVAILABLE = False
 
+import seaborn as sns
+
 plt_x, plt_y = 8, 8
+
+
+# ---------------------------------------------------------------------------
+# Plotting Aesthetics & Course Theme Configuration
+# ---------------------------------------------------------------------------
+
+def setup_theme():
+    """Configure unified course-standard Seaborn plotting aesthetics."""
+    sns.set_theme(
+        style="whitegrid",
+        palette="deep",
+        rc={
+            "figure.figsize": (8, 4.2),
+            "font.size": 12,
+            "axes.labelsize": 12,
+            "xtick.labelsize": 10,
+            "ytick.labelsize": 10,
+            "legend.fontsize": 10,
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
