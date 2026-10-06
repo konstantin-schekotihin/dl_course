@@ -185,16 +185,26 @@ def plot_residuals(predict, X, y):
     print(f"MSE = {mse:.3f} - mean squared error")
     print(f"MAE = {mae:.3f} - mean absolute error")
 
-    l = torch.linspace(0, 300, 1000).reshape(-1, 1)
-    plt.figure(figsize=(plt_x, plt_y))
-    plt.plot([X_np, X_np], [y_np, est_np], "bo--", alpha=0.5)
-    plt.plot(X_np, est_np, "ro", label="Fitted")
+    X_flat = X_np.ravel()
+    y_flat = y_np.ravel()
+    est_flat = est_np.ravel()
+
+    l = torch.linspace(float(X_flat.min()), float(X_flat.max()), 1000).reshape(-1, 1)
+    plt.figure(figsize=(7, 4.5))
+    plt.vlines(X_flat, y_flat, est_flat, colors="royalblue", linestyles="--", alpha=0.4, label="Residuals")
+    plt.scatter(X_flat, y_flat, color="royalblue", alpha=0.7, s=25, label="Data")
+    plt.scatter(X_flat, est_flat, color="firebrick", alpha=0.7, s=25, label="Fitted")
     pred_line = predict(l.float())
     if hasattr(pred_line, "detach"):
-        pred_line = pred_line.detach().cpu().numpy()
-    plt.plot(l.numpy(), pred_line, "g-", lw=2, label="Model")
+        pred_line = pred_line.detach().cpu().numpy().ravel()
+    else:
+        pred_line = np.asarray(pred_line).ravel()
+    plt.plot(l.numpy().ravel(), pred_line, color="forestgreen", lw=2, label="Model")
     plt.legend()
+    plt.xlabel("Input Feature (x)")
+    plt.ylabel("Target (t)")
     plt.grid(True)
+    plt.tight_layout()
     plt.show()
 
 
