@@ -103,3 +103,7 @@ shared/data/cifar*
 **/MNIST/
 **/cifar*
 **/data/
+
+# --- Archives ---
+archive/
+**/archive/
