@@ -191,37 +191,70 @@ def plot_polynomial_fits(
 def plot_polynomial_extrapolation(
     x_train: Any,
     t_train: Any,
-    x_eval: Any,
-    y_eval: Any,
+    x_test: Optional[Any] = None,
+    t_test: Optional[Any] = None,
     degree: int = 3,
-    x_min: float = 0.0,
-    x_max: float = 1.0,
-    y_true: Optional[Any] = None,
-    title: Optional[str] = None,
-    figsize: Tuple[float, float] = (7.5, 3.8),
-    ax: Optional[plt.Axes] = None,
+    x_range: Tuple[float, float] = (0.0, 1.0),
+    **kwargs: Any,
 ) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Decoupled polynomial curve visualizer with interval extrapolation support.
-    Renders observations, fitted polynomial curve, ground-truth signal,
-    and highlights the training region [0, 1] when extrapolating off-distribution.
+    Decoupled polynomial curve visualizer with interactive degree and interval extrapolation support.
+    Fits polynomial of degree M via least squares, evaluates train and test RMS errors,
+    renders observations, fitted curve, ground truth signal, and highlights training domain [0, 1].
+    Prints fitted model weights and E_RMS values directly below the plot.
     """
+    figsize = kwargs.get("figsize", (7.5, 3.8))
+    ax = kwargs.get("ax", None)
+    title = kwargs.get("title", None)
+
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)
     else:
         fig = ax.get_figure()
 
-    x_tr_np = x_train.numpy() if hasattr(x_train, "numpy") else np.asarray(x_train)
-    t_tr_np = t_train.numpy() if hasattr(t_train, "numpy") else np.asarray(t_train)
-    x_ev_np = x_eval.numpy() if hasattr(x_eval, "numpy") else np.asarray(x_eval)
-    y_ev_np = y_eval.numpy() if hasattr(y_eval, "numpy") else np.asarray(y_eval)
-
-    if y_true is not None:
-        y_tr_true = y_true.numpy() if hasattr(y_true, "numpy") else np.asarray(y_true)
+    # Parse interval endpoints
+    if "x_min" in kwargs and "x_max" in kwargs:
+        x_min, x_max = float(kwargs["x_min"]), float(kwargs["x_max"])
+    elif isinstance(x_range, (tuple, list)) and len(x_range) == 2:
+        x_min, x_max = float(x_range[0]), float(x_range[1])
     else:
-        y_tr_true = np.sin(2.0 * np.pi * x_ev_np)
+        x_min, x_max = 0.0, 1.0
 
-    ax.plot(x_ev_np.ravel(), y_tr_true.ravel(), color="forestgreen", lw=1.8, label=r"Ground Truth: $\sin(2\pi x)$")
+    # Convert to PyTorch tensors for linear algebra
+    x_tr_t = x_train if isinstance(x_train, torch.Tensor) else torch.as_tensor(x_train, dtype=torch.float32)
+    t_tr_t = t_train if isinstance(t_train, torch.Tensor) else torch.as_tensor(t_train, dtype=torch.float32)
+
+    # Fit polynomial of degree M via least squares
+    Phi_tr = torch.vander(x_tr_t, N=degree + 1, increasing=True)
+    w = torch.linalg.lstsq(Phi_tr, t_tr_t.unsqueeze(1)).solution.reshape(-1)
+
+    # Compute training RMS error
+    y_tr = torch.matmul(Phi_tr, w)
+    e_tr = torch.sqrt(torch.mean((y_tr - t_tr_t)**2)).item()
+
+    # Compute test RMS error if test dataset is provided
+    e_te = None
+    if x_test is not None and t_test is not None:
+        x_te_t = x_test if isinstance(x_test, torch.Tensor) else torch.as_tensor(x_test, dtype=torch.float32)
+        t_te_t = t_test if isinstance(t_test, torch.Tensor) else torch.as_tensor(t_test, dtype=torch.float32)
+        Phi_te = torch.vander(x_te_t, N=degree + 1, increasing=True)
+        y_te = torch.matmul(Phi_te, w)
+        e_te = torch.sqrt(torch.mean((y_te - t_te_t)**2)).item()
+
+    # Evaluate fitted curve and ground truth on dense evaluation grid
+    x_ev_t = torch.linspace(x_min, x_max, 400)
+    Phi_ev = torch.vander(x_ev_t, N=degree + 1, increasing=True)
+    y_ev_t = torch.matmul(Phi_ev, w)
+
+    x_ev_np = x_ev_t.numpy()
+    y_ev_np = y_ev_t.numpy()
+    x_tr_np = x_tr_t.numpy()
+    t_tr_np = t_tr_t.numpy()
+
+    # Ground truth: sin(2 pi x)
+    y_true_np = np.sin(2.0 * np.pi * x_ev_np)
+
+    ax.plot(x_ev_np.ravel(), y_true_np.ravel(), color="forestgreen", lw=1.8, label=r"Ground Truth: $\sin(2\pi x)$")
     ax.scatter(
         x_tr_np.ravel(),
         t_tr_np.ravel(),
@@ -233,6 +266,7 @@ def plot_polynomial_extrapolation(
     )
     ax.plot(x_ev_np.ravel(), y_ev_np.ravel(), color="firebrick", lw=2.2, label=f"Polynomial ($M={degree}$)")
 
+    # Off-distribution extrapolation shading and clamping
     if x_min < 0.0 or x_max > 1.0:
         ax.axvspan(0.0, 1.0, color="royalblue", alpha=0.08, label="Training Domain [0, 1]")
         ax.set_ylim(-3.5, 3.5)
@@ -248,6 +282,15 @@ def plot_polynomial_extrapolation(
     ax.grid(True)
     fig.tight_layout()
     plt.show()
+
+    # Print model weights and E_RMS values below the plot
+    weights_formatted = [round(float(v), 4) for v in w.tolist()]
+    print(f"Fitted Weights w: {weights_formatted}")
+    if e_te is not None:
+        print(f"Train E_RMS: {e_tr:.4f}  |  Test E_RMS: {e_te:.4f}")
+    else:
+        print(f"Train E_RMS: {e_tr:.4f}")
+
     return fig, ax
 
 
