@@ -479,9 +479,9 @@ def plot_bias_variance_curve(
     else:
         fig = ax.get_figure()
 
-    ax.plot(ln_lambdas, bias2_list, "royalblue", lw=2.5, label=r"$(\mathrm{Bias})^2$")
-    ax.plot(ln_lambdas, var_list, "firebrick", lw=2.5, label="Variance")
-    ax.plot(ln_lambdas, total_bv, "purple", lw=2.5, linestyle="--", label=r"$(\mathrm{Bias})^2 + \mathrm{Variance}$")
+    ax.plot(ln_lambdas, bias2_list, "royalblue", lw=2.5, label=r"$(\mathrm{bias})^2$")
+    ax.plot(ln_lambdas, var_list, "firebrick", lw=2.5, label=r"$\mathrm{variance}$")
+    ax.plot(ln_lambdas, total_bv, "purple", lw=2.5, linestyle="--", label=r"$(\mathrm{bias})^2 + \mathrm{variance}$")
     ax.set_title(r"The Bias–Variance Trade-Off vs $\ln\lambda$", fontsize=11.5)
     ax.set_xlabel(xlabel, fontsize=11)
     ax.set_ylabel(ylabel, fontsize=11)
@@ -496,7 +496,8 @@ def plot_residuals(
     predict: Callable[[Any], Any],
     X: Any,
     y: Any,
-    figsize: Tuple[float, float] = (7, 4.5),
+    show: bool = False,
+    figsize: Tuple[float, float] = (7.5, 4.0),
 ) -> None:
     """Plot linear/polynomial regression fit line and residual errors (backward-compatible)."""
     est = predict(X.reshape(-1, 1)).reshape(-1,)
@@ -513,30 +514,42 @@ def plot_residuals(
         mse = rss / len(est)
         X_np, y_np, est_np = np.asarray(X), np.asarray(y), np.asarray(est)
 
-    print(f"TSS = {tss:.3f} - total sum of squares")
-    print(f"RSS = {rss:.3f} - residual sum of squares")
-    print(f"ESS = TSS - RSS = {tss - rss:.3f} - explained sum of squares")
-    print(f"MSE = {mse:.3f} - mean squared error")
-    print(f"MAE = {mae:.3f} - mean absolute error")
+    if show:
+        print(f"TSS = {tss:.3f} - total sum of squares")
+        print(f"RSS = {rss:.3f} - residual sum of squares")
+        print(f"ESS = TSS - RSS = {tss - rss:.3f} - explained sum of squares")
+        print(f"MSE = {mse:.3f} - mean squared error")
+        print(f"MAE = {mae:.3f} - mean absolute error")
 
     X_flat = X_np.ravel()
     y_flat = y_np.ravel()
     est_flat = est_np.ravel()
+    e_pot = 0.5 * rss
 
     l = torch.linspace(float(X_flat.min()), float(X_flat.max()), 1000).reshape(-1, 1)
     plt.figure(figsize=figsize)
-    plt.vlines(X_flat, y_flat, est_flat, colors="royalblue", linestyles="--", alpha=0.4, label="Residuals")
-    plt.scatter(X_flat, y_flat, color="royalblue", alpha=0.7, s=25, label="Data")
-    plt.scatter(X_flat, est_flat, color="firebrick", alpha=0.7, s=25, label="Fitted")
+    plt.vlines(X_flat, y_flat, est_flat, colors="firebrick", linestyles="--", lw=1.5, alpha=0.7, label=r"Springs / Residuals ($e_n$)")
+    plt.scatter(X_flat, y_flat, facecolors="none", edgecolors="royalblue", s=45, lw=1.5, label=r"Data Observations ($(x_n, t_n)$)")
+    plt.scatter(X_flat, est_flat, color="forestgreen", s=30, zorder=3, label=r"Fitted Points ($y(x_n)$)")
     pred_line = predict(l.float())
     if hasattr(pred_line, "detach"):
         pred_line = pred_line.detach().cpu().numpy().ravel()
     else:
         pred_line = np.asarray(pred_line).ravel()
-    plt.plot(l.numpy().ravel(), pred_line, color="forestgreen", lw=2, label="Model")
-    plt.legend()
-    plt.xlabel("Input Feature (x)")
-    plt.ylabel("Target (t)")
+    plt.plot(l.numpy().ravel(), pred_line, color="forestgreen", lw=2, label=r"Model $y(x) = w_0 + w_1 x$")
+
+    plt.title(f"Physical Spring Analogy: Residual Tension ($E(\\mathbf{{w}}) = {e_pot:.3f}$)", fontsize=11)
+    plt.xlabel("Input Feature ($x$)")
+    plt.ylabel("Target ($t$)")
+
+    if float(y_flat.min()) >= -1.5 and float(y_flat.max()) <= 1.5:
+        plt.ylim(-1.6, 1.6)
+    else:
+        y_min, y_max = float(min(y_flat.min(), est_flat.min())), float(max(y_flat.max(), est_flat.max()))
+        pad = max(0.5, 0.1 * (y_max - y_min))
+        plt.ylim(y_min - pad, y_max + pad)
+
+    plt.legend(loc="upper right", fontsize=8.5)
     plt.grid(True)
     plt.tight_layout()
     plt.show()
