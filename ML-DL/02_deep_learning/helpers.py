@@ -9,8 +9,10 @@ Provides structured, decoupled visualization and operational routines for:
 6. Sequences, Attention & Relational Graphs (11_sequence_models, 12_transformers, 13_graph_neural_networks)
 """
 
+import os
 from typing import Any, Callable, Dict, Optional, Sequence, Tuple
 
+from IPython.display import Markdown, display
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -28,8 +30,114 @@ plt_x, plt_y = 8, 8
 
 
 # ---------------------------------------------------------------------------
-# 1. Course Aesthetics & Theme Configuration
+# 1. Course Aesthetics & Asset Resolution
 # ---------------------------------------------------------------------------
+
+COURSE_RAW_URL: str = os.environ.get(
+    "COURSE_RAW_URL",
+    "https://raw.githubusercontent.com/konstantin-schekotihin/dl_course/master/shared",
+)
+
+
+def get_url(filename: str, category: Optional[str] = None) -> str:
+    """
+    Construct canonical remote repository URL for a course asset.
+
+    Parameters
+    ----------
+    filename : str
+        Basename of the file (e.g. 'puppy.jpeg', 'USArrests.csv').
+    category : Optional[str], default=None
+        Asset directory under 'shared/' ('images' or 'data').
+        If None, automatically inferred from file extension.
+
+    Returns
+    -------
+    str
+        Canonical HTTPS URL to the raw asset on GitHub.
+    """
+    basename = os.path.basename(filename)
+    if category is None:
+        ext = os.path.splitext(basename)[1].lower()
+        if ext in {".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".bmp", ".tif", ".tiff"}:
+            category = "images"
+        else:
+            category = "data"
+    return f"{COURSE_RAW_URL}/{category}/{basename}"
+
+
+def get_file(filename: str = "", category: Optional[str] = None) -> str:
+    """
+    Resolve local path to an asset file or dataset directory, downloading from repository if missing (e.g. in Colab).
+
+    Parameters
+    ----------
+    filename : str, default=""
+        Basename or relative path of the file (e.g. 'puppy.jpeg', 'USArrests.csv').
+        If empty string, resolves the root path of the specified asset category directory.
+    category : Optional[str], default=None
+        Asset directory under 'shared/' ('images' or 'data').
+        If None, automatically inferred from file extension or defaults to 'data'.
+
+    Returns
+    -------
+    str
+        Existing local path to the resolved file or directory.
+    """
+    if filename and os.path.exists(filename):
+        return filename
+
+    basename = os.path.basename(filename) if filename else ""
+    if category is None:
+        if basename:
+            ext = os.path.splitext(basename)[1].lower()
+            category = "images" if ext in {".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".bmp", ".tif", ".tiff"} else "data"
+        else:
+            category = "data"
+
+    if basename:
+        local_candidates = [
+            os.path.join("..", "..", "shared", category, basename),
+            os.path.join("..", "shared", category, basename),
+            os.path.join("shared", category, basename),
+            os.path.join("data", basename) if category == "data" else os.path.join("images", basename),
+            basename,
+        ]
+    else:
+        local_candidates = [
+            os.path.join("..", "..", "shared", category),
+            os.path.join("..", "shared", category),
+            os.path.join("shared", category),
+            category,
+            f"./{category}",
+        ]
+
+    for path in local_candidates:
+        if os.path.exists(path):
+            return path
+
+    if not basename:
+        os.makedirs(f"./{category}", exist_ok=True)
+        return f"./{category}"
+
+    url = get_url(basename, category)
+    try:
+        import urllib.request
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (CourseAssetDownloader)"})
+        with urllib.request.urlopen(req) as response, open(basename, "wb") as out_file:
+            out_file.write(response.read())
+        return basename
+    except Exception as e:
+        raise FileNotFoundError(
+            f"Asset '{filename}' not found locally in candidate paths {local_candidates} "
+            f"and could not be retrieved from '{url}': {e}"
+        ) from e
+
+
+def get_data_path(filename: str = "") -> str:
+    """Resolve dataset file or root directory path with local check and remote fallback (compatibility alias)."""
+    return get_file(filename, category="data")
+
 
 def setup_theme() -> None:
     """Configure unified course-standard Seaborn plotting aesthetics."""
@@ -64,7 +172,7 @@ def plot_regression_fit(
     ylim: Optional[Tuple[float, float]] = (-1.5, 1.5),
     figsize: Tuple[float, float] = (7.5, 3.8),
     ax: Optional[plt.Axes] = None,
-) -> Tuple[plt.Figure, plt.Axes]:
+) -> None:
     """
     Decoupled 1D regression curve visualizer.
     Renders observations, fitted model curve, optional ground-truth, and residual drop-lines.
@@ -124,7 +232,7 @@ def plot_synthetic_regression_data(
     title: str = "Synthetic Regression Dataset: True Signal and Noisy Observations",
     figsize: Tuple[float, float] = (7.5, 3.8),
     ax: Optional[plt.Axes] = None,
-) -> Tuple[plt.Figure, plt.Axes]:
+) -> None:
     """Plot ground-truth signal and training observations for Chapter 4."""
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)
@@ -191,17 +299,15 @@ def plot_polynomial_fits(
 def plot_polynomial_extrapolation(
     x_train: Any,
     t_train: Any,
-    x_test: Optional[Any] = None,
-    t_test: Optional[Any] = None,
-    degree: int = 3,
+    w: Any,
+    degree: Optional[int] = None,
     x_range: Tuple[float, float] = (0.0, 1.0),
     **kwargs: Any,
-) -> Tuple[plt.Figure, plt.Axes]:
+) -> None:
     """
-    Decoupled polynomial curve visualizer with interactive degree and interval extrapolation support.
-    Fits polynomial of degree M via least squares, evaluates train and test RMS errors,
-    renders observations, fitted curve, ground truth signal, and highlights training domain [0, 1].
-    Prints fitted model weights and E_RMS values directly below the plot.
+    Decoupled polynomial curve visualizer with interval extrapolation support.
+    Generates dense coordinate grid on x_range internally, evaluates model curve with weights w,
+    and renders observations, fitted curve, true sinusoidal signal, and training domain [0, 1].
     """
     figsize = kwargs.get("figsize", (7.5, 3.8))
     ax = kwargs.get("ax", None)
@@ -220,41 +326,24 @@ def plot_polynomial_extrapolation(
     else:
         x_min, x_max = 0.0, 1.0
 
-    # Convert to PyTorch tensors for linear algebra
-    x_tr_t = x_train if isinstance(x_train, torch.Tensor) else torch.as_tensor(x_train, dtype=torch.float32)
-    t_tr_t = t_train if isinstance(t_train, torch.Tensor) else torch.as_tensor(t_train, dtype=torch.float32)
+    # Convert inputs to PyTorch tensors for curve evaluation
+    w_t = w if isinstance(w, torch.Tensor) else torch.as_tensor(w, dtype=torch.float32)
+    deg = degree if degree is not None else (len(w_t) - 1)
 
-    # Fit polynomial of degree M via least squares
-    Phi_tr = torch.vander(x_tr_t, N=degree + 1, increasing=True)
-    w = torch.linalg.lstsq(Phi_tr, t_tr_t.unsqueeze(1)).solution.reshape(-1)
+    # Dense plotting grid solely for rendering continuous curves in matplotlib
+    x_grid = torch.linspace(x_min, x_max, 400)
+    Phi_grid = torch.vander(x_grid, N=deg + 1, increasing=True)
+    y_grid = torch.matmul(Phi_grid, w_t)
 
-    # Compute training RMS error
-    y_tr = torch.matmul(Phi_tr, w)
-    e_tr = torch.sqrt(torch.mean((y_tr - t_tr_t)**2)).item()
+    x_grid_np = x_grid.numpy()
+    y_grid_np = y_grid.numpy()
+    x_tr_np = x_train.numpy() if isinstance(x_train, torch.Tensor) else np.asarray(x_train)
+    t_tr_np = t_train.numpy() if isinstance(t_train, torch.Tensor) else np.asarray(t_train)
 
-    # Compute test RMS error if test dataset is provided
-    e_te = None
-    if x_test is not None and t_test is not None:
-        x_te_t = x_test if isinstance(x_test, torch.Tensor) else torch.as_tensor(x_test, dtype=torch.float32)
-        t_te_t = t_test if isinstance(t_test, torch.Tensor) else torch.as_tensor(t_test, dtype=torch.float32)
-        Phi_te = torch.vander(x_te_t, N=degree + 1, increasing=True)
-        y_te = torch.matmul(Phi_te, w)
-        e_te = torch.sqrt(torch.mean((y_te - t_te_t)**2)).item()
+    # Ground truth signal: sin(2 pi x) evaluated on dense grid
+    y_true_np = np.sin(2.0 * np.pi * x_grid_np)
 
-    # Evaluate fitted curve and ground truth on dense evaluation grid
-    x_ev_t = torch.linspace(x_min, x_max, 400)
-    Phi_ev = torch.vander(x_ev_t, N=degree + 1, increasing=True)
-    y_ev_t = torch.matmul(Phi_ev, w)
-
-    x_ev_np = x_ev_t.numpy()
-    y_ev_np = y_ev_t.numpy()
-    x_tr_np = x_tr_t.numpy()
-    t_tr_np = t_tr_t.numpy()
-
-    # Ground truth: sin(2 pi x)
-    y_true_np = np.sin(2.0 * np.pi * x_ev_np)
-
-    ax.plot(x_ev_np.ravel(), y_true_np.ravel(), color="forestgreen", lw=1.8, label=r"Ground Truth: $\sin(2\pi x)$")
+    ax.plot(x_grid_np.ravel(), y_true_np.ravel(), color="forestgreen", lw=1.8, label=r"Ground Truth: $\sin(2\pi x)$")
     ax.scatter(
         x_tr_np.ravel(),
         t_tr_np.ravel(),
@@ -264,7 +353,7 @@ def plot_polynomial_extrapolation(
         label=f"Observations ($N={len(x_tr_np)}$)",
         zorder=4,
     )
-    ax.plot(x_ev_np.ravel(), y_ev_np.ravel(), color="firebrick", lw=2.2, label=f"Polynomial ($M={degree}$)")
+    ax.plot(x_grid_np.ravel(), y_grid_np.ravel(), color="firebrick", lw=2.2, label=f"Polynomial ($M={deg}$)")
 
     # Off-distribution extrapolation shading and clamping
     if x_min < 0.0 or x_max > 1.0:
@@ -274,7 +363,7 @@ def plot_polynomial_extrapolation(
         ax.set_ylim(-1.6, 1.6)
 
     ax.set_xlim(x_min, x_max)
-    plot_title = title if title is not None else f"Polynomial Fit ($M={degree}$) on Interval $[{x_min:.1f}, {x_max:.1f}]$"
+    plot_title = title if title is not None else f"Polynomial Fit ($M={deg}$) on Interval $[{x_min:.1f}, {x_max:.1f}]$"
     ax.set_title(plot_title, fontsize=11.5)
     ax.set_xlabel("Input Feature ($x$)", fontsize=11)
     ax.set_ylabel("Target ($t$)", fontsize=11)
@@ -282,16 +371,6 @@ def plot_polynomial_extrapolation(
     ax.grid(True)
     fig.tight_layout()
     plt.show()
-
-    # Print model weights and E_RMS values below the plot
-    weights_formatted = [round(float(v), 4) for v in w.tolist()]
-    print(f"Fitted Weights w: {weights_formatted}")
-    if e_te is not None:
-        print(f"Train E_RMS: {e_tr:.4f}  |  Test E_RMS: {e_te:.4f}")
-    else:
-        print(f"Train E_RMS: {e_tr:.4f}")
-
-    return fig, ax
 
 
 def plot_dataset_size_remedy(
@@ -575,7 +654,7 @@ def plot_bias_variance_curve(
     ylim: Tuple[float, float] = (0, 0.12),
     figsize: Tuple[float, float] = (7.5, 3.8),
     ax: Optional[plt.Axes] = None,
-) -> Tuple[plt.Figure, plt.Axes]:
+) -> None:
     """Plot canonical U-shaped bias-variance trade-off curve vs ln(lambda)."""
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)
@@ -618,11 +697,11 @@ def plot_residuals(
         X_np, y_np, est_np = np.asarray(X), np.asarray(y), np.asarray(est)
 
     if show:
-        print(f"TSS = {tss:.3f} - total sum of squares")
-        print(f"RSS = {rss:.3f} - residual sum of squares")
-        print(f"ESS = TSS - RSS = {tss - rss:.3f} - explained sum of squares")
-        print(f"MSE = {mse:.3f} - mean squared error")
-        print(f"MAE = {mae:.3f} - mean absolute error")
+        display(Markdown(rf"$\mathrm{{TSS}} = {tss:.3f}$ (total sum of squares)"))
+        display(Markdown(rf"$\mathrm{{RSS}} = {rss:.3f}$ (residual sum of squares)"))
+        display(Markdown(rf"$\mathrm{{ESS}} = \mathrm{{TSS}} - \mathrm{{RSS}} = {tss - rss:.3f}$ (explained sum of squares)"))
+        display(Markdown(rf"$\mathrm{{MSE}} = {mse:.3f}$ (mean squared error)"))
+        display(Markdown(rf"$\mathrm{{MAE}} = {mae:.3f}$ (mean absolute error)"))
 
     X_flat = X_np.ravel()
     y_flat = y_np.ravel()
@@ -669,7 +748,7 @@ def plot_decision_boundary_2d(
     title: Optional[str] = None,
     figsize: Tuple[float, float] = (8, 8),
     ax: Optional[plt.Axes] = None,
-) -> Tuple[plt.Figure, plt.Axes]:
+) -> None:
     """Plot 2D decision boundary meshgrid and data points for binary classification."""
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)
@@ -743,7 +822,7 @@ def plot_loss_history(
     ylabel: str = "Loss / Metric",
     figsize: Tuple[float, float] = (8, 4.5),
     ax: Optional[plt.Axes] = None,
-) -> Tuple[plt.Figure, plt.Axes]:
+) -> None:
     """Plot optimization convergence loss with optional logarithmic scaling."""
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)
@@ -766,7 +845,7 @@ def plot_out(out: Sequence[Any]) -> None:
     grad_val = out[-1]
     if hasattr(grad_val, "item"):
         grad_val = grad_val.item()
-    print(f"Finished optimization in {len(out)} iterations with final metric {grad_val:.4e}")
+    display(Markdown(rf"Finished optimization in {len(out)} iterations with final metric $\|\nabla E(\mathbf{{w}})\| = {grad_val:.4e}$"))
     plot_loss_history(out, log_scale=True)
 
 
@@ -837,7 +916,7 @@ def plot_grad(
     ax.scatter([x1, x1], [y1, y1], [f(x1, y1), 0], s=40, c="b")
     ax.plot([x, x1], [y, y1], [f(x, y), f(x1, y1)], color="black", lw=2)
     ax.plot([x, x1], [y, y1], [0, 0], color="black", linestyle="--")
-    print(f"initial: [{x:.2f}, {y:.2f}, {f(x, y):.2f}], step: [{x1:.2f}, {y1:.2f}, {f(x1, y1):.2f}]")
+    display(Markdown(rf"Initial state $\mathbf{{w}}_0 = [{x:.2f}, {y:.2f}]^\mathrm{{T}}, E(\mathbf{{w}}_0) = {f(x, y):.2f}$; Step $\mathbf{{w}}_1 = [{x1:.2f}, {y1:.2f}]^\mathrm{{T}}, E(\mathbf{{w}}_1) = {f(x1, y1):.2f}$"))
     plt.tight_layout()
     plt.show()
 

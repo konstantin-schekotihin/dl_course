@@ -10,8 +10,10 @@ Provides structured, decoupled visualization and operational routines for:
 """
 
 import math
+import os
 from typing import Any, Callable, Dict, Optional, Sequence, Tuple
 
+from IPython.display import Markdown, display
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as stats
@@ -20,8 +22,114 @@ import torch
 
 
 # ---------------------------------------------------------------------------
-# 1. Course Aesthetics & Theme Configuration
+# 1. Course Aesthetics & Asset Resolution
 # ---------------------------------------------------------------------------
+
+COURSE_RAW_URL: str = os.environ.get(
+    "COURSE_RAW_URL",
+    "https://raw.githubusercontent.com/konstantin-schekotihin/dl_course/master/shared",
+)
+
+
+def get_url(filename: str, category: Optional[str] = None) -> str:
+    """
+    Construct canonical remote repository URL for a course asset.
+
+    Parameters
+    ----------
+    filename : str
+        Basename of the file (e.g. 'puppy.jpeg', 'USArrests.csv').
+    category : Optional[str], default=None
+        Asset directory under 'shared/' ('images' or 'data').
+        If None, automatically inferred from file extension.
+
+    Returns
+    -------
+    str
+        Canonical HTTPS URL to the raw asset on GitHub.
+    """
+    basename = os.path.basename(filename)
+    if category is None:
+        ext = os.path.splitext(basename)[1].lower()
+        if ext in {".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".bmp", ".tif", ".tiff"}:
+            category = "images"
+        else:
+            category = "data"
+    return f"{COURSE_RAW_URL}/{category}/{basename}"
+
+
+def get_file(filename: str = "", category: Optional[str] = None) -> str:
+    """
+    Resolve local path to an asset file or dataset directory, downloading from repository if missing (e.g. in Colab).
+
+    Parameters
+    ----------
+    filename : str, default=""
+        Basename or relative path of the file (e.g. 'puppy.jpeg', 'USArrests.csv').
+        If empty string, resolves the root path of the specified asset category directory.
+    category : Optional[str], default=None
+        Asset directory under 'shared/' ('images' or 'data').
+        If None, automatically inferred from file extension or defaults to 'data'.
+
+    Returns
+    -------
+    str
+        Existing local path to the resolved file or directory.
+    """
+    if filename and os.path.exists(filename):
+        return filename
+
+    basename = os.path.basename(filename) if filename else ""
+    if category is None:
+        if basename:
+            ext = os.path.splitext(basename)[1].lower()
+            category = "images" if ext in {".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".bmp", ".tif", ".tiff"} else "data"
+        else:
+            category = "data"
+
+    if basename:
+        local_candidates = [
+            os.path.join("..", "..", "shared", category, basename),
+            os.path.join("..", "shared", category, basename),
+            os.path.join("shared", category, basename),
+            os.path.join("data", basename) if category == "data" else os.path.join("images", basename),
+            basename,
+        ]
+    else:
+        local_candidates = [
+            os.path.join("..", "..", "shared", category),
+            os.path.join("..", "shared", category),
+            os.path.join("shared", category),
+            category,
+            f"./{category}",
+        ]
+
+    for path in local_candidates:
+        if os.path.exists(path):
+            return path
+
+    if not basename:
+        os.makedirs(f"./{category}", exist_ok=True)
+        return f"./{category}"
+
+    url = get_url(basename, category)
+    try:
+        import urllib.request
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (CourseAssetDownloader)"})
+        with urllib.request.urlopen(req) as response, open(basename, "wb") as out_file:
+            out_file.write(response.read())
+        return basename
+    except Exception as e:
+        raise FileNotFoundError(
+            f"Asset '{filename}' not found locally in candidate paths {local_candidates} "
+            f"and could not be retrieved from '{url}': {e}"
+        ) from e
+
+
+def get_data_path(filename: str = "") -> str:
+    """Resolve dataset file or root directory path with local check and remote fallback (compatibility alias)."""
+    return get_file(filename, category="data")
+
 
 def setup_theme() -> None:
     """Configure unified course-standard Seaborn plotting aesthetics."""
@@ -382,7 +490,7 @@ def inspect_angle(y1: float = 0.0, y2: float = 1.0) -> None:
     y_comp = torch.tensor([[float(y1)], [float(y2)]], dtype=torch.float32)
     cos_val = (torch.matmul(x_base.t(), y_comp) / (torch.norm(x_base) * torch.norm(y_comp))).clamp(-1.0, 1.0).item()
     deg = math.degrees(math.acos(cos_val))
-    print(f"Inner product: {torch.matmul(x_base.t(), y_comp).item():.3f} | Cosine: {cos_val:.3f} | Angle: {deg:.1f} deg")
+    display(Markdown(rf"Inner product $\mathbf{{x}}^\mathrm{{T}} \mathbf{{y}} = {torch.matmul(x_base.t(), y_comp).item():.3f}$ | Cosine $\cos \theta = {cos_val:.3f}$ | Angle $\theta = {deg:.1f}^\circ$"))
     plot2d(torch.cat((x_base, y_comp), dim=1), title=f"Angle: {deg:.1f} deg")
 
 
@@ -392,8 +500,44 @@ def rotate_vector(alpha: float = 90.0) -> None:
     rot_mat = torch.tensor([[math.cos(rad), -math.sin(rad)], [math.sin(rad), math.cos(rad)]], dtype=torch.float32)
     v_init = torch.tensor([[1.0], [0.0]], dtype=torch.float32)
     v_rot = torch.matmul(rot_mat, v_init)
-    print(f"Angle {alpha} deg: rotated vector = ({v_rot[0,0].item():.3f}, {v_rot[1,0].item():.3f})")
+    display(Markdown(rf"Rotation angle $\alpha = {alpha:.1f}^\circ$: rotated vector $\mathbf{{v}}_\mathrm{{rot}} = ({v_rot[0,0].item():.3f}, {v_rot[1,0].item():.3f})^\mathrm{{T}}$"))
     plot2d(torch.cat((v_rot, v_init), dim=1), title=f"Rotation by {alpha} deg")
+
+
+def plot_out(
+    out: Sequence[Any],
+    title: str = "Gradient Descent Optimization Trace",
+    figsize: Tuple[float, float] = (7, 4),
+) -> None:
+    """
+    Render gradient descent optimization history (log-scale gradient norm).
+
+    Parameters
+    ----------
+    out : Sequence[Any]
+        Sequence of gradient norms (floats, numpy numbers, or torch scalars) per iteration.
+    title : str
+        Figure title.
+    figsize : Tuple[float, float]
+        Figure dimensions (default (7, 4)).
+    """
+    out_vals = [float(x.item() if hasattr(x, "item") else x) for x in out]
+    if len(out_vals) > 0:
+        display(Markdown(rf"Finished optimization in {len(out_vals)} iterations with final gradient norm $\|\nabla E(\mathbf{{w}})\| = {out_vals[-1]:.4e}$"))
+    plt.figure(figsize=figsize)
+    plt.plot(range(1, len(out_vals) + 1), out_vals, color="royalblue", lw=2)
+    plt.yscale("log")
+    plt.xlabel(r"Iteration $k$", fontsize=11)
+    plt.ylabel(r"Gradient Norm $\|\nabla E(\mathbf{w})\|_2$", fontsize=11)
+    plt.title(title, fontsize=12)
+    plt.grid(True, which="both", ls="--", alpha=0.5)
+    plt.tight_layout()
+    plt.show()
+
+
+# Aliases for backwards compatibility with legacy course materials
+plot = plot_out
+plot_convergence = plot_out
 
 
 def plot_scores(X_us: Any, us_columns: Sequence[str], x: float = 0.0, y: float = 0.0) -> None:
@@ -760,15 +904,15 @@ def plot_classifier_diagnostics(
 
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=labels, yticklabels=labels, ax=axes[0])
     axes[0].set_title("Confusion Matrix", fontsize=12)
-    axes[0].set_xlabel("Predicted Label")
-    axes[0].set_ylabel("True Label")
+    axes[0].set_xlabel(r"Predicted Label $\hat{t}$", fontsize=11)
+    axes[0].set_ylabel(r"True Target $t$", fontsize=11)
 
     if y_prob is not None:
         sns.histplot(y_prob, bins=20, kde=True, ax=axes[1], color="royalblue")
-        axes[1].axvline(0.5, color="crimson", linestyle="--", label="Decision Threshold (0.5)")
+        axes[1].axvline(0.5, color="crimson", linestyle="--", label="Decision Threshold ($p = 0.5$)")
         axes[1].set_title("Predicted Probability Distribution", fontsize=12)
-        axes[1].set_xlabel("Predicted Probability $\\hat{p}$")
-        axes[1].set_ylabel("Count")
+        axes[1].set_xlabel(r"Predicted Probability $p(t=1 \mid \mathbf{x})$", fontsize=11)
+        axes[1].set_ylabel("Count", fontsize=11)
         axes[1].legend(fontsize=10)
     else:
         axes[1].text(0.5, 0.5, "Probability scores not provided", ha="center", va="center")

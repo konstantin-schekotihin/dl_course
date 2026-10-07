@@ -1,9 +1,18 @@
 """
-Self-contained helper utilities for the AI and Machine Learning course.
-Provides standalone plotting and data helpers decoupled from 03_DL.
+Modular helper utilities for the AI and Machine Learning course (AI-ML).
+Provides decoupled visualization, dataset resolution, and diagnostic routines:
+1. Course Aesthetics & Dataset Path Resolution
+2. Supervised Regression & Exploratory Diagnostics (02_regression)
+3. Instance-Based Classification & k-NN Surfaces (01_classifiers-kNN)
+4. Logistic Regression & Sigmoidal Projections (03_logistic_regression)
+5. Decision Surfaces, Margin Geometry & Ensembles (04_NN, 05_ensembles, 06_SVM)
+6. Unsupervised Learning, PCA & Matrix Decompositions (07_unsupervised)
 """
 
 import os
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
+
+from IPython.display import Markdown, display
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import numpy as np
@@ -11,28 +20,125 @@ import pandas as pd
 import scipy.stats as stats
 import seaborn as sns
 import sklearn.metrics as metrics
-import torch
 
-DATA_BASE_URL = os.environ.get(
+# ---------------------------------------------------------------------------
+# 1. Course Aesthetics & Asset Resolution
+# ---------------------------------------------------------------------------
+
+COURSE_RAW_URL: str = os.environ.get(
+    "COURSE_RAW_URL",
+    "https://raw.githubusercontent.com/konstantin-schekotihin/dl_course/master/shared",
+)
+DATA_BASE_URL: str = os.environ.get(
     "COURSE_DATA_URL",
-    "https://raw.githubusercontent.com/konstantin-schekotihin/dl_course/master/shared/data"
+    f"{COURSE_RAW_URL}/data",
 )
 
-def get_data_path(filename):
-    """Resolve local dataset path with fallback to remote course repository for Colab."""
-    local_paths = [
-        os.path.join("../../shared/data", filename),
-        os.path.join("../shared/data", filename),
-        os.path.join("shared/data", filename),
-        os.path.join("data", filename),
-        filename
-    ]
-    for p in local_paths:
-        if os.path.exists(p):
-            return p
-    return f"{DATA_BASE_URL}/{filename}"
 
-def setup_theme():
+def get_url(filename: str, category: Optional[str] = None) -> str:
+    """
+    Construct canonical remote repository URL for a course asset.
+
+    Parameters
+    ----------
+    filename : str
+        Basename of the file (e.g. 'puppy.jpeg', 'USArrests.csv').
+    category : Optional[str], default=None
+        Asset directory under 'shared/' ('images' or 'data').
+        If None, automatically inferred from file extension.
+
+    Returns
+    -------
+    str
+        Canonical HTTPS URL to the raw asset on GitHub.
+    """
+    basename = os.path.basename(filename)
+    if category is None:
+        ext = os.path.splitext(basename)[1].lower()
+        if ext in {".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".bmp", ".tif", ".tiff"}:
+            category = "images"
+        else:
+            category = "data"
+    return f"{COURSE_RAW_URL}/{category}/{basename}"
+
+
+def get_file(filename: str = "", category: Optional[str] = None) -> str:
+    """
+    Resolve local path to an asset file or dataset directory, downloading from repository if missing (e.g. in Colab).
+
+    Parameters
+    ----------
+    filename : str, default=""
+        Basename or relative path of the file (e.g. 'puppy.jpeg', 'USArrests.csv').
+        If empty string, resolves the root path of the specified asset category directory.
+    category : Optional[str], default=None
+        Asset directory under 'shared/' ('images' or 'data').
+        If None, automatically inferred from file extension or defaults to 'data'.
+
+    Returns
+    -------
+    str
+        Existing local path to the resolved file or directory.
+    """
+    if filename and os.path.exists(filename):
+        return filename
+
+    basename = os.path.basename(filename) if filename else ""
+    if category is None:
+        if basename:
+            ext = os.path.splitext(basename)[1].lower()
+            category = "images" if ext in {".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".bmp", ".tif", ".tiff"} else "data"
+        else:
+            category = "data"
+
+    if basename:
+        local_candidates = [
+            os.path.join("..", "..", "shared", category, basename),
+            os.path.join("..", "shared", category, basename),
+            os.path.join("shared", category, basename),
+            os.path.join("data", basename) if category == "data" else os.path.join("images", basename),
+            basename,
+        ]
+    else:
+        local_candidates = [
+            os.path.join("..", "..", "shared", category),
+            os.path.join("..", "shared", category),
+            os.path.join("shared", category),
+            category,
+            f"./{category}",
+        ]
+
+    for path in local_candidates:
+        if os.path.exists(path):
+            return path
+
+    if not basename:
+        os.makedirs(f"./{category}", exist_ok=True)
+        return f"./{category}"
+
+    url = get_url(basename, category)
+    try:
+        import urllib.request
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (CourseAssetDownloader)"})
+        with urllib.request.urlopen(req) as response, open(basename, "wb") as out_file:
+            out_file.write(response.read())
+        return basename
+    except Exception as e:
+        raise FileNotFoundError(
+            f"Asset '{filename}' not found locally in candidate paths {local_candidates} "
+            f"and could not be retrieved from '{url}': {e}"
+        ) from e
+
+
+def get_data_path(filename: str = "") -> str:
+    """
+    Resolve local dataset file or root directory path with fallback to remote course repository for Colab.
+    Convenience alias for get_file(filename, category='data').
+    """
+    return get_file(filename, category="data")
+
+
+def setup_theme() -> None:
     """Apply unified course-standard Seaborn plotting aesthetics."""
     sns.set_theme(
         style="whitegrid",
@@ -43,45 +149,97 @@ def setup_theme():
             "axes.labelsize": 14,
             "xtick.labelsize": 12,
             "ytick.labelsize": 12,
-        }
+        },
     )
+
 
 # Automatically configure unified course theme on import
 setup_theme()
 
-cm_binary = ListedColormap(['green', 'blue'])
+cm_binary: ListedColormap = ListedColormap(["green", "blue"])
 
-def get_boundaries(X):
-    """Compute 2D coordinate plot boundaries with padding."""
+
+def get_boundaries(
+    X: Any, padding: float = 1.0
+) -> Tuple[Tuple[float, float], Tuple[float, float]]:
+    """
+    Compute 2D coordinate plot boundaries with padding.
+
+    Parameters
+    ----------
+    X : Any
+        Feature matrix of shape (N, 2).
+    padding : float, default=1.0
+        Margin added to minimum and maximum values.
+
+    Returns
+    -------
+    Tuple[Tuple[float, float], Tuple[float, float]]
+        ((x_min, x_max), (y_min, y_max)) bounds.
+    """
     X_arr = np.asarray(X)
-    xlim = (float(np.min(X_arr[:, 0] - 1)), float(np.max(X_arr[:, 0] + 1)))
-    ylim = (float(np.min(X_arr[:, 1] - 1)), float(np.max(X_arr[:, 1] + 1)))
+    xlim = (float(np.min(X_arr[:, 0]) - padding), float(np.max(X_arr[:, 0]) + padding))
+    ylim = (float(np.min(X_arr[:, 1]) - padding), float(np.max(X_arr[:, 1]) + padding))
     return xlim, ylim
 
-def plot_knn_intuition(iris, show=False):
-    """Render kNN neighborhood decision radius illustration."""
-    plt.figure(figsize=(8, 8))
-    ax = sns.scatterplot(x=iris.sepal_length, y=iris.petal_length, hue=iris.species)
-    ax.set_xlim(0, 8)
-    ax.set_ylim(0, 8)
-    if show:
-        plt.scatter(x=5.5, y=4.7, color='m')
-        ax.add_artist(plt.Circle((5.5, 4.7), radius=0.3, color='m', alpha=0.3))
-    plt.show()
 
+# ---------------------------------------------------------------------------
+# 2. Supervised Regression & Exploratory Diagnostics (02_regression)
+# ---------------------------------------------------------------------------
 
-def annotate(x, y, **kws):
-    """Annotate seaborn pairgrid subplots with Pearson correlation coefficient."""
-    (r, p) = stats.pearsonr(x, y)
+def annotate(x: Sequence[float], y: Sequence[float], **kws: Any) -> None:
+    """
+    Annotate Seaborn PairGrid subplots with Pearson correlation coefficient.
+
+    Parameters
+    ----------
+    x : Sequence[float]
+        First numerical variable.
+    y : Sequence[float]
+        Second numerical variable.
+    **kws : Any
+        Additional keyword arguments from PairGrid mapping.
+    """
+    r, p = stats.pearsonr(x, y)
     ax = plt.gca()
-    ax.annotate("r = {:.2f}, p = {:.3f} ".format(r, p),
-                xy=(.1, 1), xycoords=ax.transAxes)
+    ax.annotate(f"$r = {r:.2f}, p = {p:.3f}$", xy=(0.1, 0.9), xycoords=ax.transAxes, fontsize=11)
 
 
-def plot_residuals(f, pred, resp, show=False):
-    """Plot regression line and residuals between predictions and responses."""
+def plot_residuals(
+    f: Union[Callable[[Any], Any], Any],
+    pred: Any,
+    resp: Any,
+    show: bool = False,
+    xlabel: str = "TV Budget ($x$)",
+    ylabel: str = "Sales ($t$)",
+    title: str = "Linear Regression Residuals",
+    figsize: Tuple[float, float] = (8, 5.5),
+) -> None:
+    """
+    Plot regression observations, fitted model curve, and vertical residual drop-lines.
+
+    Parameters
+    ----------
+    f : Callable or array-like
+        Fitted predictor function or array of estimated target values.
+    pred : array-like
+        Observed feature input values.
+    resp : array-like
+        Observed true target values.
+    show : bool, default=False
+        If True, prints summary regression metrics (TSS, RSS, ESS, MSE, MAE).
+    xlabel : str, default="TV Budget ($x$)"
+        Horizontal axis label.
+    ylabel : str, default="Sales ($t$)"
+        Vertical axis label.
+    title : str, default="Linear Regression Residuals"
+        Figure title.
+    figsize : Tuple[float, float], default=(8, 5.5)
+        Matplotlib figure dimensions.
+    """
     pred_arr = np.asarray(pred).ravel()
     resp_arr = np.asarray(resp).ravel()
+
     if callable(f):
         try:
             est_arr = np.asarray(f(pred_arr.reshape(-1, 1))).ravel()
@@ -91,177 +249,630 @@ def plot_residuals(f, pred, resp, show=False):
         est_arr = np.asarray(f).ravel()
 
     if show:
-        rss = np.sum((resp_arr - est_arr) ** 2)
-        tss = np.sum((resp_arr - np.mean(resp_arr)) ** 2)
-        print("TSS = {:.3f} - total sum of squares".format(tss))
-        print("RSS = {:.3f} - residual sum of squares".format(rss))
-        print("ESS = TSS - RSS = {:.3f} - explained sum of squares".format(tss - rss))
-        print("MSE = {:.3f} - mean squared error".format(rss / len(resp_arr)))
-        print("MAE = {:.3f} - mean absolute error".format(np.mean(np.abs(resp_arr - est_arr))))
+        rss = float(np.sum((resp_arr - est_arr) ** 2))
+        tss = float(np.sum((resp_arr - np.mean(resp_arr)) ** 2))
+        ess = tss - rss
+        mse = rss / len(resp_arr)
+        mae = float(np.mean(np.abs(resp_arr - est_arr)))
+        display(Markdown(rf"$\mathrm{{TSS}} = {tss:.3f}$ (total sum of squares)"))
+        display(Markdown(rf"$\mathrm{{RSS}} = {rss:.3f}$ (residual sum of squares)"))
+        display(Markdown(rf"$\mathrm{{ESS}} = \mathrm{{TSS}} - \mathrm{{RSS}} = {ess:.3f}$ (explained sum of squares)"))
+        display(Markdown(rf"$\mathrm{{MSE}} = {mse:.3f}$ (mean squared error)"))
+        display(Markdown(rf"$\mathrm{{MAE}} = {mae:.3f}$ (mean absolute error)"))
 
-    l = np.linspace(0, 300, num=1000)
-    plt.figure(figsize=(8, 6))
-    plt.vlines(pred_arr, resp_arr, est_arr, colors="blue", linestyles="dashed", alpha=0.5, label="Residuals")
-    plt.scatter(pred_arr, resp_arr, color="blue", alpha=0.6, label="Observations")
-    plt.scatter(pred_arr, est_arr, color="red", s=25, label="Predictions")
-    try:
-        l_pred = np.asarray(f(l.reshape(-1, 1))).ravel()
-    except Exception:
-        l_pred = np.asarray(f(l)).ravel()
-    plt.plot(l, l_pred, "r-", lw=2, label="Fit")
-    plt.xlabel("TV Budget")
-    plt.ylabel("Sales")
-    plt.legend()
+    x_min, x_max = float(pred_arr.min()), float(pred_arr.max())
+    span = max(x_max - x_min, 1.0)
+    l = np.linspace(x_min - 0.05 * span, x_max + 0.05 * span, num=500)
+
+    plt.figure(figsize=figsize)
+    plt.vlines(pred_arr, resp_arr, est_arr, colors="royalblue", linestyles="dashed", alpha=0.5, label="Residuals")
+    plt.scatter(pred_arr, resp_arr, color="royalblue", alpha=0.6, s=40, label="Observations")
+    plt.scatter(pred_arr, est_arr, color="firebrick", s=30, label="Predictions")
+
+    if callable(f):
+        try:
+            l_pred = np.asarray(f(l.reshape(-1, 1))).ravel()
+        except Exception:
+            l_pred = np.asarray(f(l)).ravel()
+        plt.plot(l, l_pred, "firebrick", lw=2.2, label=r"Fitted $y(x, \mathbf{w})$")
+
+    plt.title(title, fontsize=12.5)
+    plt.xlabel(xlabel, fontsize=11.5)
+    plt.ylabel(ylabel, fontsize=11.5)
+    plt.legend(loc="upper left", fontsize=10.0)
+    plt.tight_layout()
     plt.show()
 
 
-def plot_linear_fit(X, y, predict_fn):
-    """Plot scatter data and regression predictor curve."""
-    X_arr = np.asarray(X).ravel()
-    y_arr = np.asarray(y).ravel()
-    l = np.linspace(X_arr.min() - 0.5, X_arr.max() + 0.5, num=200).reshape(-1, 1)
-    plt.figure(figsize=(8, 5))
-    plt.scatter(X_arr, y_arr, alpha=0.5, label="Observations")
-    plt.plot(l, predict_fn(l), "r-", lw=2, label="Linear fit")
-    plt.xlabel("Standardized Balance ($x$)")
-    plt.ylabel("Default Class ($y$)")
-    plt.legend()
-    plt.show()
-
-
-def plot_positive_vs_log(l, f_vals, log_vals, is_positive=True):
-    """Plot positive surrogate function f and its monotonic log transform."""
-    plt.figure(figsize=(8, 5))
-    plt.plot(l, f_vals, "b-", lw=2, label=r"$f(x)$")
-    if not is_positive:
-        plt.title("Warning: The function is not strictly positive!")
-    elif log_vals is not None:
-        plt.plot(l, log_vals, "r--", lw=2, label=r"$\ln f(x)$")
-    plt.xlabel("$x$")
-    plt.ylabel("Value")
-    plt.legend()
-    plt.show()
-
-
-def plot_logistic_curve(x_vals, y_vals, w_0, w_1):
-    """Plot logistic sigmoid response curve over standardized feature range."""
-    plt.figure(figsize=(8, 5))
-    plt.plot(x_vals, y_vals, "b-", lw=2, label=r"$\sigma(%.1f + %.1fx)$" % (w_0, w_1))
-    plt.axhline(0.5, color="gray", linestyle="--", label="Decision threshold = 0.5")
-    plt.xlabel("Standardized Balance ($x$)")
-    plt.ylabel("Predicted Probability ($y$)")
-    plt.ylim(-0.05, 1.05)
-    plt.legend()
-    plt.show()
-
-
-def plot_binary(predictor, X, y):
+def plot_pairgrid(
+    df: pd.DataFrame,
+    cols: Optional[Sequence[str]] = None,
+    annotate_pearson: bool = True,
+    figsize: Tuple[float, float] = (7.5, 6.5),
+) -> sns.PairGrid:
     """
-    Plot decision boundaries for 2D binary classification.
-    """
-    plt.figure(figsize=(8, 8))
-    plt.scatter(X[:, 0], X[:, 1], c="w")
+    Render styled PairGrid with upper scatter + Pearson r, diagonal histogram, and lower KDE contours.
 
-    # Plot decision boundaries
-    ax = plt.gca()
-    y1, y2 = ax.get_ylim()
-    x1, x2 = ax.get_xlim()
-    xm, ym = np.meshgrid(
-        np.arange(x1, x2, (x2 - x1) / 100),
-        np.arange(y1, y2, (y2 - y1) / 100)
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input data table.
+    cols : Optional[Sequence[str]], default=None
+        Subset of dataframe columns to include.
+    annotate_pearson : bool, default=True
+        Whether to overlay Pearson r annotations on upper scatter subplots.
+    figsize : Tuple[float, float], default=(7.5, 6.5)
+        Target figure dimensions.
+
+    Returns
+    -------
+    sns.PairGrid
+        Configured Seaborn PairGrid object.
+    """
+    data = df[list(cols)] if cols is not None else df
+    g = sns.PairGrid(data)
+    g.fig.set_size_inches(figsize[0], figsize[1])
+    g.map_upper(plt.scatter, s=12, alpha=0.6, color="royalblue")
+    if annotate_pearson:
+        g.map_upper(annotate)
+    g.map_diag(sns.histplot, kde=False, color="cornflowerblue")
+    g.map_lower(sns.kdeplot, cmap="Blues_d")
+    plt.tight_layout()
+    plt.show()
+    return g
+
+
+def plot_correlation_matrix(
+    corr_matrix: Any,
+    labels: Optional[Sequence[str]] = None,
+    title: str = "Correlation Matrix",
+    figsize: Tuple[float, float] = (5.5, 4.8),
+) -> None:
+    """
+    Render styled correlation matrix heatmap.
+
+    Parameters
+    ----------
+    corr_matrix : Any
+        Square correlation matrix (NumPy array or pandas DataFrame).
+    labels : Optional[Sequence[str]], default=None
+        Axis tick labels.
+    title : str, default="Correlation Matrix"
+        Plot title.
+    figsize : Tuple[float, float], default=(5.5, 4.8)
+        Matplotlib figure dimensions.
+    """
+    plt.figure(figsize=figsize)
+    df_corr = pd.DataFrame(corr_matrix) if not isinstance(corr_matrix, pd.DataFrame) else corr_matrix
+    if labels is not None:
+        df_corr.columns = list(labels)
+        df_corr.index = list(labels)
+
+    sns.heatmap(
+        df_corr,
+        cmap="coolwarm",
+        annot=True,
+        fmt=".2f",
+        vmin=-1.0,
+        vmax=1.0,
+        cbar=True,
+        annot_kws={"size": 11},
     )
-    p = predictor(np.c_[xm.ravel(), ym.ravel()]).reshape(xm.shape)
-    plt.scatter(xm, ym, c=p, cmap="coolwarm", alpha=0.3)
-    plt.scatter(X[:, 0], X[:, 1], c=y, edgecolors="w", s=100, linewidths=2)
+    plt.title(title, fontsize=12)
+    plt.tight_layout()
     plt.show()
 
 
-def plot_knn_results(train_X, train_y, test_X, test_y, pred_y, target_names=None, feature_cols=None):
+# ---------------------------------------------------------------------------
+# 3. Instance-Based Classification & k-NN Surfaces (01_classifiers-kNN)
+# ---------------------------------------------------------------------------
+
+def plot_knn_neighborhood_2d(
+    X: Any,
+    y: Any,
+    query_pt: Tuple[float, float] = (5.5, 4.7),
+    radius: float = 0.3,
+    feature_names: Tuple[str, str] = ("Sepal Length ($x_1$)", "Petal Length ($x_2$)"),
+    show_neighborhood: bool = False,
+    figsize: Tuple[float, float] = (7.5, 6.5),
+) -> None:
     """
-    Plot dual-subplot evaluation for kNN:
-    - Left: Confusion matrix heatmap.
-    - Right: 2D scatter plot showing training data and test classification errors (faults).
+    Render 2D botanical scatter with decision query point and radius circle.
+
+    Parameters
+    ----------
+    X : Any
+        2D feature coordinates array or DataFrame.
+    y : Any
+        Target class labels.
+    query_pt : Tuple[float, float], default=(5.5, 4.7)
+        Coordinates of query instance.
+    radius : float, default=0.3
+        Metric ball radius for neighborhood intuition.
+    feature_names : Tuple[str, str], default=("Sepal Length ($x_1$)", "Petal Length ($x_2$)")
+        Labels for horizontal and vertical axes.
+    show_neighborhood : bool, default=False
+        Whether to highlight the query point and radius disk.
+    figsize : Tuple[float, float], default=(7.5, 6.5)
+        Figure size.
     """
-    fig, axs = plt.subplots(1, 2, figsize=(15, 6))
+    X_arr = np.asarray(X)
+    y_arr = np.asarray(y)
 
-    cm = metrics.confusion_matrix(test_y, pred_y)
-    sns.heatmap(cm, cmap="Blues", annot=True, fmt="d", ax=axs[0], annot_kws={"size": 14})
-    axs[0].set_title("Confusion Matrix")
-    axs[0].set_xlabel("Predicted Label")
-    axs[0].set_ylabel("True Label")
+    plt.figure(figsize=figsize)
+    ax = plt.gca()
+    unique_classes = np.unique(y_arr)
+    palette = sns.color_palette("deep", n_colors=len(unique_classes))
 
-    colors = ["darkblue", "green", "red"]
-    data_markers = ["s", "s", "s"]
-    markers = ["x", "D", "o"]
+    for idx, cls in enumerate(unique_classes):
+        mask = (y_arr == cls)
+        ax.scatter(
+            X_arr[mask, 0],
+            X_arr[mask, 1],
+            color=palette[idx],
+            label=f"Class: {cls}",
+            edgecolors="w",
+            s=50,
+            alpha=0.85,
+        )
 
-    if target_names is None:
-        target_names = np.unique(np.concatenate([train_y, test_y]))
+    ax.set_xlim(0, 8)
+    ax.set_ylim(0, 8)
+    ax.set_xlabel(feature_names[0], fontsize=12)
+    ax.set_ylabel(feature_names[1], fontsize=12)
+    ax.set_title("Instance-Based Learning: Nearest Neighbor Radius", fontsize=12.5)
 
-    d1, d2 = 3, 0
+    if show_neighborhood:
+        ax.scatter([query_pt[0]], [query_pt[1]], color="magenta", s=100, zorder=5, label="Query Point $\\mathbf{x}_q$")
+        circle = plt.Circle(query_pt, radius=radius, color="magenta", alpha=0.25, zorder=4)
+        ax.add_artist(circle)
+
+    ax.legend(loc="upper left", fontsize=10)
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_knn_intuition(iris: Any, show: bool = False) -> None:
+    """
+    Backward-compatible adapter for Iris kNN intuition illustration.
+
+    Parameters
+    ----------
+    iris : Any
+        Iris dataset DataFrame with sepal_length, petal_length, and species columns.
+    show : bool, default=False
+        Whether to overlay the query circle.
+    """
+    X = np.c_[iris.sepal_length.values, iris.petal_length.values]
+    y = iris.species.values
+    plot_knn_neighborhood_2d(
+        X,
+        y,
+        query_pt=(5.5, 4.7),
+        radius=0.3,
+        feature_names=("Sepal Length ($x_1$)", "Petal Length ($x_2$)"),
+        show_neighborhood=show,
+    )
+
+
+def plot_knn_classification_results(
+    train_X: Any,
+    train_y: Any,
+    test_X: Any,
+    test_y: Any,
+    pred_y: Any,
+    target_names: Optional[Sequence[str]] = None,
+    feature_cols: Optional[Sequence[str]] = None,
+    feat_idx: Tuple[int, int] = (3, 0),
+    figsize: Tuple[float, float] = (14, 5.5),
+) -> None:
+    """
+    Dual-subplot evaluation for kNN: Left = Confusion Matrix; Right = 2D Scatter with Misclassification Markers.
+
+    Parameters
+    ----------
+    train_X : Any
+        Training feature matrix.
+    train_y : Any
+        Training class labels.
+    test_X : Any
+        Testing feature matrix.
+    test_y : Any
+        Ground-truth testing class labels.
+    pred_y : Any
+        Predicted testing class labels.
+    target_names : Optional[Sequence[str]], default=None
+        Ordered list of class names.
+    feature_cols : Optional[Sequence[str]], default=None
+        Names of all input feature dimensions.
+    feat_idx : Tuple[int, int], default=(3, 0)
+        Indices of the two feature columns displayed in 2D scatter.
+    figsize : Tuple[float, float], default=(14, 5.5)
+        Figure dimensions.
+    """
+    fig, axs = plt.subplots(1, 2, figsize=figsize)
+    train_y_arr = np.asarray(train_y)
+    test_y_arr = np.asarray(test_y)
+    pred_y_arr = np.asarray(pred_y)
     train_X_arr = np.asarray(train_X)
     test_X_arr = np.asarray(test_X)
 
-    for n, color in enumerate(colors[:len(target_names)]):
-        t_idx = np.where(train_y == target_names[n])[0]
-        sns.scatterplot(
-            x=train_X_arr[t_idx, d1], y=train_X_arr[t_idx, d2],
-            color=color, label="Train: %s" % target_names[n],
-            marker=data_markers[n], ax=axs[1], s=48
+    if target_names is None:
+        target_names = np.unique(np.concatenate([train_y_arr, test_y_arr]))
+
+    cm = metrics.confusion_matrix(test_y_arr, pred_y_arr, labels=target_names)
+    sns.heatmap(
+        cm,
+        cmap="Blues",
+        annot=True,
+        fmt="d",
+        ax=axs[0],
+        xticklabels=target_names,
+        yticklabels=target_names,
+        annot_kws={"size": 13},
+    )
+    axs[0].set_title("Confusion Matrix", fontsize=12)
+    axs[0].set_xlabel(r"Predicted Label $\hat{t}$", fontsize=11.5)
+    axs[0].set_ylabel(r"True Target $t$", fontsize=11.5)
+
+    colors = ["darkblue", "forestgreen", "crimson", "darkorange"]
+    data_markers = ["s", "s", "s", "s"]
+    fault_markers = ["x", "D", "o", "v"]
+
+    d1, d2 = feat_idx
+    for n, name in enumerate(target_names[: len(colors)]):
+        t_idx = np.where(train_y_arr == name)[0]
+        axs[1].scatter(
+            train_X_arr[t_idx, d1],
+            train_X_arr[t_idx, d2],
+            color=colors[n],
+            label=f"Train: {name}",
+            marker=data_markers[n],
+            s=48,
+            alpha=0.6,
         )
 
-    for n, color in enumerate(colors[:len(target_names)]):
-        for k, marker in enumerate(markers[:len(target_names)]):
-            inc_idx = np.where((pred_y != test_y) & (test_y == target_names[n]) & (pred_y == target_names[k]))[0]
-            if len(inc_idx) > 0:
-                sns.scatterplot(
-                    x=test_X_arr[inc_idx, d1], y=test_X_arr[inc_idx, d2],
-                    marker=marker, color=color,
-                    label="Fault: %s" % target_names[k], ax=axs[1], s=64
+    for n, name_true in enumerate(target_names[: len(colors)]):
+        for k, name_pred in enumerate(target_names[: len(fault_markers)]):
+            if name_true == name_pred:
+                continue
+            fault_idx = np.where((pred_y_arr != test_y_arr) & (test_y_arr == name_true) & (pred_y_arr == name_pred))[0]
+            if len(fault_idx) > 0:
+                axs[1].scatter(
+                    test_X_arr[fault_idx, d1],
+                    test_X_arr[fault_idx, d2],
+                    marker=fault_markers[k % len(fault_markers)],
+                    color=colors[n],
+                    label=f"Fault: {name_true} $\\rightarrow$ {name_pred}",
+                    s=72,
+                    edgecolors="k",
+                    lw=1.2,
                 )
 
     if feature_cols:
-        axs[1].set_xlabel(feature_cols[d1] if d1 < len(feature_cols) else "Feature %d" % d1)
-        axs[1].set_ylabel(feature_cols[d2] if d2 < len(feature_cols) else "Feature %d" % d2)
-    axs[1].legend(loc="upper left")
-    axs[1].set_title("Classification Results")
+        l1 = feature_cols[d1] if d1 < len(feature_cols) else f"Feature {d1}"
+        l2 = feature_cols[d2] if d2 < len(feature_cols) else f"Feature {d2}"
+        axs[1].set_xlabel(l1, fontsize=11.5)
+        axs[1].set_ylabel(l2, fontsize=11.5)
+    else:
+        axs[1].set_xlabel(f"Feature $x_{{{d1 + 1}}}$", fontsize=11.5)
+        axs[1].set_ylabel(f"Feature $x_{{{d2 + 1}}}$", fontsize=11.5)
+
+    axs[1].legend(loc="upper left", fontsize=8.5)
+    axs[1].set_title("Empirical Classification & Test Faults", fontsize=12)
     plt.tight_layout()
     plt.show()
 
 
-def plot_confusion_matrix(y_true, y_pred, labels=None, title="Confusion Matrix"):
+def plot_knn_results(
+    train_X: Any,
+    train_y: Any,
+    test_X: Any,
+    test_y: Any,
+    pred_y: Any,
+    target_names: Optional[Sequence[str]] = None,
+    feature_cols: Optional[Sequence[str]] = None,
+) -> None:
+    """Backward-compatible alias for plot_knn_classification_results."""
+    plot_knn_classification_results(
+        train_X,
+        train_y,
+        test_X,
+        test_y,
+        pred_y,
+        target_names=target_names,
+        feature_cols=feature_cols,
+        feat_idx=(3, 0),
+    )
+
+
+def plot_confusion_matrix(
+    y_true: Any,
+    y_pred: Any,
+    labels: Optional[Sequence[str]] = None,
+    title: str = "Confusion Matrix",
+    figsize: Tuple[float, float] = (6.5, 5.5),
+) -> None:
     """
-    Render a styled confusion matrix heatmap from precomputed true and predicted labels.
+    Render styled confusion matrix heatmap from precomputed true and predicted labels.
+
+    Parameters
+    ----------
+    y_true : Any
+        Ground-truth labels.
+    y_pred : Any
+        Predicted labels.
+    labels : Optional[Sequence[str]], default=None
+        Display class names or label subset.
+    title : str, default="Confusion Matrix"
+        Plot title.
+    figsize : Tuple[float, float], default=(6.5, 5.5)
+        Figure dimensions.
     """
-    cm = metrics.confusion_matrix(y_true, y_pred)
-    if labels is None:
-        labels = np.unique(np.concatenate([y_true, y_pred]))
-    plt.figure(figsize=(7, 6))
-    df_cm = pd.DataFrame(cm, columns=labels, index=labels)
-    df_cm.index.name = "Actual"
-    df_cm.columns.name = "Predicted"
-    sns.heatmap(df_cm, cmap="Blues", annot=True, fmt="d", annot_kws={"size": 16})
-    if title:
-        plt.title(title)
+    y_t = np.asarray(y_true)
+    y_p = np.asarray(y_pred)
+    unique_vals = np.unique(np.concatenate([y_t, y_p]))
+
+    if labels is not None and len(labels) == len(unique_vals) and not np.array_equal(unique_vals, labels):
+        cm = metrics.confusion_matrix(y_t, y_p, labels=unique_vals)
+        display_labels = list(labels)
+    elif labels is not None:
+        try:
+            cm = metrics.confusion_matrix(y_t, y_p, labels=labels)
+            display_labels = list(labels)
+        except Exception:
+            cm = metrics.confusion_matrix(y_t, y_p)
+            display_labels = list(labels)
+    else:
+        cm = metrics.confusion_matrix(y_t, y_p)
+        display_labels = list(unique_vals)
+
+    plt.figure(figsize=figsize)
+    df_cm = pd.DataFrame(cm, columns=display_labels, index=display_labels)
+    df_cm.index.name = "True Label $t$"
+    df_cm.columns.name = r"Predicted $\hat{t}$"
+    sns.heatmap(df_cm, cmap="Blues", annot=True, fmt="d", annot_kws={"size": 14})
+    plt.title(title, fontsize=12)
     plt.tight_layout()
     plt.show()
 
 
-def plot_decision_boundary(model, X, y, ax=None, title="Decision Boundary"):
+# ---------------------------------------------------------------------------
+# 4. Logistic Regression & Sigmoidal Projections (03_logistic_regression)
+# ---------------------------------------------------------------------------
+
+def plot_linear_classification_fit(
+    X: Any,
+    y: Any,
+    predict_fn: Callable[[Any], Any],
+    xlabel: str = r"Standardized Balance ($x$)",
+    ylabel: str = r"Class Target ($t$)",
+    title: str = "Linear Regression on Binary Classification",
+    figsize: Tuple[float, float] = (8, 4.8),
+) -> None:
+    """
+    Plot scatter observations and unbounded linear regression predictor.
+
+    Parameters
+    ----------
+    X : Any
+        Input feature vector or matrix.
+    y : Any
+        Binary targets (0 and 1).
+    predict_fn : Callable
+        Fitted linear prediction model callable.
+    xlabel : str, default="Standardized Balance ($x$)"
+        Horizontal axis label.
+    ylabel : str, default="Class Target ($t$)"
+        Vertical axis label.
+    title : str
+        Figure title.
+    figsize : Tuple[float, float], default=(8, 4.8)
+        Figure dimensions.
+    """
+    X_arr = np.asarray(X).ravel()
+    y_arr = np.asarray(y).ravel()
+    span = max(float(X_arr.max() - X_arr.min()), 1.0)
+    l = np.linspace(X_arr.min() - 0.1 * span, X_arr.max() + 0.1 * span, num=200).reshape(-1, 1)
+
+    plt.figure(figsize=figsize)
+    plt.scatter(X_arr, y_arr, alpha=0.5, color="royalblue", label="Observations ($x_n, t_n$)")
+    plt.plot(l, predict_fn(l), "firebrick", lw=2.2, label=r"Linear fit: $y(x, \mathbf{w}) = \mathbf{w}^\mathrm{T}\mathbf{x}$")
+    plt.axhline(0.5, color="gray", linestyle="--", alpha=0.7, label="Threshold $y=0.5$")
+    plt.title(title, fontsize=12)
+    plt.xlabel(xlabel, fontsize=11.5)
+    plt.ylabel(ylabel, fontsize=11.5)
+    plt.legend(loc="upper left", fontsize=9.5)
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_linear_fit(X: Any, y: Any, predict_fn: Callable[[Any], Any]) -> None:
+    """Backward-compatible alias for plot_linear_classification_fit."""
+    plot_linear_classification_fit(X, y, predict_fn)
+
+
+def plot_logistic_response_curve(
+    x_vals: Sequence[float],
+    y_vals: Sequence[float],
+    w_0: Optional[float] = None,
+    w_1: Optional[float] = None,
+    xlabel: str = r"Standardized Balance ($x$)",
+    ylabel: str = r"Predicted Probability $p(t=1 \mid x)$",
+    title: str = "Logistic Sigmoid Response Curve",
+    figsize: Tuple[float, float] = (8, 4.8),
+) -> None:
+    """
+    Plot logistic sigmoid response curve over feature range with decision threshold.
+
+    Parameters
+    ----------
+    x_vals : Sequence[float]
+        Feature values across grid.
+    y_vals : Sequence[float]
+        Evaluated sigmoid probabilities.
+    w_0 : Optional[float], default=None
+        Bias parameter for equation badge.
+    w_1 : Optional[float], default=None
+        Weight parameter for equation badge.
+    xlabel : str
+        Horizontal axis label.
+    ylabel : str
+        Vertical axis label.
+    title : str
+        Figure title.
+    figsize : Tuple[float, float]
+        Figure dimensions.
+    """
+    plt.figure(figsize=figsize)
+    if w_0 is not None and w_1 is not None:
+        eq_label = rf"$\sigma({w_0:.1f} + {w_1:.1f}x)$"
+    else:
+        eq_label = r"$\sigma(a) = \frac{1}{1 + e^{-a}}$"
+
+    plt.plot(x_vals, y_vals, "royalblue", lw=2.4, label=eq_label)
+    plt.axhline(0.5, color="firebrick", linestyle="--", label="Decision threshold $p = 0.5$")
+    plt.title(title, fontsize=12)
+    plt.xlabel(xlabel, fontsize=11.5)
+    plt.ylabel(ylabel, fontsize=11.5)
+    plt.ylim(-0.05, 1.05)
+    plt.legend(loc="upper left", fontsize=10.0)
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_logistic_curve(x_vals: Sequence[float], y_vals: Sequence[float], w_0: float, w_1: float) -> None:
+    """Backward-compatible alias for plot_logistic_response_curve."""
+    plot_logistic_response_curve(x_vals, y_vals, w_0=w_0, w_1=w_1)
+
+
+def plot_positive_vs_log(
+    l: Any,
+    f_vals: Any,
+    log_vals: Optional[Any],
+    is_positive: bool = True,
+    figsize: Tuple[float, float] = (8, 4.8),
+) -> None:
+    """
+    Plot positive surrogate function f and its monotonic log transform.
+
+    Parameters
+    ----------
+    l : Any
+        Feature input values.
+    f_vals : Any
+        Surrogate function values.
+    log_vals : Optional[Any]
+        Logarithm of function values.
+    is_positive : bool, default=True
+        Whether the base function is strictly positive on domain.
+    figsize : Tuple[float, float], default=(8, 4.8)
+        Figure dimensions.
+    """
+    plt.figure(figsize=figsize)
+    plt.plot(l, f_vals, "royalblue", lw=2.2, label=r"Likelihood surrogate $f(x)$")
+    if not is_positive:
+        plt.title(r"Warning: The function is not strictly positive ($f(x) \le 0$)", fontsize=12)
+    elif log_vals is not None:
+        plt.plot(l, log_vals, "firebrick", lw=2.0, linestyle="--", label=r"Log-likelihood $\ln f(x)$")
+        plt.title(r"Monotonicity of the Logarithmic Transformation: $\arg\max f(x) = \arg\max \ln f(x)$", fontsize=11.5)
+    plt.xlabel("$x$", fontsize=11.5)
+    plt.ylabel("Value", fontsize=11.5)
+    plt.legend(loc="best", fontsize=10.0)
+    plt.tight_layout()
+    plt.show()
+
+
+# ---------------------------------------------------------------------------
+# 5. Decision Surfaces, Margins & Ensembles (04_NN, 05_ensembles, 06_SVM)
+# ---------------------------------------------------------------------------
+
+def plot_binary(
+    predictor: Callable[[Any], Any],
+    X: Any,
+    y: Any,
+    figsize: Tuple[float, float] = (7.5, 6.5),
+) -> None:
+    """
+    Plot decision boundaries for 2D binary classification (Perceptron / Adaline).
+
+    Parameters
+    ----------
+    predictor : Callable
+        Decision rule callable mapping 2D inputs to predictions.
+    X : Any
+        Input coordinates of shape (N, 2).
+    y : Any
+        Binary targets {-1, +1} or {0, 1}.
+    figsize : Tuple[float, float], default=(7.5, 6.5)
+        Figure dimensions.
+    """
+    X_arr = np.asarray(X)
+    y_arr = np.asarray(y)
+
+    xlim, ylim = get_boundaries(X_arr, padding=0.5)
+    xm, ym = np.meshgrid(
+        np.linspace(xlim[0], xlim[1], 200),
+        np.linspace(ylim[0], ylim[1], 200),
+    )
+    mesh_in = np.c_[xm.ravel(), ym.ravel()]
+    try:
+        import torch
+        if isinstance(X, torch.Tensor):
+            p = predictor(torch.tensor(mesh_in, dtype=X.dtype))
+            if hasattr(p, "detach"):
+                p = p.detach().cpu().numpy()
+        else:
+            p = predictor(mesh_in)
+    except Exception:
+        p = predictor(mesh_in)
+
+    p_arr = np.asarray(p).reshape(xm.shape)
+
+    plt.figure(figsize=figsize)
+    plt.contourf(xm, ym, p_arr, cmap="coolwarm", alpha=0.3, levels=np.linspace(p_arr.min(), p_arr.max(), 30))
+    plt.scatter(X_arr[:, 0], X_arr[:, 1], c=y_arr, cmap="coolwarm", edgecolors="k", s=80, linewidths=1.2)
+    plt.title(r"2D Binary Decision Surface: $y(\mathbf{x}) = f(\mathbf{w}^\mathrm{T}\mathbf{x} + w_0)$", fontsize=12)
+    plt.xlabel("$x_1$", fontsize=11.5)
+    plt.ylabel("$x_2$", fontsize=11.5)
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_decision_boundary(
+    model: Any,
+    X: Any,
+    y: Any,
+    ax: Optional[Any] = None,
+    title: str = "Decision Boundary",
+) -> None:
     """
     Render 2D classification decision surface and scatter observations.
     Supports both standalone rendering (ax=None) and subplot integration.
+
+    Parameters
+    ----------
+    model : Any
+        Trained model or pipeline with predict / predict_proba or callable.
+    X : Any
+        Feature matrix of shape (N, 2).
+    y : Any
+        Class labels.
+    ax : Optional[matplotlib.axes.Axes], default=None
+        Subplot axis. If None, creates a new figure.
+    title : str, default="Decision Boundary"
+        Axis title.
     """
     standalone = False
     if ax is None:
-        fig, ax = plt.subplots(figsize=(8, 6))
+        fig, ax = plt.subplots(figsize=(7.5, 6.0))
         standalone = True
 
     X_arr = np.asarray(X)
     y_arr = np.asarray(y)
 
-    x_min, x_max = X_arr[:, 0].min() - 0.5, X_arr[:, 0].max() + 0.5
-    y_min, y_max = X_arr[:, 1].min() - 0.5, X_arr[:, 1].max() + 0.5
-    xx, yy = np.meshgrid(np.linspace(x_min, x_max, 250), np.linspace(y_min, y_max, 250))
+    xlim, ylim = get_boundaries(X_arr, padding=0.5)
+    xx, yy = np.meshgrid(np.linspace(xlim[0], xlim[1], 250), np.linspace(ylim[0], ylim[1], 250))
     mesh_pts = np.c_[xx.ravel(), yy.ravel()]
 
     if hasattr(model, "predict"):
@@ -278,171 +889,454 @@ def plot_decision_boundary(model, X, y, ax=None, title="Decision Boundary"):
     for idx, lbl in enumerate(unique_labels):
         mask = (y_arr == lbl)
         ax.scatter(
-            X_arr[mask, 0], X_arr[mask, 1],
+            X_arr[mask, 0],
+            X_arr[mask, 1],
             c=palette[idx % len(palette)],
-            label="Class %s" % lbl,
+            label=f"Class {lbl}",
             edgecolors="k",
             alpha=0.75,
-            s=40
+            s=40,
         )
 
-    ax.set_title(title)
-    ax.set_xlabel("$x_1$")
-    ax.set_ylabel("$x_2$")
-    ax.legend(loc="best")
+    ax.set_title(title, fontsize=11.5)
+    ax.set_xlabel("$x_1$", fontsize=11.0)
+    ax.set_ylabel("$x_2$", fontsize=11.0)
+    ax.legend(loc="best", fontsize=9.5)
 
     if standalone:
         plt.tight_layout()
         plt.show()
 
 
-def plot_svm_margins(model, ax=None, xlim=None, ylim=None):
+def plot_decision_boundaries_comparison(
+    models_dict: Dict[str, Any],
+    X: Any,
+    y: Any,
+    figsize: Tuple[float, float] = (14, 5.0),
+) -> None:
     """
-    Plot SVM decision boundary, margin contours, and support vectors.
+    Render 1xK side-by-side comparison panels of 2D decision boundaries.
+
+    Parameters
+    ----------
+    models_dict : Dict[str, Any]
+        Dictionary mapping panel titles to trained models.
+    X : Any
+        Feature matrix (N, 2).
+    y : Any
+        Class labels.
+    figsize : Tuple[float, float], default=(14, 5.0)
+        Figure dimensions.
+    """
+    n_models = len(models_dict)
+    fig, axes = plt.subplots(1, n_models, figsize=figsize)
+    if n_models == 1:
+        axes = [axes]
+
+    for ax, (title, model) in zip(axes, models_dict.items()):
+        plot_decision_boundary(model, X, y, ax=ax, title=title)
+
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_svm_margins(
+    model: Any,
+    ax: Optional[Any] = None,
+    xlim: Optional[Tuple[float, float]] = None,
+    ylim: Optional[Tuple[float, float]] = None,
+) -> None:
+    """
+    Plot SVM decision boundary, margin contours (Z = -1, 0, +1), and support vectors.
+
+    Parameters
+    ----------
+    model : Any
+        Trained SVM model with decision_function and optional support_vectors_.
+    ax : Optional[Any], default=None
+        Matplotlib Axes or None. Handles ax=plt compatibility.
+    xlim : Optional[Tuple[float, float]], default=None
+        Horizontal limits.
+    ylim : Optional[Tuple[float, float]], default=None
+        Vertical limits.
     """
     standalone = False
     if ax is None:
-        fig, ax = plt.subplots(figsize=(8, 6))
+        fig, ax = plt.subplots(figsize=(7, 6))
         standalone = True
+    elif ax is plt:
+        ax = plt.gca()
 
     if xlim is None:
         xlim = ax.get_xlim()
     if ylim is None:
         ylim = ax.get_ylim()
 
-    xx = np.linspace(xlim[0], xlim[1], 50)
-    yy = np.linspace(ylim[0], ylim[1], 50)
+    xx = np.linspace(xlim[0], xlim[1], 80)
+    yy = np.linspace(ylim[0], ylim[1], 80)
     YY, XX = np.meshgrid(yy, xx)
     xy = np.vstack([XX.ravel(), YY.ravel()]).T
 
     Z = model.decision_function(xy).reshape(XX.shape)
 
     ax.contour(
-        XX, YY, Z,
-        colors=["blue", "black"],
+        XX,
+        YY,
+        Z,
+        colors=["royalblue", "black", "royalblue"],
         levels=[-1, 0, 1],
-        alpha=0.5,
-        linestyles=["--", "-", "--"]
+        alpha=0.6,
+        linestyles=["--", "-", "--"],
+        linewidths=[1.8, 2.2, 1.8],
     )
-    if hasattr(model, "support_vectors_"):
+    if hasattr(model, "support_vectors_") and len(model.support_vectors_) > 0:
         ax.scatter(
             model.support_vectors_[:, 0],
             model.support_vectors_[:, 1],
             facecolors="none",
-            edgecolors="r",
-            s=100,
-            linewidths=1.5,
-            label="Support Vectors"
+            edgecolors="firebrick",
+            s=120,
+            linewidths=1.8,
+            label="Support Vectors",
+            zorder=6,
         )
+        ax.legend(loc="lower right", fontsize=9.5)
 
     if standalone:
+        plt.tight_layout()
         plt.show()
 
 
-def plot_pca_scores(X, ort, x_label=None, y_label=None):
+def plot_svm_separating_plane(
+    X: Any,
+    y: Any,
+    xlim: Optional[Tuple[float, float]] = None,
+    ylim: Optional[Tuple[float, float]] = None,
+    show_margin: bool = False,
+    figsize: Tuple[float, float] = (5.5, 5.0),
+) -> None:
     """
-    Plot projection of 2D data points onto a PCA orientation vector.
+    Render separating hyperplane intuition and shaded half-spaces.
+
+    Parameters
+    ----------
+    X : Any
+        2D data coordinates.
+    y : Any
+        Binary class targets.
+    xlim : Optional[Tuple[float, float]], default=None
+        X limits.
+    ylim : Optional[Tuple[float, float]], default=None
+        Y limits.
+    show_margin : bool, default=False
+        Whether to show optimal separating plane vs candidate planes.
+    figsize : Tuple[float, float], default=(5.5, 5.0)
+        Figure size.
     """
-    ort = np.asarray(ort, dtype=np.float32).reshape(2, 1)
     X_arr = np.asarray(X)
-    fig, ax = plt.subplots(1, 2, figsize=(10, 5), sharey=True)
+    y_arr = np.asarray(y)
+    if xlim is None or ylim is None:
+        xlim, ylim = get_boundaries(X_arr, padding=1.0)
+
+    plt.figure(figsize=figsize)
+    plt.xlim(xlim)
+    plt.ylim(ylim)
+    plt.scatter(X_arr[:, 0], X_arr[:, 1], c=y_arr, cmap=cm_binary, edgecolors="k", s=50)
+
+    if not show_margin:
+        plt.plot(xlim, [ylim[1] - 2, ylim[0] + 2], "-c", lw=2, label="Candidate 1")
+        plt.plot(xlim, [ylim[1] + 1, ylim[0] - 2], "-r", lw=2, label="Candidate 2")
+        plt.title("Linearly Separable Data: Multiple Valid Planes", fontsize=11)
+    else:
+        plt.plot(xlim, [ylim[1], ylim[0]], "-k", lw=2.4, label="Separating Plane")
+        plt.fill_between(xlim, [ylim[1], ylim[0]], ylim[0], alpha=0.15, color="blue")
+        plt.title("Maximum Margin Separating Hyperplane", fontsize=11)
+
+    plt.xlabel("$x_1$", fontsize=11)
+    plt.ylabel("$x_2$", fontsize=11)
+    plt.legend(loc="upper right", fontsize=9.5)
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_feature_importances(
+    feature_names: Sequence[str],
+    importances_dict: Dict[str, Sequence[float]],
+    title: str = "Top Feature Importances (MDI)",
+    figsize: Tuple[float, float] = (10, 4.5),
+) -> None:
+    """
+    Render grouped horizontal bar charts comparing feature importances across ensemble models.
+
+    Parameters
+    ----------
+    feature_names : Sequence[str]
+        Ordered feature labels.
+    importances_dict : Dict[str, Sequence[float]]
+        Dictionary mapping model names to importance scores.
+    title : str, default="Top Feature Importances (MDI)"
+        Figure title.
+    figsize : Tuple[float, float], default=(10, 4.5)
+        Figure dimensions.
+    """
+    fig, ax = plt.subplots(figsize=figsize)
+    y_pos = np.arange(len(feature_names))
+    n_models = len(importances_dict)
+    height = 0.8 / n_models
+    colors = ["royalblue", "forestgreen", "darkorange", "firebrick"]
+
+    for idx, (m_name, imp) in enumerate(importances_dict.items()):
+        offset = (idx - n_models / 2 + 0.5) * height
+        ax.barh(y_pos + offset, imp, height, label=m_name, color=colors[idx % len(colors)], alpha=0.85)
+
+    ax.set_yticks(y_pos)
+    ax.set_yticklabels(feature_names, fontsize=10.5)
+    ax.invert_yaxis()
+    ax.set_xlabel("Mean Decrease in Impurity (MDI)", fontsize=11.5)
+    ax.set_title(title, fontsize=12)
+    ax.legend(loc="lower right", fontsize=10.0)
+    plt.tight_layout()
+    plt.show()
+
+
+# ---------------------------------------------------------------------------
+# 6. Unsupervised Learning, PCA & Matrix Decompositions (07_unsupervised)
+# ---------------------------------------------------------------------------
+
+def plot_pca_scores(
+    X: Any,
+    ort: Any,
+    x_label: Optional[str] = None,
+    y_label: Optional[str] = None,
+    figsize: Tuple[float, float] = (10, 4.8),
+) -> None:
+    """
+    Plot projection of 2D data points onto a principal component orientation vector.
+
+    Parameters
+    ----------
+    X : Any
+        Feature matrix (N, 2).
+    ort : Any
+        Unit orientation vector (2, 1).
+    x_label : Optional[str]
+        Horizontal axis label.
+    y_label : Optional[str]
+        Vertical axis label.
+    figsize : Tuple[float, float]
+        Figure size.
+    """
+    ort_arr = np.asarray(ort, dtype=np.float32).reshape(2, 1)
+    X_arr = np.asarray(X)
+    fig, ax = plt.subplots(1, 2, figsize=figsize, sharey=True)
     if y_label:
-        ax[0].set_ylabel(y_label)
+        ax[0].set_ylabel(y_label, fontsize=11)
 
     for a in ax:
         if x_label:
-            a.set_xlabel(x_label)
-        a.scatter(X_arr[:, 0], X_arr[:, 1], alpha=0.7)
+            a.set_xlabel(x_label, fontsize=11)
+        a.scatter(X_arr[:, 0], X_arr[:, 1], alpha=0.7, color="royalblue")
         l, r = a.get_xlim()
         x_line = np.linspace(l, r, 20)
-        y_line = (ort[1, 0] / ort[0, 0]) * x_line if ort[0, 0] != 0 else np.zeros_like(x_line)
-        a.plot(x_line, y_line, c="orange", lw=2)
+        y_line = (ort_arr[1, 0] / ort_arr[0, 0]) * x_line if ort_arr[0, 0] != 0 else np.zeros_like(x_line)
+        a.plot(x_line, y_line, c="darkorange", lw=2.2, label=r"PC Direction $\mathbf{u}_1$")
 
-    denom = np.dot(ort.T, ort)
-    proj_matrix = np.dot(ort, ort.T) / denom if denom > 0 else np.zeros((2, 2))
+    denom = float(np.dot(ort_arr.T, ort_arr).item())
+    proj_matrix = np.dot(ort_arr, ort_arr.T) / denom if denom > 0 else np.zeros((2, 2))
     for i in range(len(X_arr)):
         m = np.dot(proj_matrix, X_arr[i, :2].reshape(2, 1)).flatten()
-        ax[1].plot([X_arr[i, 0], m[0]], [X_arr[i, 1], m[1]], c="green", alpha=0.5)
-        ax[1].scatter(m[0], m[1], marker="x", c="k")
+        ax[1].plot([X_arr[i, 0], m[0]], [X_arr[i, 1], m[1]], c="forestgreen", alpha=0.4)
+        ax[1].scatter(m[0], m[1], marker="x", c="k", s=30)
 
+    ax[0].set_title(r"Principal Component Axis $\mathbf{u}_1$", fontsize=11.5)
+    ax[1].set_title(r"Orthogonal Projection: $\mathbf{X}\mathbf{u}_1\mathbf{u}_1^\mathrm{T}$", fontsize=11.5)
     fig.tight_layout()
     plt.show()
 
 
-def plot_variance_explained(ve):
+def plot_variance_explained(
+    ve: Sequence[float],
+    figsize: Tuple[float, float] = (10, 4.2),
+) -> None:
     """
     Plot individual and cumulative proportion of variance explained by principal components.
+
+    Parameters
+    ----------
+    ve : Sequence[float]
+        Array of variance explained values per component.
+    figsize : Tuple[float, float], default=(10, 4.2)
+        Figure dimensions.
     """
     ve_arr = np.asarray(ve, dtype=float)
-    coeffs = ve_arr / ve_arr.sum()
+    total_var = float(ve_arr.sum())
+    coeffs = ve_arr / total_var if total_var > 0 else ve_arr
     cumulative = np.cumsum(coeffs)
+    k_range = list(range(1, len(ve_arr) + 1))
 
-    fig, ax = plt.subplots(1, 2, figsize=(10, 4.5), sharex=True)
-    ax[0].bar(range(1, len(ve_arr) + 1), ve_arr, color="royalblue")
-    ax[0].set_ylabel("Variance explained")
-    ax[0].set_xlabel("Principal Component")
+    fig, ax = plt.subplots(1, 2, figsize=figsize, sharex=True)
+    ax[0].bar(k_range, ve_arr, color="royalblue")
+    ax[0].set_ylabel("Variance Explained", fontsize=11.5)
+    ax[0].set_xlabel("Principal Component", fontsize=11.5)
+    ax[0].set_title("Individual Variance Explained", fontsize=12)
+    ax[0].set_xticks(k_range)
 
-    ax[1].bar(range(1, len(ve_arr) + 1), cumulative, color="forestgreen")
-    ax[1].set_ylabel("Cumulative variance explained")
-    ax[1].set_xlabel("Principal Component")
+    ax[1].bar(k_range, cumulative, color="forestgreen")
+    ax[1].set_ylabel("Cumulative Variance Ratio", fontsize=11.5)
+    ax[1].set_xlabel("Principal Component", fontsize=11.5)
     ax[1].set_ylim(0, 1.05)
+    ax[1].set_title("Cumulative Proportion of Variance", fontsize=12)
+    ax[1].set_xticks(k_range)
 
     fig.tight_layout()
     plt.show()
 
 
-def plot_pca_biplot(z1, z2, sc, comps, obs, features, colors):
+def plot_pca_biplot(
+    z1: int,
+    z2: int,
+    sc: Any,
+    comps: Any,
+    obs: Sequence[Any],
+    features: Sequence[str],
+    colors: Sequence[str],
+    figsize: Tuple[float, float] = (9.5, 8.5),
+) -> None:
     """
     Render PCA biplot with observation scores and feature loading vectors.
+
+    Parameters
+    ----------
+    z1 : int
+        First principal component index (0-indexed).
+    z2 : int
+        Second principal component index (0-indexed).
+    sc : Any
+        Observation score matrix (N, K).
+    comps : Any
+        Component loading matrix (K, D).
+    obs : Sequence[Any]
+        Observation labels (e.g. US state names).
+    features : Sequence[str]
+        Original feature names.
+    colors : Sequence[str]
+        Color palette for loading arrows.
+    figsize : Tuple[float, float], default=(9.5, 8.5)
+        Figure size.
     """
-    x, y = np.asarray(sc)[:, z1], np.asarray(sc)[:, z2]
+    x = np.asarray(sc)[:, z1]
+    y = np.asarray(sc)[:, z2]
     comps_arr = np.asarray(comps)
 
-    fig = plt.figure(figsize=(10, 10))
-    plt.xlabel("$z_{%d}$" % z1)
-    plt.ylabel("$z_{%d}$" % z2)
+    fig = plt.figure(figsize=figsize)
+    plt.xlabel(f"$z_{{{z1 + 1}}}$", fontsize=12.5)
+    plt.ylabel(f"$z_{{{z2 + 1}}}$", fontsize=12.5)
 
-    sx = (x.max() - x.min()) / 2
-    sy = (y.max() - y.min()) / 2
+    sx = float((x.max() - x.min()) / 2)
+    sy = float((y.max() - y.min()) / 2)
 
-    plt.scatter(x, y, alpha=0.6)
+    plt.scatter(x, y, alpha=0.5, color="royalblue")
     for i in range(len(obs)):
-        plt.text(x[i], y[i], str(obs[i]), ha="center", fontsize=11, alpha=0.8)
+        plt.text(x[i], y[i], str(obs[i]), ha="center", fontsize=10, alpha=0.75)
 
     vec = comps_arr[[z1, z2], :].T
     for i in range(len(vec)):
+        c = colors[i % len(colors)]
         plt.arrow(
-            0, 0,
+            0,
+            0,
             vec[i, 0] * sx,
             vec[i, 1] * sy,
-            ec=colors[i % len(colors)],
+            ec=c,
             head_width=0.08,
             head_length=0.08,
-            fc=colors[i % len(colors)],
-            lw=1.5
+            fc=c,
+            lw=1.6,
         )
         plt.text(
             vec[i, 0] * sx * 1.15,
             vec[i, 1] * sy * 1.15,
             features[i],
-            color=colors[i % len(colors)],
-            fontsize=12,
-            fontweight="bold"
+            color=c,
+            fontsize=11.5,
+            fontweight="bold",
         )
 
+    plt.title(f"Principal Component Biplot: $z_{{{z1 + 1}}}$ vs $z_{{{z2 + 1}}}$", fontsize=13)
     plt.grid(True)
+    plt.tight_layout()
     plt.show()
 
 
-def compress_image_svd(img, comps=15, std_pca_fn=None):
+def plot_loading_heatmap(
+    loadings: Any,
+    x_labels: Optional[Sequence[str]] = None,
+    y_labels: Optional[Sequence[str]] = None,
+    title: str = "Principal Component Loadings",
+    figsize: Tuple[float, float] = (8, 4.2),
+) -> None:
+    """
+    Render styled diverging heatmap for principal component loading matrices.
+
+    Parameters
+    ----------
+    loadings : Any
+        Loading matrix of shape (n_components, n_features).
+    x_labels : Optional[Sequence[str]], default=None
+        Feature column names.
+    y_labels : Optional[Sequence[str]], default=None
+        Principal component labels (e.g. ["$z_1$", "$z_2$"]).
+    title : str, default="Principal Component Loadings"
+        Heatmap title.
+    figsize : Tuple[float, float], default=(8, 4.2)
+        Figure dimensions.
+    """
+    loadings_arr = np.asarray(loadings)
+    plt.figure(figsize=figsize)
+    cmap = sns.diverging_palette(10, 240, as_cmap=True)
+
+    if y_labels is None:
+        y_labels = [f"$z_{i+1}$" for i in range(len(loadings_arr))]
+
+    sns.heatmap(
+        loadings_arr,
+        cmap=cmap,
+        annot=True,
+        fmt=".2f",
+        xticklabels=list(x_labels) if x_labels is not None else True,
+        yticklabels=list(y_labels),
+        cbar=True,
+    )
+    plt.title(title, fontsize=12.5)
+    plt.tight_layout()
+    plt.show()
+
+
+def compress_image_svd(
+    img: Any,
+    comps: int = 15,
+    std_pca_fn: Optional[Callable[..., Any]] = None,
+    figsize: Tuple[float, float] = (14, 4.0),
+) -> None:
     """
     Demonstrate low-rank image reconstruction via SVD/PCA across RGB channels.
+
+    Parameters
+    ----------
+    img : Any
+        RGB image array (H, W, 3).
+    comps : int, default=15
+        Number of singular vectors / components retained.
+    std_pca_fn : Optional[Callable], default=None
+        Optional standardized PCA function implemented in course notebooks.
+    figsize : Tuple[float, float], default=(14, 4.0)
+        Dimensions of variance panel.
     """
     img_arr = np.asarray(img, dtype=np.float32)
-    channels = []
+    channels: List[np.ndarray] = []
     colors = ["red", "green", "blue"]
 
-    fig, ax = plt.subplots(1, 3, sharex=True, figsize=(15, 4))
+    fig, ax = plt.subplots(1, 3, sharex=True, figsize=figsize)
     for i, c in enumerate(colors):
         channel = img_arr[:, :, i]
         if std_pca_fn is not None:
@@ -459,10 +1353,13 @@ def compress_image_svd(img, comps=15, std_pca_fn=None):
             ch_recon = np.dot(U[:, :comps] * S[:comps], Vt[:comps, :])
             ve_arr = S ** 2
 
-        ve_norm = ve_arr[:comps] / ve_arr.sum()
+        ve_sum = float(ve_arr.sum())
+        ve_norm = ve_arr[:comps] / ve_sum if ve_sum > 0 else ve_arr[:comps]
         ax[i].bar(range(1, comps + 1), ve_norm, color=c)
-        ax[i].set_title(f"{c.capitalize()} Channel Variance")
-        ch_min, ch_max = ch_recon.min(), ch_recon.max()
+        ax[i].set_title(f"{c.capitalize()} Channel Variance", fontsize=11)
+        ax[i].set_xlabel("Component", fontsize=10.5)
+
+        ch_min, ch_max = float(ch_recon.min()), float(ch_recon.max())
         ch_norm = (ch_recon - ch_min) / (ch_max - ch_min) if ch_max > ch_min else ch_recon
         channels.append(ch_norm)
 
@@ -470,11 +1367,19 @@ def compress_image_svd(img, comps=15, std_pca_fn=None):
     plt.show()
 
     recon = np.stack(channels, axis=-1)
-    fig, axs = plt.subplots(1, 2, figsize=(10, 6))
+    fig, axs = plt.subplots(1, 2, figsize=(9.5, 5.0))
     axs[0].imshow(img)
-    axs[0].set_title("Original Image")
+    axs[0].set_title("Original Image", fontsize=12)
     axs[0].grid(False)
     axs[1].imshow(recon)
-    axs[1].set_title(f"Reconstructed ({comps} components)")
+    axs[1].set_title(f"Reconstructed ({comps} components)", fontsize=12)
     axs[1].grid(False)
+    plt.tight_layout()
     plt.show()
+
+
+# Backward-compatible function aliases
+plot_var_exp = plot_variance_explained
+biplot = plot_pca_biplot
+compress = compress_image_svd
+
