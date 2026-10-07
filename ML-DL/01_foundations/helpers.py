@@ -1,9 +1,17 @@
 """
-Self-contained helper utilities for Mathematical Foundations (ML-DL / 01_foundations).
-Provides visualization, vector geometry, PCA/SVD decomposition, and probability routines.
+Unified and modular helper utilities for Mathematical Foundations (ML-DL / 01_foundations).
+Provides structured, decoupled visualization and operational routines for:
+1. Course Aesthetics & Theme Configuration
+2. Probability Distributions & Empirical Diagnostics (02_probability)
+3. Information Theory Visualizations (03_information)
+4. Linear Algebra, Vector Geometry & Dimensionality Reduction (04_algebra)
+5. Mathematical Functions & Activation Profiles (05_functions)
+6. MLOps Model Diagnostics & Quality Metrics (06_mlops)
 """
 
 import math
+from typing import Any, Callable, Dict, Optional, Sequence, Tuple
+
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as stats
@@ -12,37 +20,42 @@ import torch
 
 
 # ---------------------------------------------------------------------------
-# Plotting Aesthetics & Course Theme Configuration
+# 1. Course Aesthetics & Theme Configuration
 # ---------------------------------------------------------------------------
 
-def setup_theme():
+def setup_theme() -> None:
     """Configure unified course-standard Seaborn plotting aesthetics."""
     sns.set_theme(
         style="whitegrid",
         palette="deep",
         rc={
-            'figure.figsize': (8, 5),
-            'font.size': 14,
-            'axes.labelsize': 14,
-            'ytick.labelsize': 12,
-            'xtick.labelsize': 12,
-            'legend.fontsize': 12,
-        }
+            "figure.figsize": (8, 4.5),
+            "font.size": 13,
+            "axes.labelsize": 13,
+            "ytick.labelsize": 11,
+            "xtick.labelsize": 11,
+            "legend.fontsize": 11,
+        },
     )
 
 
 # ---------------------------------------------------------------------------
-# Probability & Regression Simulation (02_probability)
+# 2. Probability Distributions & Empirical Diagnostics (02_probability)
 # ---------------------------------------------------------------------------
 
-def corr(x, y, **kwargs):
-    """Annotate seaborn pairgrid subplots with Pearson correlation coefficient."""
+def corr(x: Sequence[float], y: Sequence[float], **kwargs: Any) -> None:
+    """Annotate Seaborn PairGrid subplots with Pearson correlation coefficient."""
     ax = plt.gca()
     r, p = stats.pearsonr(x, y)
-    ax.annotate(f"r = {r:.2f}\np-value = {p:.2f}", xy=(0.1, 0.3), size=14, xycoords=ax.transAxes)
+    ax.annotate(
+        f"r = {r:.2f}\np = {p:.3f}",
+        xy=(0.1, 0.3),
+        size=12,
+        xycoords=ax.transAxes,
+    )
 
 
-def plot_correlation_matrix_and_pairgrid(data):
+def plot_correlation_matrix_and_pairgrid(data: Any, figsize: Tuple[float, float] = (7, 5)) -> None:
     """
     Render empirical pairwise relationships and correlation heatmap for dataframe.
     Decoupled helper: keeps Matplotlib/Seaborn canvas boilerplate off presentation slides.
@@ -54,91 +67,171 @@ def plot_correlation_matrix_and_pairgrid(data):
     p.map_lower(sns.scatterplot)
     plt.show()
 
-    plt.figure(figsize=(7, 5))
+    plt.figure(figsize=figsize)
     sns.heatmap(data.corr(), annot=True, cmap="coolwarm", fmt=".2f", vmin=-1, vmax=1)
-    plt.title("Empirical Correlation Matrix")
+    plt.title("Empirical Correlation Matrix", fontsize=13)
     plt.tight_layout()
     plt.show()
 
 
-def plot_gaussian_vs_uniform(g_wide, g_narrow, u_draws):
+def plot_density_comparison(
+    densities_dict: Dict[str, Any],
+    title: str = "Comparison of Continuous Probability Densities",
+    xlabel: str = "Random Variable Value",
+    ylabel: str = "Probability Density",
+    figsize: Tuple[float, float] = (8, 4.5),
+    ax: Optional[plt.Axes] = None,
+) -> Tuple[plt.Figure, plt.Axes]:
+    """
+    Render multi-density comparison using kernel density estimation or line plots.
+    Supports either pre-sampled arrays (rendered with kdeplot) or (x, y) coordinate pairs.
+    """
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = ax.get_figure()
+
+    for label, data in densities_dict.items():
+        if isinstance(data, tuple) and len(data) == 2:
+            x_vals, y_vals = data
+            ax.plot(x_vals, y_vals, label=label, lw=2)
+        else:
+            sns.kdeplot(data, label=label, ax=ax, lw=2)
+
+    ax.set_title(title, fontsize=13)
+    ax.set_xlabel(xlabel, fontsize=12)
+    ax.set_ylabel(ylabel, fontsize=12)
+    ax.legend(loc="upper right", fontsize=10.5)
+    ax.grid(True)
+    fig.tight_layout()
+    return fig, ax
+
+
+def plot_gaussian_vs_uniform(
+    g_wide: Sequence[float],
+    g_narrow: Sequence[float],
+    u_draws: Sequence[float],
+) -> None:
     """
     Plot kernel density estimations comparing broad/narrow Gaussians and Uniform distribution.
+    Maintained for backward compatibility; delegates to plot_density_comparison.
     """
-    plt.figure(figsize=(8, 4.5))
-    sns.kdeplot(g_wide, label=r'Gaussian $\sigma=20$')
-    sns.kdeplot(g_narrow, label=r'Gaussian $\sigma=10$')
-    sns.kdeplot(u_draws, label='Uniform $[-100, 100]$')
-    plt.xlabel('Random Variable Value')
-    plt.ylabel('Probability Density')
-    plt.title('Comparison of Continuous Probability Densities')
-    plt.legend()
-    plt.tight_layout()
+    densities = {
+        r"Gaussian $\sigma=20$": g_wide,
+        r"Gaussian $\sigma=10$": g_narrow,
+        "Uniform $[-100, 100]$": u_draws,
+    }
+    plot_density_comparison(densities)
     plt.show()
 
 
-def plot_regression_dataset(X, t, f=None):
+def plot_regression_dataset(
+    X: Any,
+    t: Any,
+    f: Optional[Callable[[Any], Any]] = None,
+    title: str = "Synthetic Nonlinear Data Generation with Additive Noise",
+    figsize: Tuple[float, float] = (8, 4.5),
+    ax: Optional[plt.Axes] = None,
+) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Plot 1D synthetic regression dataset: scatter noisy targets t and lineplot true function f(x).
+    Plot 1D synthetic regression dataset: scatter noisy observations t and lineplot true function f(x).
     """
-    plt.figure(figsize=(8, 4.5))
-    sns.scatterplot(x=X, y=t, label=r'Noisy targets $t$')
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = ax.get_figure()
+
+    ax.scatter(X, t, color="royalblue", alpha=0.75, edgecolors="none", s=35, label=r"Noisy targets $t$")
     if f is not None:
-        x_grid = np.linspace(min(X), max(X), 200)
-        sns.lineplot(x=x_grid, y=f(x_grid), color='r', label=r'True function $f(x)$')
-    plt.xlabel('$x$')
-    plt.ylabel('$t$')
-    plt.title('Synthetic Nonlinear Data Generation with Additive Noise')
-    plt.legend()
-    plt.tight_layout()
+        x_grid = np.linspace(float(np.min(X)), float(np.max(X)), 200)
+        ax.plot(x_grid, f(x_grid), color="crimson", lw=2, label=r"True function $f(x)$")
+
+    ax.set_xlabel("$x$", fontsize=12)
+    ax.set_ylabel("$t$", fontsize=12)
+    ax.set_title(title, fontsize=13)
+    ax.legend(loc="upper left", fontsize=10.5)
+    ax.grid(True)
+    fig.tight_layout()
     plt.show()
+    return fig, ax
 
 
-def plot_gmm_samples(X_gmm):
-    """
-    Plot 2D scatter of samples from a Gaussian Mixture Model.
-    """
-    plt.figure(figsize=(6, 5))
-    plt.scatter(X_gmm[:, 0], X_gmm[:, 1], alpha=0.7, edgecolors='k', s=35)
-    plt.title('Sample from a 3-Component Gaussian Mixture')
-    plt.xlabel('$x_1$')
-    plt.ylabel('$x_2$')
-    plt.tight_layout()
+def plot_gmm_samples(
+    X_gmm: np.ndarray,
+    title: str = "Sample from a 3-Component Gaussian Mixture",
+    figsize: Tuple[float, float] = (6, 5),
+    ax: Optional[plt.Axes] = None,
+) -> Tuple[plt.Figure, plt.Axes]:
+    """Plot 2D scatter of samples from a Gaussian Mixture Model."""
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = ax.get_figure()
+
+    ax.scatter(X_gmm[:, 0], X_gmm[:, 1], alpha=0.7, edgecolors="k", s=35, c="royalblue")
+    ax.set_title(title, fontsize=13)
+    ax.set_xlabel("$x_1$", fontsize=12)
+    ax.set_ylabel("$x_2$", fontsize=12)
+    ax.grid(True)
+    fig.tight_layout()
     plt.show()
+    return fig, ax
 
 
-def render_bias_variance_plot(degrees, train_squared_error, test_squared_error, bias_squared, var_y_pred, sigma_epsilon=1.0):
+def render_bias_variance_plot(
+    degrees: Sequence[int],
+    train_squared_error: Sequence[float],
+    test_squared_error: Sequence[float],
+    bias_squared: Sequence[float],
+    var_y_pred: Sequence[float],
+    sigma_epsilon: float = 1.0,
+    figsize: Tuple[float, float] = (9, 5.5),
+) -> None:
     """
     Decoupled visualization helper: plots pre-computed bias-variance curves.
     Receives evaluated metric arrays and renders the decomposition diagram.
     """
     d_plt = list(degrees)
-    plt.figure(figsize=(9, 5.5))
+    plt.figure(figsize=figsize)
     plt.xlim([min(d_plt), max(d_plt)])
     plt.ylim([0, 3.2])
     plt.xticks(d_plt)
-    plt.plot(d_plt, test_squared_error, 'r-', linewidth=2.5, label=r'Expected test error $\mathbb{E}[(t - y(x))^2]$')
-    plt.plot(d_plt, bias_squared, 'g-', linewidth=2.5, label=r'Expected $(\mathrm{bias}[y(x)])^2$')
-    plt.plot(d_plt, var_y_pred, 'b-', linewidth=2.5, label=r'Expected $\mathrm{var}[y(x)]$')
-    plt.plot(d_plt, (sigma_epsilon ** 2) * np.ones_like(d_plt), 'y--', linewidth=2, label=r'Noise floor $\mathrm{var}[\epsilon] = \sigma^2$')
-    plt.plot(d_plt, train_squared_error, 'k:', linewidth=2, label='Training squared error')
-    plt.xlabel('Polynomial Degree $M$', fontsize=13)
-    plt.ylabel('Mean Squared Error', fontsize=13)
-    plt.title('Empirical Bias-Variance Decomposition', fontsize=14)
-    plt.legend(loc='upper center', fontsize=11)
+    plt.plot(d_plt, test_squared_error, "r-", linewidth=2.5, label=r"Expected test error $\mathbb{E}[(t - y(x))^2]$")
+    plt.plot(d_plt, bias_squared, "g-", linewidth=2.5, label=r"Expected $(\mathrm{bias}[y(x)])^2$")
+    plt.plot(d_plt, var_y_pred, "b-", linewidth=2.5, label=r"Expected $\mathrm{var}[y(x)]$")
+    plt.plot(
+        d_plt,
+        (sigma_epsilon ** 2) * np.ones_like(d_plt),
+        "y--",
+        linewidth=2,
+        label=r"Noise floor $\mathrm{var}[\epsilon] = \sigma^2$",
+    )
+    plt.plot(d_plt, train_squared_error, "k:", linewidth=2, label="Training squared error")
+    plt.xlabel("Polynomial Degree $M$", fontsize=13)
+    plt.ylabel("Mean Squared Error", fontsize=13)
+    plt.title("Empirical Bias-Variance Decomposition", fontsize=14)
+    plt.legend(loc="upper center", fontsize=10.5)
+
     ax = plt.gca()
-    ax.axvspan(1, 2, alpha=0.15, color='gray')
-    ax.axvspan(4, 5, alpha=0.15, color='gray')
-    plt.text(1.2, 2.9, 'underfitting', fontsize=12, fontweight='bold')
-    plt.text(4.2, 2.9, 'overfitting', fontsize=12, fontweight='bold')
+    ax.axvspan(1, 2, alpha=0.15, color="gray")
+    ax.axvspan(4, 5, alpha=0.15, color="gray")
+    plt.text(1.2, 2.9, "underfitting", fontsize=12, fontweight="bold")
+    plt.text(4.2, 2.9, "overfitting", fontsize=12, fontweight="bold")
     plt.tight_layout()
     plt.show()
 
 
-def plot_bias_variance(X, t, degrees=5, repeats=100, f=None, sigma_epsilon=1.0):
+def plot_bias_variance(
+    X: np.ndarray,
+    t: np.ndarray,
+    degrees: int = 5,
+    repeats: int = 100,
+    f: Optional[Callable[[Any], Any]] = None,
+    sigma_epsilon: float = 1.0,
+) -> None:
     """
     Simulate and plot bias-variance decomposition across polynomial complexities.
-    (Maintained for backward compatibility; prefer computing errors in notebook).
+    Maintained for backward compatibility; prefer computing errors in notebook cells.
     """
     from sklearn.linear_model import LinearRegression
     from sklearn.model_selection import train_test_split
@@ -165,7 +258,7 @@ def plot_bias_variance(X, t, degrees=5, repeats=100, f=None, sigma_epsilon=1.0):
 
     bias_squared = (np.mean(y_pred_store, 1) - f(X)) ** 2
     var_y_pred = np.var(y_pred_store, 1)
-    d_range = range(1, degrees + 1)
+    d_range = list(range(1, degrees + 1))
 
     render_bias_variance_plot(
         d_range,
@@ -173,17 +266,92 @@ def plot_bias_variance(X, t, degrees=5, repeats=100, f=None, sigma_epsilon=1.0):
         np.mean(test_squared_error, 1),
         np.mean(bias_squared, 1),
         np.mean(var_y_pred, 1),
-        sigma_epsilon=sigma_epsilon
+        sigma_epsilon=sigma_epsilon,
     )
 
 
 # ---------------------------------------------------------------------------
-# Linear Algebra & Vector Geometry (04_algebra)
+# 3. Information Theory Visualizations (03_information)
 # ---------------------------------------------------------------------------
 
-def plot2d(tensor, title=None):
-    """Plot 2D vectors emanating from the origin using quiver."""
-    plt.figure(figsize=(5, 5))
+def plot_curve_with_marker(
+    x_grid: Sequence[float],
+    y_grid: Sequence[float],
+    x_val: float,
+    y_val: float,
+    xlabel: str = "x",
+    ylabel: str = "y",
+    title: Optional[str] = None,
+    curve_label: Optional[str] = None,
+    marker_label: Optional[str] = None,
+    vline_at: Optional[float] = None,
+    figsize: Tuple[float, float] = (8, 4.2),
+    ax: Optional[plt.Axes] = None,
+) -> Tuple[plt.Figure, plt.Axes]:
+    """
+    Render 1D mathematical curve with dynamic highlighted parameter marker.
+    Reusable primitive for Bernoulli entropy, differential entropy, and activation exploration.
+    """
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = ax.get_figure()
+
+    ax.plot(x_grid, y_grid, color="crimson", lw=2.5, label=curve_label)
+    ax.scatter([x_val], [y_val], color="royalblue", s=75, zorder=5, label=marker_label)
+    if vline_at is not None:
+        ax.axvline(vline_at, color="gray", linestyle="--", alpha=0.6)
+
+    if title:
+        ax.set_title(title, fontsize=13)
+    ax.set_xlabel(xlabel, fontsize=12)
+    ax.set_ylabel(ylabel, fontsize=12)
+    ax.legend(loc="best", fontsize=10.5)
+    ax.grid(True)
+    fig.tight_layout()
+    plt.show()
+    return fig, ax
+
+
+def plot_joint_distribution_heatmap(
+    joint_matrix: np.ndarray,
+    x_labels: Optional[Sequence[str]] = None,
+    y_labels: Optional[Sequence[str]] = None,
+    title: str = "Joint Probability Distribution $p(x, y)$",
+    figsize: Tuple[float, float] = (6, 4.5),
+    ax: Optional[plt.Axes] = None,
+) -> Tuple[plt.Figure, plt.Axes]:
+    """Render 2D joint discrete probability distribution matrix as an annotated heatmap."""
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = ax.get_figure()
+
+    sns.heatmap(
+        joint_matrix,
+        annot=True,
+        fmt=".3f",
+        cmap="Blues",
+        xticklabels=x_labels if x_labels is not None else True,
+        yticklabels=y_labels if y_labels is not None else True,
+        cbar=True,
+        ax=ax,
+    )
+    ax.set_title(title, fontsize=13)
+    ax.set_xlabel("$y$", fontsize=12)
+    ax.set_ylabel("$x$", fontsize=12)
+    fig.tight_layout()
+    plt.show()
+    return fig, ax
+
+
+# ---------------------------------------------------------------------------
+# 4. Linear Algebra & Vector Geometry (04_algebra)
+# ---------------------------------------------------------------------------
+
+def plot2d(tensor: Any, title: Optional[str] = None, figsize: Tuple[float, float] = (5, 5)) -> None:
+    """Plot 2D vectors emanating from the origin using Matplotlib quiver."""
+    plt.figure(figsize=figsize)
     if hasattr(tensor, "detach"):
         t_np = tensor.detach().cpu().numpy()
     else:
@@ -194,56 +362,21 @@ def plot2d(tensor, title=None):
     plt.xlim(-mx, mx)
     plt.ylim(-mx, mx)
     if title:
-        plt.title(title)
+        plt.title(title, fontsize=12)
     plt.grid(True)
+    plt.tight_layout()
     plt.show()
 
 
-def std_full(T):
-    """Standardizes input tensor to zero mean and unit variance, returning stats."""
-    means = T.mean(dim=0, keepdim=True)
-    stds = T.std(dim=0, keepdim=True)
-    return ((T - means) / stds), means, stds
-
-
-def standardize(T):
-    """Standardizes input tensor features to zero mean and unit variance."""
-    return std_full(T)[0]
-
-
-def std_inverse(T, means, stds):
-    """Reverts standardized features back to original scale using mean and std."""
-    k = T.size()[1]
-    return T * stds[:, :k] + means[:, :k]
-
-
-def normalize(T):
-    """Min-max rescales input tensor values into the unit interval [0, 1]."""
-    if hasattr(T, "clone"):
-        Tv = T.view(T.size(0), -1).clone()
-    else:
-        Tv = np.copy(T).reshape(T.shape[0], -1)
-    Tv -= Tv.min()
-    Tv /= Tv.max()
-    return Tv
-
-
-def to_coefficients(T):
-    """Normalizes columns of input tensor to sum to 1 (simplex projection)."""
-    if hasattr(T, "sum"):
-        return T / T.sum(0, keepdim=True)[0]
-    return T / np.sum(T, axis=0, keepdims=True)[0]
-
-
-def scale_vector(t_vec, alpha=1):
-    """Scale a vector and render it with plot2d."""
+def scale_vector(t_vec: Any, alpha: float = 1.0) -> None:
+    """Scale a vector and render it with plot2d (backward-compatible helper)."""
     if alpha != 0:
         plot2d(torch.cat((t_vec, t_vec * alpha), dim=1), title=f"Scale factor: alpha={alpha}")
     else:
         plot2d(t_vec, title="Scale factor: alpha=0")
 
 
-def inspect_angle(y1=0.0, y2=1.0):
+def inspect_angle(y1: float = 0.0, y2: float = 1.0) -> None:
     """Inspect angle and dot product between (1, 0) and (y1, y2)."""
     x_base = torch.tensor([[1.0], [0.0]], dtype=torch.float32)
     y_comp = torch.tensor([[float(y1)], [float(y2)]], dtype=torch.float32)
@@ -253,7 +386,7 @@ def inspect_angle(y1=0.0, y2=1.0):
     plot2d(torch.cat((x_base, y_comp), dim=1), title=f"Angle: {deg:.1f} deg")
 
 
-def rotate_vector(alpha=90):
+def rotate_vector(alpha: float = 90.0) -> None:
     """Rotate base vector (1, 0) by angle alpha degrees."""
     rad = math.radians(alpha)
     rot_mat = torch.tensor([[math.cos(rad), -math.sin(rad)], [math.sin(rad), math.cos(rad)]], dtype=torch.float32)
@@ -263,21 +396,21 @@ def rotate_vector(alpha=90):
     plot2d(torch.cat((v_rot, v_init), dim=1), title=f"Rotation by {alpha} deg")
 
 
-def plot_scores(X_us, us_columns, x=0, y=0):
+def plot_scores(X_us: Any, us_columns: Sequence[str], x: float = 0.0, y: float = 0.0) -> None:
     """Plot 2D PCA orthogonal projection and orientation lines."""
     ort = torch.tensor([[float(x)], [float(y)]], dtype=torch.float32)
     fig, ax = plt.subplots(1, 2, figsize=(10, 4.5), sharey=True)
-    ax[0].set_ylabel(us_columns[1])
+    ax[0].set_ylabel(us_columns[1], fontsize=11)
     X_plot = X_us.numpy() if hasattr(X_us, "numpy") else np.asarray(X_us)
 
     for a in ax:
-        a.set_xlabel(us_columns[0])
+        a.set_xlabel(us_columns[0], fontsize=11)
         a.scatter(X_plot[:, 0], X_plot[:, 1], alpha=0.7)
         l, r = a.get_xlim()
         if abs(ort[0].item()) > 1e-6:
             x_vals = np.linspace(l, r, 20)
             y_vals = (ort[1].item() / ort[0].item()) * x_vals
-            a.plot(x_vals, y_vals, c='orange', lw=2)
+            a.plot(x_vals, y_vals, c="orange", lw=2)
 
     denom = torch.matmul(ort.t(), ort).item()
     if abs(denom) > 1e-6:
@@ -285,46 +418,69 @@ def plot_scores(X_us, us_columns, x=0, y=0):
         X_sub = X_us[:, :2] if hasattr(X_us, "device") else torch.tensor(X_us[:, :2], dtype=torch.float32)
         projected = torch.matmul(X_sub, proj_matrix).numpy()
         for i in range(len(X_plot)):
-            ax[1].plot([X_plot[i, 0], projected[i, 0]], [X_plot[i, 1], projected[i, 1]], c='green', alpha=0.4)
-        ax[1].scatter(projected[:, 0], projected[:, 1], marker='x', c='k', s=25)
+            ax[1].plot([X_plot[i, 0], projected[i, 0]], [X_plot[i, 1], projected[i, 1]], c="green", alpha=0.4)
+        ax[1].scatter(projected[:, 0], projected[:, 1], marker="x", c="k", s=25)
 
     fig.tight_layout()
     plt.show()
 
 
-def biplot(z1, z2, sc, comps, obs, features, colors):
+def biplot(
+    z1: int,
+    z2: int,
+    sc: Any,
+    comps: Any,
+    obs: Sequence[Any],
+    features: Sequence[str],
+    colors: Sequence[str],
+) -> None:
     """Render PCA biplot with observation scores and loading vectors."""
     x = sc[:, z1].numpy() if hasattr(sc, "numpy") else np.asarray(sc)[:, z1]
     y = sc[:, z2].numpy() if hasattr(sc, "numpy") else np.asarray(sc)[:, z2]
-    fig = plt.figure(figsize=(9, 8))
-    plt.xlabel(f"$z_{{{z1+1}}}$")
-    plt.ylabel(f"$z_{{{z2+1}}}$")
+    plt.figure(figsize=(9, 8))
+    plt.xlabel(f"$z_{{{z1+1}}}$", fontsize=12)
+    plt.ylabel(f"$z_{{{z2+1}}}$", fontsize=12)
 
     sx = float((x.max() - x.min()) / 2)
     sy = float((y.max() - y.min()) / 2)
 
     plt.scatter(x, y, alpha=0.6)
     for i in range(len(obs)):
-        plt.text(x[i], y[i], str(obs[i]), ha='center', fontsize=9, alpha=0.8)
+        plt.text(x[i], y[i], str(obs[i]), ha="center", fontsize=9, alpha=0.8)
 
     comps_mat = comps[[z1, z2], :].numpy().T if hasattr(comps, "numpy") else np.asarray(comps)[[z1, z2], :].T
     for i in range(len(comps_mat)):
-        plt.arrow(0, 0, comps_mat[i, 0] * sx, comps_mat[i, 1] * sy, ec=colors[i % len(colors)],
-                  head_width=0.1, head_length=0.1, fc=colors[i % len(colors)], lw=2)
-        plt.text(comps_mat[i, 0] * sx * 1.15, comps_mat[i, 1] * sy * 1.15, features[i],
-                 color=colors[i % len(colors)], fontsize=12, weight='bold')
+        plt.arrow(
+            0,
+            0,
+            comps_mat[i, 0] * sx,
+            comps_mat[i, 1] * sy,
+            ec=colors[i % len(colors)],
+            head_width=0.1,
+            head_length=0.1,
+            fc=colors[i % len(colors)],
+            lw=2,
+        )
+        plt.text(
+            comps_mat[i, 0] * sx * 1.15,
+            comps_mat[i, 1] * sy * 1.15,
+            features[i],
+            color=colors[i % len(colors)],
+            fontsize=12,
+            weight="bold",
+        )
 
     plt.grid(True)
     plt.tight_layout()
     plt.show()
 
 
-def compress_image_svd(img, comps=15, std_pca_fn=None):
+def compress_image_svd(img: Any, comps: int = 15, std_pca_fn: Optional[Callable[..., Any]] = None) -> None:
     """RGB channel low-rank image reconstruction via SVD/PCA."""
     img_arr = np.asarray(img, dtype=np.float32)
     channels = []
-    ch_colors = ['red', 'green', 'blue']
-    ch_names = ['Red Channel', 'Green Channel', 'Blue Channel']
+    ch_colors = ["red", "green", "blue"]
+    ch_names = ["Red Channel", "Green Channel", "Blue Channel"]
 
     fig, ax = plt.subplots(1, 3, sharex=True, figsize=(12, 3.5))
     for i in range(3):
@@ -362,33 +518,36 @@ def compress_image_svd(img, comps=15, std_pca_fn=None):
     plt.show()
 
 
-def plot_pca_vectors(X, feature_names, loadings):
-    """
-    Plot 2D scatter of features along with PCA principal component loading vectors.
-    """
+def plot_pca_vectors(X: Any, feature_names: Sequence[str], loadings: Any) -> None:
+    """Plot 2D scatter of features along with PCA principal component loading vectors."""
     X_plot = X.numpy() if hasattr(X, "numpy") else np.asarray(X)
     loadings_np = loadings.numpy() if hasattr(loadings, "numpy") else np.asarray(loadings)
-    colors = ['red', 'orange']
+    colors = ["red", "orange"]
     plt.figure(figsize=(6, 5))
     plt.scatter(X_plot[:, 0], X_plot[:, 1], alpha=0.7)
     plt.xlabel(feature_names[0])
     plt.ylabel(feature_names[1])
     for i in range(min(2, len(loadings_np))):
         plt.arrow(
-            0, 0, loadings_np[i, 0], loadings_np[i, 1],
-            ec=colors[i % len(colors)], head_width=0.12, head_length=0.12,
-            fc=colors[i % len(colors)], lw=2, label=f"Principal direction $\\mathbf{{u}}_{{{i+1}}}$"
+            0,
+            0,
+            loadings_np[i, 0],
+            loadings_np[i, 1],
+            ec=colors[i % len(colors)],
+            head_width=0.12,
+            head_length=0.12,
+            fc=colors[i % len(colors)],
+            lw=2,
+            label=f"Principal direction $\\mathbf{{u}}_{{{i+1}}}$",
         )
-    plt.title("Data Scatter and Principal Directions")
+    plt.title("Data Scatter and Principal Directions", fontsize=12)
     plt.legend()
     plt.tight_layout()
     plt.show()
 
 
-def plot_loadings_heatmap(loadings, feature_names):
-    """
-    Render heatmap of principal component loadings across feature dimensions.
-    """
+def plot_loadings_heatmap(loadings: Any, feature_names: Sequence[str]) -> None:
+    """Render heatmap of principal component loadings across feature dimensions."""
     loadings_np = loadings.numpy() if hasattr(loadings, "numpy") else np.asarray(loadings)
     plt.figure(figsize=(7, 4))
     sns.heatmap(
@@ -397,57 +556,222 @@ def plot_loadings_heatmap(loadings, feature_names):
         annot=True,
         fmt=".2f",
         xticklabels=feature_names,
-        yticklabels=[f"u_{i+1}" for i in range(len(loadings_np))]
+        yticklabels=[f"u_{i+1}" for i in range(len(loadings_np))],
     )
-    plt.title("Principal Component Directions (Loadings)")
+    plt.title("Principal Component Directions (Loadings)", fontsize=13)
     plt.tight_layout()
     plt.show()
 
 
-def plot_explained_variance(ve):
-    """
-    Render 2-panel scree plot: individual variance and cumulative variance ratio.
-    """
+def plot_explained_variance(ve: Any) -> None:
+    """Render 2-panel scree plot: individual variance and cumulative variance ratio."""
     ve_np = ve.numpy() if hasattr(ve, "numpy") else np.asarray(ve)
     ve_ratio = ve_np / ve_np.sum() if ve_np.sum() > 0 else ve_np
     cum_ratio = np.cumsum(ve_ratio)
     k_range = list(range(1, len(ve_np) + 1))
 
     fig, ax = plt.subplots(1, 2, figsize=(10, 4), sharex=True)
-    ax[0].bar(k_range, ve_np)
-    ax[0].set_ylabel('Variance Explained')
-    ax[0].set_xlabel('Principal Component')
-    ax[0].set_title('Individual Variance')
+    ax[0].bar(k_range, ve_np, color="royalblue")
+    ax[0].set_ylabel("Variance Explained")
+    ax[0].set_xlabel("Principal Component")
+    ax[0].set_title("Individual Variance")
     ax[0].set_xticks(k_range)
 
-    ax[1].bar(k_range, cum_ratio)
-    ax[1].set_ylabel('Cumulative Ratio')
-    ax[1].set_xlabel('Principal Component')
-    ax[1].set_title('Cumulative Variance Ratio')
+    ax[1].bar(k_range, cum_ratio, color="forestgreen")
+    ax[1].set_ylabel("Cumulative Ratio")
+    ax[1].set_xlabel("Principal Component")
+    ax[1].set_title("Cumulative Variance Ratio")
     ax[1].set_xticks(k_range)
 
     plt.tight_layout()
     plt.show()
 
 
-def plot_iris_pairplot(df):
-    """
-    Render pairplot of Iris features colored by species with lower KDE contours.
-    """
+def plot_iris_pairplot(df: Any) -> None:
+    """Render pairplot of Iris features colored by species with lower KDE contours."""
     fig = sns.pairplot(df, hue="species")
     fig.map_lower(sns.kdeplot, levels=4, color=".2")
     plt.show()
 
 
-def plot_image(img, title=None):
-    """
-    Display 2D or 3D image array without axis grid lines.
-    """
+def plot_image(img: Any, title: Optional[str] = None) -> None:
+    """Display 2D or 3D image array without axis grid lines."""
     plt.figure(figsize=(5, 4))
     plt.imshow(img)
     plt.grid(False)
     if title:
-        plt.title(title)
+        plt.title(title, fontsize=12)
     plt.tight_layout()
     plt.show()
 
+
+# Mathematical tensor operations maintained for backward compatibility
+def std_full(T: Any) -> Tuple[Any, Any, Any]:
+    """Standardizes input tensor to zero mean and unit variance, returning stats."""
+    means = T.mean(dim=0, keepdim=True)
+    stds = T.std(dim=0, keepdim=True)
+    return ((T - means) / stds), means, stds
+
+
+def standardize(T: Any) -> Any:
+    """Standardizes input tensor features to zero mean and unit variance."""
+    return std_full(T)[0]
+
+
+def std_inverse(T: Any, means: Any, stds: Any) -> Any:
+    """Reverts standardized features back to original scale using mean and std."""
+    k = T.size()[1]
+    return T * stds[:, :k] + means[:, :k]
+
+
+def normalize(T: Any) -> Any:
+    """Min-max rescales input tensor values into the unit interval [0, 1]."""
+    if hasattr(T, "clone"):
+        Tv = T.view(T.size(0), -1).clone()
+    else:
+        Tv = np.copy(T).reshape(T.shape[0], -1)
+    Tv -= Tv.min()
+    Tv /= Tv.max()
+    return Tv
+
+
+def to_coefficients(T: Any) -> Any:
+    """Normalizes columns of input tensor to sum to 1 (simplex projection)."""
+    if hasattr(T, "sum"):
+        return T / T.sum(0, keepdim=True)[0]
+    return T / np.sum(T, axis=0, keepdims=True)[0]
+
+
+# ---------------------------------------------------------------------------
+# 5. Mathematical Functions & Activation Profiles (05_functions)
+# ---------------------------------------------------------------------------
+
+def plot_function_and_derivative(
+    x: Sequence[float],
+    y: Sequence[float],
+    dy: Optional[Sequence[float]] = None,
+    title: Optional[str] = None,
+    fn_label: str = "Function $h(a)$",
+    dfn_label: str = "Derivative $h'(a)$",
+    figsize: Tuple[float, float] = (7.5, 4.0),
+    ax: Optional[plt.Axes] = None,
+) -> Tuple[plt.Figure, plt.Axes]:
+    """
+    Render activation function curve and its analytical or autograd derivative.
+    Decoupled helper for 05_functions and 06_deep_networks.
+    """
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = ax.get_figure()
+
+    ax.plot(x, y, color="royalblue", lw=2.5, label=fn_label)
+    if dy is not None:
+        ax.plot(x, dy, color="firebrick", lw=2.0, linestyle="--", label=dfn_label)
+
+    ax.axhline(0, color="gray", lw=0.8, alpha=0.6)
+    ax.axvline(0, color="gray", lw=0.8, alpha=0.6)
+    if title:
+        ax.set_title(title, fontsize=12)
+    ax.set_xlabel("Activation input ($a$)", fontsize=11.5)
+    ax.set_ylabel("Output", fontsize=11.5)
+    ax.legend(loc="upper left", fontsize=10)
+    ax.grid(True)
+    fig.tight_layout()
+    plt.show()
+    return fig, ax
+
+
+def plot_multi_curve_comparison(
+    x: Sequence[float],
+    curves_dict: Dict[str, Sequence[float]],
+    title: str = "Activation Function Comparison",
+    xlabel: str = "Input ($a$)",
+    ylabel: str = "Output $h(a)$",
+    figsize: Tuple[float, float] = (8, 4.5),
+    ax: Optional[plt.Axes] = None,
+) -> Tuple[plt.Figure, plt.Axes]:
+    """Compare multiple activation functions across a shared input range."""
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = ax.get_figure()
+
+    for name, y_vals in curves_dict.items():
+        ax.plot(x, y_vals, lw=2.2, label=name)
+
+    ax.axhline(0, color="gray", lw=0.8, alpha=0.5)
+    ax.axvline(0, color="gray", lw=0.8, alpha=0.5)
+    ax.set_title(title, fontsize=13)
+    ax.set_xlabel(xlabel, fontsize=12)
+    ax.set_ylabel(ylabel, fontsize=12)
+    ax.legend(loc="best", fontsize=10.5)
+    ax.grid(True)
+    fig.tight_layout()
+    plt.show()
+    return fig, ax
+
+
+def plot_categorical_probabilities(
+    categories: Sequence[str],
+    probs_dict: Dict[str, Sequence[float]],
+    title: str = "Softmax Temperature Output Distribution",
+    figsize: Tuple[float, float] = (8, 4.0),
+) -> None:
+    """Compare categorical output distributions across softmax temperatures."""
+    fig, ax = plt.subplots(figsize=figsize)
+    n_series = len(probs_dict)
+    x = np.arange(len(categories))
+    width = 0.8 / n_series
+
+    for idx, (label, probs) in enumerate(probs_dict.items()):
+        offset = (idx - n_series / 2 + 0.5) * width
+        ax.bar(x + offset, probs, width, label=label, alpha=0.85)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(categories, fontsize=11)
+    ax.set_ylabel("Probability $p_k$", fontsize=12)
+    ax.set_title(title, fontsize=13)
+    ax.legend(fontsize=10.5)
+    ax.grid(True, axis="y")
+    fig.tight_layout()
+    plt.show()
+
+
+# ---------------------------------------------------------------------------
+# 6. MLOps Model Diagnostics & Quality Metrics (06_mlops)
+# ---------------------------------------------------------------------------
+
+def plot_classifier_diagnostics(
+    y_true: Sequence[int],
+    y_pred: Sequence[int],
+    y_prob: Optional[Sequence[float]] = None,
+    class_names: Optional[Sequence[str]] = None,
+    figsize: Tuple[float, float] = (10, 4.2),
+) -> None:
+    """
+    Render 2-panel classification QA diagnostics: Confusion matrix and prediction distributions.
+    """
+    from sklearn.metrics import confusion_matrix
+
+    fig, axes = plt.subplots(1, 2, figsize=figsize)
+    cm = confusion_matrix(y_true, y_pred)
+    labels = class_names if class_names is not None else ["Class 0", "Class 1"]
+
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=labels, yticklabels=labels, ax=axes[0])
+    axes[0].set_title("Confusion Matrix", fontsize=12)
+    axes[0].set_xlabel("Predicted Label")
+    axes[0].set_ylabel("True Label")
+
+    if y_prob is not None:
+        sns.histplot(y_prob, bins=20, kde=True, ax=axes[1], color="royalblue")
+        axes[1].axvline(0.5, color="crimson", linestyle="--", label="Decision Threshold (0.5)")
+        axes[1].set_title("Predicted Probability Distribution", fontsize=12)
+        axes[1].set_xlabel("Predicted Probability $\\hat{p}$")
+        axes[1].set_ylabel("Count")
+        axes[1].legend(fontsize=10)
+    else:
+        axes[1].text(0.5, 0.5, "Probability scores not provided", ha="center", va="center")
+
+    fig.tight_layout()
+    plt.show()
