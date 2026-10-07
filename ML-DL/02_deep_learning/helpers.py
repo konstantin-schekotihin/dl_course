@@ -119,6 +119,25 @@ def annotate(first_arg, second_arg, **kwargs):
         ax.annotate(f"r = {r:.2f}, p = {p:.3f} ", xy=(0.1, 1), xycoords=ax.transAxes)
 
 
+def plot_correlation_matrix_and_pairgrid(data):
+    """
+    Render empirical pairwise relationships and correlation heatmap for dataframe.
+    Decoupled helper: keeps Matplotlib/Seaborn canvas boilerplate off presentation slides.
+    """
+    p = sns.PairGrid(data, diag_sharey=False)
+    p.map_upper(annotate)
+    p.map_diag(sns.histplot)
+    p.map_diag(sns.kdeplot)
+    p.map_lower(sns.scatterplot)
+    plt.show()
+
+    plt.figure(figsize=(7, 5))
+    sns.heatmap(data.corr(), annot=True, cmap="coolwarm", fmt=".2f", vmin=-1, vmax=1)
+    plt.title("Empirical Correlation Matrix")
+    plt.tight_layout()
+    plt.show()
+
+
 # ---------------------------------------------------------------------------
 # Time Series & Sequence Visualization (RNN / LSTM)
 # ---------------------------------------------------------------------------
