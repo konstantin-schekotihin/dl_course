@@ -188,6 +188,69 @@ def plot_polynomial_fits(
     plt.show()
 
 
+def plot_polynomial_extrapolation(
+    x_train: Any,
+    t_train: Any,
+    x_eval: Any,
+    y_eval: Any,
+    degree: int = 3,
+    x_min: float = 0.0,
+    x_max: float = 1.0,
+    y_true: Optional[Any] = None,
+    title: Optional[str] = None,
+    figsize: Tuple[float, float] = (7.5, 3.8),
+    ax: Optional[plt.Axes] = None,
+) -> Tuple[plt.Figure, plt.Axes]:
+    """
+    Decoupled polynomial curve visualizer with interval extrapolation support.
+    Renders observations, fitted polynomial curve, ground-truth signal,
+    and highlights the training region [0, 1] when extrapolating off-distribution.
+    """
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = ax.get_figure()
+
+    x_tr_np = x_train.numpy() if hasattr(x_train, "numpy") else np.asarray(x_train)
+    t_tr_np = t_train.numpy() if hasattr(t_train, "numpy") else np.asarray(t_train)
+    x_ev_np = x_eval.numpy() if hasattr(x_eval, "numpy") else np.asarray(x_eval)
+    y_ev_np = y_eval.numpy() if hasattr(y_eval, "numpy") else np.asarray(y_eval)
+
+    if y_true is not None:
+        y_tr_true = y_true.numpy() if hasattr(y_true, "numpy") else np.asarray(y_true)
+    else:
+        y_tr_true = np.sin(2.0 * np.pi * x_ev_np)
+
+    ax.plot(x_ev_np.ravel(), y_tr_true.ravel(), color="forestgreen", lw=1.8, label=r"Ground Truth: $\sin(2\pi x)$")
+    ax.scatter(
+        x_tr_np.ravel(),
+        t_tr_np.ravel(),
+        color="royalblue",
+        s=45,
+        alpha=0.85,
+        label=f"Observations ($N={len(x_tr_np)}$)",
+        zorder=4,
+    )
+    ax.plot(x_ev_np.ravel(), y_ev_np.ravel(), color="firebrick", lw=2.2, label=f"Polynomial ($M={degree}$)")
+
+    if x_min < 0.0 or x_max > 1.0:
+        ax.axvspan(0.0, 1.0, color="royalblue", alpha=0.08, label="Training Domain [0, 1]")
+        ax.set_ylim(-3.5, 3.5)
+    else:
+        ax.set_ylim(-1.6, 1.6)
+
+    ax.set_xlim(x_min, x_max)
+    plot_title = title if title is not None else f"Polynomial Fit ($M={degree}$) on Interval $[{x_min:.1f}, {x_max:.1f}]$"
+    ax.set_title(plot_title, fontsize=11.5)
+    ax.set_xlabel("Input Feature ($x$)", fontsize=11)
+    ax.set_ylabel("Target ($t$)", fontsize=11)
+    ax.legend(loc="upper right", fontsize=8.5)
+    ax.grid(True)
+    fig.tight_layout()
+    plt.show()
+    return fig, ax
+
+
 def plot_dataset_size_remedy(
     x_dense: Any,
     t_dense: Any,
