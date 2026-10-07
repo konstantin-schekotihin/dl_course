@@ -86,10 +86,9 @@ def plot_regression_fit(
     ax.scatter(
         x_tr_np.ravel(),
         t_tr_np.ravel(),
-        facecolors="none",
-        edgecolors="royalblue",
-        s=55,
-        lw=1.8,
+        color="royalblue",
+        s=45,
+        alpha=0.85,
         label=f"Observations ($N={len(x_tr_np)}$)",
     )
     ax.plot(x_ev_np.ravel(), y_ev_np.ravel(), color="firebrick", lw=2.2, label="Model Prediction")
@@ -141,10 +140,9 @@ def plot_synthetic_regression_data(
     ax.scatter(
         x_tr.ravel(),
         t_tr.ravel(),
-        facecolors="none",
-        edgecolors="royalblue",
-        s=65,
-        lw=2,
+        color="royalblue",
+        s=50,
+        alpha=0.85,
         label=f"Training Observations ($N = {len(x_tr)}$)",
     )
     ax.set_title(title, fontsize=11.5)
@@ -179,7 +177,7 @@ def plot_polynomial_fits(
         y_d = y_dense.numpy() if hasattr(y_dense, "numpy") else np.asarray(y_dense)
 
         ax.plot(x_d.ravel(), t_d.ravel(), "forestgreen", lw=1.5, label="True")
-        ax.scatter(x_tr.ravel(), t_tr.ravel(), facecolors="none", edgecolors="royalblue", s=40, lw=1.5)
+        ax.scatter(x_tr.ravel(), t_tr.ravel(), color="royalblue", s=35, alpha=0.85)
         ax.plot(x_d.ravel(), y_d.ravel(), "firebrick", lw=2, label=f"$M={M}$")
         ax.set_title(f"Polynomial Degree $M={M}$", fontsize=10.5)
         ax.set_ylim(-1.6, 1.6)
@@ -207,7 +205,7 @@ def plot_dataset_size_remedy(
         y_s = y_dense_sc.numpy() if hasattr(y_dense_sc, "numpy") else np.asarray(y_dense_sc)
 
         ax.plot(x_d.ravel(), t_d.ravel(), "forestgreen", lw=1.5, label="True")
-        ax.scatter(x_s.ravel(), t_s.ravel(), facecolors="none", edgecolors="royalblue", s=30, alpha=0.8)
+        ax.scatter(x_s.ravel(), t_s.ravel(), color="royalblue", s=25, alpha=0.75)
         ax.plot(x_d.ravel(), y_s.ravel(), "firebrick", lw=2, label="$M=9$")
         ax.set_title(f"Model $M = 9$ with $N = {N_val}$ Samples", fontsize=10.5)
         ax.set_ylim(-1.6, 1.6)
@@ -242,7 +240,7 @@ def plot_regularized_fits(
         y_reg = y_reg_dense.numpy() if hasattr(y_reg_dense, "numpy") else np.asarray(y_reg_dense)
 
         ax.plot(x_d.ravel(), t_d.ravel(), "forestgreen", lw=1.5, label="True")
-        ax.scatter(x_tr.ravel(), t_tr.ravel(), facecolors="none", edgecolors="royalblue", s=45, lw=1.5)
+        ax.scatter(x_tr.ravel(), t_tr.ravel(), color="royalblue", s=35, alpha=0.85)
         ax.plot(x_d.ravel(), y_reg.ravel(), "firebrick", lw=2, label="Fit")
         ax.set_title(title, fontsize=10.5)
         ax.set_ylim(-1.6, 1.6)
@@ -305,10 +303,9 @@ def plot_streaming_adaline_convergence(
     plt.scatter(
         X_s.ravel(),
         t_s.ravel(),
-        facecolors="none",
-        edgecolors="royalblue",
-        s=50,
-        lw=1.5,
+        color="royalblue",
+        s=45,
+        alpha=0.85,
         label=f"Streaming Samples ($N={len(X_s)}$)",
     )
 
@@ -529,7 +526,7 @@ def plot_residuals(
     l = torch.linspace(float(X_flat.min()), float(X_flat.max()), 1000).reshape(-1, 1)
     plt.figure(figsize=figsize)
     plt.vlines(X_flat, y_flat, est_flat, colors="firebrick", linestyles="--", lw=1.5, alpha=0.7, label=r"Springs / Residuals ($e_n$)")
-    plt.scatter(X_flat, y_flat, facecolors="none", edgecolors="royalblue", s=45, lw=1.5, label=r"Data Observations ($(x_n, t_n)$)")
+    plt.scatter(X_flat, y_flat, color="royalblue", s=40, alpha=0.85, label=r"Data Observations ($(x_n, t_n)$)")
     plt.scatter(X_flat, est_flat, color="forestgreen", s=30, zorder=3, label=r"Fitted Points ($y(x_n)$)")
     pred_line = predict(l.float())
     if hasattr(pred_line, "detach"):
