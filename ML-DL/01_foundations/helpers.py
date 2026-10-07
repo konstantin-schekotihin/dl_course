@@ -12,6 +12,26 @@ import torch
 
 
 # ---------------------------------------------------------------------------
+# Plotting Aesthetics & Course Theme Configuration
+# ---------------------------------------------------------------------------
+
+def setup_theme():
+    """Configure unified course-standard Seaborn plotting aesthetics."""
+    sns.set_theme(
+        style="whitegrid",
+        palette="deep",
+        rc={
+            'figure.figsize': (8, 5),
+            'font.size': 14,
+            'axes.labelsize': 14,
+            'ytick.labelsize': 12,
+            'xtick.labelsize': 12,
+            'legend.fontsize': 12,
+        }
+    )
+
+
+# ---------------------------------------------------------------------------
 # Probability & Regression Simulation (02_probability)
 # ---------------------------------------------------------------------------
 
@@ -22,8 +42,104 @@ def corr(x, y, **kwargs):
     ax.annotate(f"r = {r:.2f}\np-value = {p:.2f}", xy=(0.1, 0.3), size=14, xycoords=ax.transAxes)
 
 
-def plot_bias_variance(X, t, degrees=5, repeats=1000, f=None, sigma_epsilon=1.0):
-    """Demonstrate bias-variance decomposition across polynomial model complexities."""
+def plot_correlation_matrix_and_pairgrid(data):
+    """
+    Render empirical pairwise relationships and correlation heatmap for dataframe.
+    Decoupled helper: keeps Matplotlib/Seaborn canvas boilerplate off presentation slides.
+    """
+    p = sns.PairGrid(data, diag_sharey=False)
+    p.map_upper(corr)
+    p.map_diag(sns.histplot)
+    p.map_diag(sns.kdeplot)
+    p.map_lower(sns.scatterplot)
+    plt.show()
+
+    plt.figure(figsize=(7, 5))
+    sns.heatmap(data.corr(), annot=True, cmap="coolwarm", fmt=".2f", vmin=-1, vmax=1)
+    plt.title("Empirical Correlation Matrix")
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_gaussian_vs_uniform(g_wide, g_narrow, u_draws):
+    """
+    Plot kernel density estimations comparing broad/narrow Gaussians and Uniform distribution.
+    """
+    plt.figure(figsize=(8, 4.5))
+    sns.kdeplot(g_wide, label=r'Gaussian $\sigma=20$')
+    sns.kdeplot(g_narrow, label=r'Gaussian $\sigma=10$')
+    sns.kdeplot(u_draws, label='Uniform $[-100, 100]$')
+    plt.xlabel('Random Variable Value')
+    plt.ylabel('Probability Density')
+    plt.title('Comparison of Continuous Probability Densities')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_regression_dataset(X, t, f=None):
+    """
+    Plot 1D synthetic regression dataset: scatter noisy targets t and lineplot true function f(x).
+    """
+    plt.figure(figsize=(8, 4.5))
+    sns.scatterplot(x=X, y=t, label=r'Noisy targets $t$')
+    if f is not None:
+        x_grid = np.linspace(min(X), max(X), 200)
+        sns.lineplot(x=x_grid, y=f(x_grid), color='r', label=r'True function $f(x)$')
+    plt.xlabel('$x$')
+    plt.ylabel('$t$')
+    plt.title('Synthetic Nonlinear Data Generation with Additive Noise')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_gmm_samples(X_gmm):
+    """
+    Plot 2D scatter of samples from a Gaussian Mixture Model.
+    """
+    plt.figure(figsize=(6, 5))
+    plt.scatter(X_gmm[:, 0], X_gmm[:, 1], alpha=0.7, edgecolors='k', s=35)
+    plt.title('Sample from a 3-Component Gaussian Mixture')
+    plt.xlabel('$x_1$')
+    plt.ylabel('$x_2$')
+    plt.tight_layout()
+    plt.show()
+
+
+def render_bias_variance_plot(degrees, train_squared_error, test_squared_error, bias_squared, var_y_pred, sigma_epsilon=1.0):
+    """
+    Decoupled visualization helper: plots pre-computed bias-variance curves.
+    Receives evaluated metric arrays and renders the decomposition diagram.
+    """
+    d_plt = list(degrees)
+    plt.figure(figsize=(9, 5.5))
+    plt.xlim([min(d_plt), max(d_plt)])
+    plt.ylim([0, 3.2])
+    plt.xticks(d_plt)
+    plt.plot(d_plt, test_squared_error, 'r-', linewidth=2.5, label=r'Expected test error $\mathbb{E}[(t - y(x))^2]$')
+    plt.plot(d_plt, bias_squared, 'g-', linewidth=2.5, label=r'Expected $(\mathrm{bias}[y(x)])^2$')
+    plt.plot(d_plt, var_y_pred, 'b-', linewidth=2.5, label=r'Expected $\mathrm{var}[y(x)]$')
+    plt.plot(d_plt, (sigma_epsilon ** 2) * np.ones_like(d_plt), 'y--', linewidth=2, label=r'Noise floor $\mathrm{var}[\epsilon] = \sigma^2$')
+    plt.plot(d_plt, train_squared_error, 'k:', linewidth=2, label='Training squared error')
+    plt.xlabel('Polynomial Degree $M$', fontsize=13)
+    plt.ylabel('Mean Squared Error', fontsize=13)
+    plt.title('Empirical Bias-Variance Decomposition', fontsize=14)
+    plt.legend(loc='upper center', fontsize=11)
+    ax = plt.gca()
+    ax.axvspan(1, 2, alpha=0.15, color='gray')
+    ax.axvspan(4, 5, alpha=0.15, color='gray')
+    plt.text(1.2, 2.9, 'underfitting', fontsize=12, fontweight='bold')
+    plt.text(4.2, 2.9, 'overfitting', fontsize=12, fontweight='bold')
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_bias_variance(X, t, degrees=5, repeats=100, f=None, sigma_epsilon=1.0):
+    """
+    Simulate and plot bias-variance decomposition across polynomial complexities.
+    (Maintained for backward compatibility; prefer computing errors in notebook).
+    """
     from sklearn.linear_model import LinearRegression
     from sklearn.model_selection import train_test_split
     from sklearn.preprocessing import PolynomialFeatures
@@ -49,30 +165,16 @@ def plot_bias_variance(X, t, degrees=5, repeats=1000, f=None, sigma_epsilon=1.0)
 
     bias_squared = (np.mean(y_pred_store, 1) - f(X)) ** 2
     var_y_pred = np.var(y_pred_store, 1)
+    d_range = range(1, degrees + 1)
 
-    d_plt = range(1, degrees + 1)
-    plt.figure(figsize=(10, 10))
-    plt.xlim([1, degrees])
-    plt.ylim([0, 3])
-    plt.xticks(d_plt)
-    plt.plot(d_plt, np.mean(test_squared_error, 1), 'r', linewidth=3)
-    plt.plot(d_plt, np.mean(bias_squared, 1), 'g', linewidth=3)
-    plt.plot(d_plt, np.mean(var_y_pred, 1), 'b', linewidth=3)
-    plt.plot(d_plt, (sigma_epsilon ** 2) * np.ones_like(d_plt), 'y', linewidth=3)
-    plt.plot(d_plt, np.mean(train_squared_error, 1), 'k', linewidth=3)
-    plt.legend([
-        r'test squared error - expected $\mathbb{E}[(t - y(x))^2]$',
-        r'expected $(\mathrm{bias}[y(x)])^2$',
-        r'expected $\mathrm{var}[y(x)]$',
-        r'$\mathrm{var}[\epsilon] = \sigma^2$',
-        'training squared error'
-    ], loc='upper center', fontsize=12)
-    ax = plt.gca()
-    ax.axvspan(1, 2, alpha=0.3, color='gray')
-    ax.axvspan(4, 5, alpha=0.3, color='gray')
-    plt.text(1.2, 2.8, 'underfitting')
-    plt.text(4.2, 2.8, 'overfitting')
-    plt.show()
+    render_bias_variance_plot(
+        d_range,
+        np.mean(train_squared_error, 1),
+        np.mean(test_squared_error, 1),
+        np.mean(bias_squared, 1),
+        np.mean(var_y_pred, 1),
+        sigma_epsilon=sigma_epsilon
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -98,21 +200,25 @@ def plot2d(tensor, title=None):
 
 
 def std_full(T):
+    """Standardizes input tensor to zero mean and unit variance, returning stats."""
     means = T.mean(dim=0, keepdim=True)
     stds = T.std(dim=0, keepdim=True)
     return ((T - means) / stds), means, stds
 
 
 def standardize(T):
+    """Standardizes input tensor features to zero mean and unit variance."""
     return std_full(T)[0]
 
 
 def std_inverse(T, means, stds):
+    """Reverts standardized features back to original scale using mean and std."""
     k = T.size()[1]
     return T * stds[:, :k] + means[:, :k]
 
 
 def normalize(T):
+    """Min-max rescales input tensor values into the unit interval [0, 1]."""
     if hasattr(T, "clone"):
         Tv = T.view(T.size(0), -1).clone()
     else:
@@ -123,6 +229,7 @@ def normalize(T):
 
 
 def to_coefficients(T):
+    """Normalizes columns of input tensor to sum to 1 (simplex projection)."""
     if hasattr(T, "sum"):
         return T / T.sum(0, keepdim=True)[0]
     return T / np.sum(T, axis=0, keepdims=True)[0]
@@ -253,3 +360,94 @@ def compress_image_svd(img, comps=15, std_pca_fn=None):
     axs[1].set_title(f"Reconstruction ({comps} components)")
     axs[1].grid(False)
     plt.show()
+
+
+def plot_pca_vectors(X, feature_names, loadings):
+    """
+    Plot 2D scatter of features along with PCA principal component loading vectors.
+    """
+    X_plot = X.numpy() if hasattr(X, "numpy") else np.asarray(X)
+    loadings_np = loadings.numpy() if hasattr(loadings, "numpy") else np.asarray(loadings)
+    colors = ['red', 'orange']
+    plt.figure(figsize=(6, 5))
+    plt.scatter(X_plot[:, 0], X_plot[:, 1], alpha=0.7)
+    plt.xlabel(feature_names[0])
+    plt.ylabel(feature_names[1])
+    for i in range(min(2, len(loadings_np))):
+        plt.arrow(
+            0, 0, loadings_np[i, 0], loadings_np[i, 1],
+            ec=colors[i % len(colors)], head_width=0.12, head_length=0.12,
+            fc=colors[i % len(colors)], lw=2, label=f"Principal direction $\\mathbf{{u}}_{{{i+1}}}$"
+        )
+    plt.title("Data Scatter and Principal Directions")
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_loadings_heatmap(loadings, feature_names):
+    """
+    Render heatmap of principal component loadings across feature dimensions.
+    """
+    loadings_np = loadings.numpy() if hasattr(loadings, "numpy") else np.asarray(loadings)
+    plt.figure(figsize=(7, 4))
+    sns.heatmap(
+        loadings_np,
+        cmap=sns.diverging_palette(10, 240, as_cmap=True),
+        annot=True,
+        fmt=".2f",
+        xticklabels=feature_names,
+        yticklabels=[f"u_{i+1}" for i in range(len(loadings_np))]
+    )
+    plt.title("Principal Component Directions (Loadings)")
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_explained_variance(ve):
+    """
+    Render 2-panel scree plot: individual variance and cumulative variance ratio.
+    """
+    ve_np = ve.numpy() if hasattr(ve, "numpy") else np.asarray(ve)
+    ve_ratio = ve_np / ve_np.sum() if ve_np.sum() > 0 else ve_np
+    cum_ratio = np.cumsum(ve_ratio)
+    k_range = list(range(1, len(ve_np) + 1))
+
+    fig, ax = plt.subplots(1, 2, figsize=(10, 4), sharex=True)
+    ax[0].bar(k_range, ve_np)
+    ax[0].set_ylabel('Variance Explained')
+    ax[0].set_xlabel('Principal Component')
+    ax[0].set_title('Individual Variance')
+    ax[0].set_xticks(k_range)
+
+    ax[1].bar(k_range, cum_ratio)
+    ax[1].set_ylabel('Cumulative Ratio')
+    ax[1].set_xlabel('Principal Component')
+    ax[1].set_title('Cumulative Variance Ratio')
+    ax[1].set_xticks(k_range)
+
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_iris_pairplot(df):
+    """
+    Render pairplot of Iris features colored by species with lower KDE contours.
+    """
+    fig = sns.pairplot(df, hue="species")
+    fig.map_lower(sns.kdeplot, levels=4, color=".2")
+    plt.show()
+
+
+def plot_image(img, title=None):
+    """
+    Display 2D or 3D image array without axis grid lines.
+    """
+    plt.figure(figsize=(5, 4))
+    plt.imshow(img)
+    plt.grid(False)
+    if title:
+        plt.title(title)
+    plt.tight_layout()
+    plt.show()
+
