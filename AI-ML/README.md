@@ -67,19 +67,8 @@ uv run jupyter lab AI-ML/
 7. **[`06_SVM.ipynb`](06_SVM.ipynb)**: Geometric Margin Maximization, Support Vectors, Soft Margin $C$, Non-Linear Kernels (RBF).
 8. **[`07_unsupervised.ipynb`](07_unsupervised.ipynb)**: Unsupervised Structure Discovery without Labels, $k$-Means, Hierarchical Clustering, PCA.
 9. **[`08_ml_agents.ipynb`](08_ml_agents.ipynb)**: AI Coding Agents in Applied ML: Specification-Driven Engineering, $(T, P, E)$ Invariants, TDD, Modular Architectures, W&B Tracking, Defensio Readiness.
-10. **[`aux1_BN.ipynb`](aux1_BN.ipynb)** *(Auxiliary)*: Probabilistic Generative Models, Bayes' Theorem, Priors, Conditional Independence, Laplace Smoothing, Text & Categorical Classification.
 
 - **Course Policies & Modalities**: See [`modalities.md`](modalities.md) for grading scale, group project, deadlines, and GenAI policy.
-
----
-
-## 📽️ Presenting Slides (RISE)
-
-All lecture notebooks are equipped with Reveal.js / RISE slide metadata:
-- Press **`Alt + R`** in Jupyter Notebook to start interactive fullscreen slides.
-- Viewport heights are strictly calibrated ($\le 820$px) for Full HD 1080p projectors.
-- Presentation styling is loaded from `shared/styles/rise.css`.
-- Uses native Markdown callouts (`> ⚠️ **Important:**`, `> 💡 **Key Takeaway:**`, `> 📘 **Definition:**`, `<small>📖 *Source: ...*</small>`).
 
 ---
 

@@ -1,14 +1,13 @@
 # Machine Learning & Deep Learning (ML-DL)
 
 **Course Track:** Master's in Computer Science / Artificial Intelligence  
-**Primary Reference Textbook:** Christopher M. Bishop & Hugh Bishop (2024), *Deep Learning: Foundations and Concepts*, Springer.  
-**Repository Path:** `ML-DL/`
+**Primary Reference Textbook:** Christopher M. Bishop & Hugh Bishop (2024), *Deep Learning: Foundations and Concepts*, Springer.
 
 ---
 
 ## 📖 Curriculum Overview
 
-This course provides a mathematically rigorous, concept-first foundation in machine learning and deep learning architectures. All theoretical formulations adhere strictly to the notation and pedagogical doctrine of Christopher M. Bishop and Hugh Bishop (2024).
+This course provides a foundation in machine learning and deep learning architectures and mostly based on Bishop & Bishop (2024).
 
 The curriculum is structured into two sequential modules:
 
@@ -37,7 +36,7 @@ Core deep learning architectures corresponding to Chapters 4–13 of Bishop & Bi
 
 ---
 
-## 🚀 Environment Setup & Presentation
+## 🚀 Environment Setup
 
 All notebooks execute in the repository's unified Python 3.12 environment managed by `uv`:
 
@@ -48,16 +47,3 @@ uv sync
 # Launch Jupyter Notebook
 uv run jupyter notebook
 ```
-
-### Presentation Slides (RISE)
-Every notebook includes pre-configured Reveal.js / RISE metadata:
-- Press **`Alt + R`** in Jupyter Notebook to start interactive fullscreen slides.
-- Viewports are strictly audited for $\le 820$px height (Full HD 1080p projectors).
-- Presentation styling is loaded centrally from `shared/styles/rise.css`.
-- Slide callouts use clean native Markdown formatting (`> ⚠️ **Important:**`, `> 💡 **Key Takeaway:**`, `> 📘 **Definition:**`, `<small>📖 *Source: ...*</small>`).
-
-### Helper Utilities (`helpers.py`)
-Each course folder includes a dedicated `helpers.py` built on `shared/helpers.py`:
-- `hp.get_file("dataset.csv")`: Resolves local dataset paths with automatic fallback download for standalone Google Colab execution.
-- `hp.get_data_path("")`: Resolves canonical dataset directories for PyTorch dataset loaders.
-- `hp.setup_theme()`: Configures high-readability Matplotlib & Seaborn aesthetics.
