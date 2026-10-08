@@ -55,7 +55,6 @@ runs/
 lightning_logs/
 # --- HTML & Log Files ---
 *.html
-!custom.html
 *.log
 
 

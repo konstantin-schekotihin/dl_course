@@ -29,6 +29,8 @@ This directory houses specialized elective modules, advanced extensions, and dom
 uv sync
 
 # Launch Jupyter Notebook
-uv run jupyter notebook
+uv run jupyter notebook Extended/01_reinforcement_learning/
 ```
+
 Navigate to `Extended/01_reinforcement_learning/07_RL.ipynb`. Interactive RISE slides can be activated via **`Alt + R`**.
+Slide styling is loaded centrally from `shared/styles/rise.css`.
