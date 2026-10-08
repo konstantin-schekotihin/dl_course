@@ -22,139 +22,87 @@ import seaborn as sns
 import sklearn.metrics as metrics
 
 # ---------------------------------------------------------------------------
-# 1. Course Aesthetics & Asset Resolution
+# 1. Core Shared Foundation (Asset Resolution, Aesthetics, Data & Image Loaders)
 # ---------------------------------------------------------------------------
 
-COURSE_RAW_URL: str = os.environ.get(
-    "COURSE_RAW_URL",
-    "https://raw.githubusercontent.com/konstantin-schekotihin/dl_course/master/shared",
-)
-DATA_BASE_URL: str = os.environ.get(
-    "COURSE_DATA_URL",
-    f"{COURSE_RAW_URL}/data",
-)
-
-
-def get_url(filename: str, category: Optional[str] = None) -> str:
-    """
-    Construct canonical remote repository URL for a course asset.
-
-    Parameters
-    ----------
-    filename : str
-        Basename of the file (e.g. 'puppy.jpeg', 'USArrests.csv').
-    category : Optional[str], default=None
-        Asset directory under 'shared/' ('images' or 'data').
-        If None, automatically inferred from file extension.
-
-    Returns
-    -------
-    str
-        Canonical HTTPS URL to the raw asset on GitHub.
-    """
-    basename = os.path.basename(filename)
-    if category is None:
-        ext = os.path.splitext(basename)[1].lower()
-        if ext in {".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".bmp", ".tif", ".tiff"}:
-            category = "images"
-        else:
-            category = "data"
-    return f"{COURSE_RAW_URL}/{category}/{basename}"
-
-
-def get_file(filename: str = "", category: Optional[str] = None) -> str:
-    """
-    Resolve local path to an asset file or dataset directory, downloading from repository if missing (e.g. in Colab).
-
-    Parameters
-    ----------
-    filename : str, default=""
-        Basename or relative path of the file (e.g. 'puppy.jpeg', 'USArrests.csv').
-        If empty string, resolves the root path of the specified asset category directory.
-    category : Optional[str], default=None
-        Asset directory under 'shared/' ('images' or 'data').
-        If None, automatically inferred from file extension or defaults to 'data'.
-
-    Returns
-    -------
-    str
-        Existing local path to the resolved file or directory.
-    """
-    if filename and os.path.exists(filename):
-        return filename
-
-    basename = os.path.basename(filename) if filename else ""
-    if category is None:
-        if basename:
-            ext = os.path.splitext(basename)[1].lower()
-            category = "images" if ext in {".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".bmp", ".tif", ".tiff"} else "data"
-        else:
-            category = "data"
-
-    if basename:
-        local_candidates = [
-            os.path.join("..", "..", "shared", category, basename),
-            os.path.join("..", "shared", category, basename),
-            os.path.join("shared", category, basename),
-            os.path.join("data", basename) if category == "data" else os.path.join("images", basename),
-            basename,
-        ]
-    else:
-        local_candidates = [
-            os.path.join("..", "..", "shared", category),
-            os.path.join("..", "shared", category),
-            os.path.join("shared", category),
-            category,
-            f"./{category}",
-        ]
-
-    for path in local_candidates:
-        if os.path.exists(path):
-            return path
-
-    if not basename:
-        os.makedirs(f"./{category}", exist_ok=True)
-        return f"./{category}"
-
-    url = get_url(basename, category)
-    try:
-        import urllib.request
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (CourseAssetDownloader)"})
-        with urllib.request.urlopen(req) as response, open(basename, "wb") as out_file:
-            out_file.write(response.read())
-        return basename
-    except Exception as e:
-        raise FileNotFoundError(
-            f"Asset '{filename}' not found locally in candidate paths {local_candidates} "
-            f"and could not be retrieved from '{url}': {e}"
-        ) from e
-
-
-def get_data_path(filename: str = "") -> str:
-    """
-    Resolve local dataset file or root directory path with fallback to remote course repository for Colab.
-    Convenience alias for get_file(filename, category='data').
-    """
-    return get_file(filename, category="data")
-
-
-def setup_theme() -> None:
-    """Apply unified course-standard Seaborn plotting aesthetics."""
-    sns.set_theme(
-        style="whitegrid",
-        palette="deep",
-        rc={
-            "figure.figsize": (8, 6),
-            "font.size": 14,
-            "axes.labelsize": 14,
-            "xtick.labelsize": 12,
-            "ytick.labelsize": 12,
-        },
+try:
+    from shared.helpers import (
+        COURSE_RAW_URL,
+        DATA_BASE_URL,
+        annotate,
+        compress_image_svd,
+        get_data_path,
+        get_file,
+        get_url,
+        load_cifar10,
+        load_dataset,
+        load_fashion_mnist,
+        load_image,
+        load_mnist,
+        plot_binary,
+        plot_correlation_matrix,
+        plot_image,
+        plot_pairgrid,
+        plot_residuals,
+        setup_theme,
     )
-
+except ImportError:
+    try:
+        import sys
+        _repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        if os.path.exists(os.path.join(_repo_root, "shared", "helpers.py")):
+            if _repo_root not in sys.path:
+                sys.path.insert(0, _repo_root)
+            from shared.helpers import (
+                COURSE_RAW_URL,
+                DATA_BASE_URL,
+                annotate,
+                compress_image_svd,
+                get_data_path,
+                get_file,
+                get_url,
+                load_cifar10,
+                load_dataset,
+                load_fashion_mnist,
+                load_image,
+                load_mnist,
+                plot_binary,
+                plot_correlation_matrix,
+                plot_image,
+                plot_pairgrid,
+                plot_residuals,
+                setup_theme,
+            )
+        else:
+            raise ImportError("Not in repository")
+    except Exception:
+        import urllib.request
+        _shared_url = "https://raw.githubusercontent.com/konstantin-schekotihin/dl_course/master/shared/helpers.py"
+        urllib.request.urlretrieve(_shared_url, "shared_helpers.py")
+        from shared_helpers import (
+            COURSE_RAW_URL,
+            DATA_BASE_URL,
+            annotate,
+            compress_image_svd,
+            get_data_path,
+            get_file,
+            get_url,
+            load_cifar10,
+            load_dataset,
+            load_fashion_mnist,
+            load_image,
+            load_mnist,
+            plot_binary,
+            plot_correlation_matrix,
+            plot_image,
+            plot_pairgrid,
+            plot_residuals,
+            setup_theme,
+        )
 
 # Automatically configure unified course theme on import
 setup_theme()
+
 
 cm_binary: ListedColormap = ListedColormap(["green", "blue"])
 
@@ -1312,70 +1260,6 @@ def plot_loading_heatmap(
     plt.show()
 
 
-def compress_image_svd(
-    img: Any,
-    comps: int = 15,
-    std_pca_fn: Optional[Callable[..., Any]] = None,
-    figsize: Tuple[float, float] = (14, 4.0),
-) -> None:
-    """
-    Demonstrate low-rank image reconstruction via SVD/PCA across RGB channels.
-
-    Parameters
-    ----------
-    img : Any
-        RGB image array (H, W, 3).
-    comps : int, default=15
-        Number of singular vectors / components retained.
-    std_pca_fn : Optional[Callable], default=None
-        Optional standardized PCA function implemented in course notebooks.
-    figsize : Tuple[float, float], default=(14, 4.0)
-        Dimensions of variance panel.
-    """
-    img_arr = np.asarray(img, dtype=np.float32)
-    channels: List[np.ndarray] = []
-    colors = ["red", "green", "blue"]
-
-    fig, ax = plt.subplots(1, 3, sharex=True, figsize=figsize)
-    for i, c in enumerate(colors):
-        channel = img_arr[:, :, i]
-        if std_pca_fn is not None:
-            try:
-                import torch
-                ch_in = torch.tensor(channel, dtype=torch.float32)
-            except Exception:
-                ch_in = channel
-            sc, cp, ve, _ = std_pca_fn(ch_in, k=comps)
-            ch_recon = np.dot(np.asarray(sc), np.asarray(cp))
-            ve_arr = np.asarray(ve, dtype=float)
-        else:
-            U, S, Vt = np.linalg.svd(channel, full_matrices=False)
-            ch_recon = np.dot(U[:, :comps] * S[:comps], Vt[:comps, :])
-            ve_arr = S ** 2
-
-        ve_sum = float(ve_arr.sum())
-        ve_norm = ve_arr[:comps] / ve_sum if ve_sum > 0 else ve_arr[:comps]
-        ax[i].bar(range(1, comps + 1), ve_norm, color=c)
-        ax[i].set_title(f"{c.capitalize()} Channel Variance", fontsize=11)
-        ax[i].set_xlabel("Component", fontsize=10.5)
-
-        ch_min, ch_max = float(ch_recon.min()), float(ch_recon.max())
-        ch_norm = (ch_recon - ch_min) / (ch_max - ch_min) if ch_max > ch_min else ch_recon
-        channels.append(ch_norm)
-
-    fig.tight_layout()
-    plt.show()
-
-    recon = np.stack(channels, axis=-1)
-    fig, axs = plt.subplots(1, 2, figsize=(9.5, 5.0))
-    axs[0].imshow(img)
-    axs[0].set_title("Original Image", fontsize=12)
-    axs[0].grid(False)
-    axs[1].imshow(recon)
-    axs[1].set_title(f"Reconstructed ({comps} components)", fontsize=12)
-    axs[1].grid(False)
-    plt.tight_layout()
-    plt.show()
 
 
 # Backward-compatible function aliases

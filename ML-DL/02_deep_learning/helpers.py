@@ -30,129 +30,84 @@ plt_x, plt_y = 8, 8
 
 
 # ---------------------------------------------------------------------------
-# 1. Course Aesthetics & Asset Resolution
+# 1. Core Shared Foundation (Asset Resolution, Aesthetics, Data & Image Loaders)
 # ---------------------------------------------------------------------------
 
-COURSE_RAW_URL: str = os.environ.get(
-    "COURSE_RAW_URL",
-    "https://raw.githubusercontent.com/konstantin-schekotihin/dl_course/master/shared",
-)
-
-
-def get_url(filename: str, category: Optional[str] = None) -> str:
-    """
-    Construct canonical remote repository URL for a course asset.
-
-    Parameters
-    ----------
-    filename : str
-        Basename of the file (e.g. 'puppy.jpeg', 'USArrests.csv').
-    category : Optional[str], default=None
-        Asset directory under 'shared/' ('images' or 'data').
-        If None, automatically inferred from file extension.
-
-    Returns
-    -------
-    str
-        Canonical HTTPS URL to the raw asset on GitHub.
-    """
-    basename = os.path.basename(filename)
-    if category is None:
-        ext = os.path.splitext(basename)[1].lower()
-        if ext in {".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".bmp", ".tif", ".tiff"}:
-            category = "images"
-        else:
-            category = "data"
-    return f"{COURSE_RAW_URL}/{category}/{basename}"
-
-
-def get_file(filename: str = "", category: Optional[str] = None) -> str:
-    """
-    Resolve local path to an asset file or dataset directory, downloading from repository if missing (e.g. in Colab).
-
-    Parameters
-    ----------
-    filename : str, default=""
-        Basename or relative path of the file (e.g. 'puppy.jpeg', 'USArrests.csv').
-        If empty string, resolves the root path of the specified asset category directory.
-    category : Optional[str], default=None
-        Asset directory under 'shared/' ('images' or 'data').
-        If None, automatically inferred from file extension or defaults to 'data'.
-
-    Returns
-    -------
-    str
-        Existing local path to the resolved file or directory.
-    """
-    if filename and os.path.exists(filename):
-        return filename
-
-    basename = os.path.basename(filename) if filename else ""
-    if category is None:
-        if basename:
-            ext = os.path.splitext(basename)[1].lower()
-            category = "images" if ext in {".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".bmp", ".tif", ".tiff"} else "data"
-        else:
-            category = "data"
-
-    if basename:
-        local_candidates = [
-            os.path.join("..", "..", "shared", category, basename),
-            os.path.join("..", "shared", category, basename),
-            os.path.join("shared", category, basename),
-            os.path.join("data", basename) if category == "data" else os.path.join("images", basename),
-            basename,
-        ]
-    else:
-        local_candidates = [
-            os.path.join("..", "..", "shared", category),
-            os.path.join("..", "shared", category),
-            os.path.join("shared", category),
-            category,
-            f"./{category}",
-        ]
-
-    for path in local_candidates:
-        if os.path.exists(path):
-            return path
-
-    if not basename:
-        os.makedirs(f"./{category}", exist_ok=True)
-        return f"./{category}"
-
-    url = get_url(basename, category)
-    try:
-        import urllib.request
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (CourseAssetDownloader)"})
-        with urllib.request.urlopen(req) as response, open(basename, "wb") as out_file:
-            out_file.write(response.read())
-        return basename
-    except Exception as e:
-        raise FileNotFoundError(
-            f"Asset '{filename}' not found locally in candidate paths {local_candidates} "
-            f"and could not be retrieved from '{url}': {e}"
-        ) from e
-
-
-def get_data_path(filename: str = "") -> str:
-    """Resolve dataset file or root directory path with local check and remote fallback (compatibility alias)."""
-    return get_file(filename, category="data")
-
-
-def setup_theme() -> None:
-    """Configure unified course-standard Seaborn plotting aesthetics."""
-    sns.set_theme(
-        style="whitegrid",
-        palette="deep",
-        rc={
-            "figure.figsize": (8, 4.2),
-            "font.size": 12,
-            "axes.labelsize": 12,
-            "xtick.labelsize": 10,
-            "ytick.labelsize": 10,
-            "legend.fontsize": 10,
-        },
+try:
+    from shared.helpers import (
+        COURSE_RAW_URL,
+        DATA_BASE_URL,
+        annotate,
+        compress_image_svd,
+        get_data_path,
+        get_file,
+        get_url,
+        load_cifar10,
+        load_dataset,
+        load_fashion_mnist,
+        load_image,
+        load_mnist,
+        plot_binary,
+        plot_correlation_matrix,
+        plot_image,
+        plot_pairgrid,
+        plot_residuals,
+        setup_theme,
     )
+except ImportError:
+    try:
+        import sys
+        _repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+        if os.path.exists(os.path.join(_repo_root, "shared", "helpers.py")):
+            if _repo_root not in sys.path:
+                sys.path.insert(0, _repo_root)
+            from shared.helpers import (
+                COURSE_RAW_URL,
+                DATA_BASE_URL,
+                annotate,
+                compress_image_svd,
+                get_data_path,
+                get_file,
+                get_url,
+                load_cifar10,
+                load_dataset,
+                load_fashion_mnist,
+                load_image,
+                load_mnist,
+                plot_binary,
+                plot_correlation_matrix,
+                plot_image,
+                plot_pairgrid,
+                plot_residuals,
+                setup_theme,
+            )
+        else:
+            raise ImportError("Not in repository")
+    except Exception:
+        import urllib.request
+        _shared_url = "https://raw.githubusercontent.com/konstantin-schekotihin/dl_course/master/shared/helpers.py"
+        urllib.request.urlretrieve(_shared_url, "shared_helpers.py")
+        from shared_helpers import (
+            COURSE_RAW_URL,
+            DATA_BASE_URL,
+            annotate,
+            compress_image_svd,
+            get_data_path,
+            get_file,
+            get_url,
+            load_cifar10,
+            load_dataset,
+            load_fashion_mnist,
+            load_image,
+            load_mnist,
+            plot_binary,
+            plot_correlation_matrix,
+            plot_image,
+            plot_pairgrid,
+            plot_residuals,
+            setup_theme,
+        )
+
 
 
 # ---------------------------------------------------------------------------
@@ -674,67 +629,6 @@ def plot_bias_variance_curve(
     plt.show()
 
 
-def plot_residuals(
-    predict: Callable[[Any], Any],
-    X: Any,
-    y: Any,
-    show: bool = False,
-    figsize: Tuple[float, float] = (7.5, 4.0),
-) -> None:
-    """Plot linear/polynomial regression fit line and residual errors (backward-compatible)."""
-    est = predict(X.reshape(-1, 1)).reshape(-1,)
-    if hasattr(y, "device") and hasattr(est, "device"):
-        rss = torch.sum(torch.pow(y - est, 2)).item()
-        tss = torch.sum(torch.pow(y - torch.mean(y), 2)).item()
-        mae = torch.sum(torch.abs(y - est)).item() / est.shape[0]
-        mse = rss / est.shape[0]
-        X_np, y_np, est_np = X.cpu().numpy(), y.cpu().numpy(), est.cpu().numpy()
-    else:
-        rss = float(np.sum(np.power(y - est, 2)))
-        tss = float(np.sum(np.power(y - np.mean(y), 2)))
-        mae = float(np.sum(np.abs(y - est)) / len(est))
-        mse = rss / len(est)
-        X_np, y_np, est_np = np.asarray(X), np.asarray(y), np.asarray(est)
-
-    if show:
-        display(Markdown(rf"$\mathrm{{TSS}} = {tss:.3f}$ (total sum of squares)"))
-        display(Markdown(rf"$\mathrm{{RSS}} = {rss:.3f}$ (residual sum of squares)"))
-        display(Markdown(rf"$\mathrm{{ESS}} = \mathrm{{TSS}} - \mathrm{{RSS}} = {tss - rss:.3f}$ (explained sum of squares)"))
-        display(Markdown(rf"$\mathrm{{MSE}} = {mse:.3f}$ (mean squared error)"))
-        display(Markdown(rf"$\mathrm{{MAE}} = {mae:.3f}$ (mean absolute error)"))
-
-    X_flat = X_np.ravel()
-    y_flat = y_np.ravel()
-    est_flat = est_np.ravel()
-    e_pot = 0.5 * rss
-
-    l = torch.linspace(float(X_flat.min()), float(X_flat.max()), 1000).reshape(-1, 1)
-    plt.figure(figsize=figsize)
-    plt.vlines(X_flat, y_flat, est_flat, colors="firebrick", linestyles="--", lw=1.5, alpha=0.7, label=r"Springs / Residuals ($e_n$)")
-    plt.scatter(X_flat, y_flat, color="royalblue", s=40, alpha=0.85, label=r"Data Observations ($(x_n, t_n)$)")
-    plt.scatter(X_flat, est_flat, color="forestgreen", s=30, zorder=3, label=r"Fitted Points ($y(x_n)$)")
-    pred_line = predict(l.float())
-    if hasattr(pred_line, "detach"):
-        pred_line = pred_line.detach().cpu().numpy().ravel()
-    else:
-        pred_line = np.asarray(pred_line).ravel()
-    plt.plot(l.numpy().ravel(), pred_line, color="forestgreen", lw=2, label=r"Model $y(x) = w_0 + w_1 x$")
-
-    plt.title(f"Physical Spring Analogy: Residual Tension ($E(\\mathbf{{w}}) = {e_pot:.3f}$)", fontsize=11)
-    plt.xlabel("Input Feature ($x$)")
-    plt.ylabel("Target ($t$)")
-
-    if float(y_flat.min()) >= -1.5 and float(y_flat.max()) <= 1.5:
-        plt.ylim(-1.6, 1.6)
-    else:
-        y_min, y_max = float(min(y_flat.min(), est_flat.min())), float(max(y_flat.max(), est_flat.max()))
-        pad = max(0.5, 0.1 * (y_max - y_min))
-        plt.ylim(y_min - pad, y_max + pad)
-
-    plt.legend(loc="upper right", fontsize=8.5)
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
 
 
 # ---------------------------------------------------------------------------
@@ -1008,34 +902,6 @@ def plot_sobel_filtered(
     plt.show()
 
 
-def annotate(first_arg: Any, second_arg: Any, **kwargs: Any) -> None:
-    """
-    Polymorphic annotation helper (backward-compatible):
-    1. CNN Mode: When called with (im, ax), annotates numeric pixel values onto image patches.
-    2. Regression Mode: When called with (x, y, **kws), annotates Pearson correlation onto pairgrid.
-    """
-    if hasattr(second_arg, "text") and hasattr(first_arg, "shape") and len(first_arg.shape) >= 2:
-        im = first_arg
-        ax = second_arg
-        for i in range(im.shape[0]):
-            for j in range(im.shape[1]):
-                val = im[i, j].item() if hasattr(im[i, j], "item") else float(im[i, j])
-                ax.text(
-                    j,
-                    i,
-                    f"{val:.2f}",
-                    ha="center",
-                    va="center",
-                    color="r",
-                    fontsize=14,
-                    weight="bold",
-                )
-    else:
-        x = first_arg
-        y = second_arg
-        r, p = stats.pearsonr(x, y)
-        ax = plt.gca()
-        ax.annotate(f"r = {r:.2f}, p = {p:.3f} ", xy=(0.1, 1), xycoords=ax.transAxes)
 
 
 def plot_correlation_matrix_and_pairgrid(data: Any) -> None:
