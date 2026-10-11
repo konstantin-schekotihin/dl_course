@@ -67,10 +67,12 @@ The deadlines are the latest possible dates. Earlier submissions are welcome!
 
 | Deliverable | Due date (draft) | Cut-off date |
 | :--- | :---: | :---: |
-| Project proposal (PDF) | 10 November 2026 | 15 November 2026 |
-| Project report (PDF + code) | 20 January 2027 | 30 January 2027 |
-| Presentation slides (PDF) | 30 January 2027 | 8 February 2027 |
+| Project proposal (PDF) | 10 November 2026, 23:59 | 15 November 2026, 23:59 |
+| Project report (PDF + code) | 20 January 2027, 23:59 | 30 January 2027, 23:59 |
+| Presentation slides (PDF) | 30 January 2027, 23:59 | 8 February 2027, 08:00 |
 | **Presentations** | — | 2nd week of February 2027 (8–12 Feb) |
+
+All times are local time in Klagenfurt (CET).
 
 Registration for a presentation slot will be done using the registration link provided in Moodle. **Presentations are in person.**
 
@@ -267,7 +269,7 @@ Present the main points of your work:
 - your approach and its implementation,
 - the results and their analysis.
 
-Prepare the slides in PowerPoint or LaTeX Beamer and upload them to Moodle as a **PDF**. You can also present the Jupyter notebook of your project as a slideshow using the RISE plug-in.
+You can prepare and give your presentation with any tool you like, e.g. PowerPoint, LaTeX Beamer, or the Jupyter notebook of your project shown as a slideshow with the RISE plug-in. Upload your slides to Moodle as a **PDF**.
 
 ### What we look for
 
