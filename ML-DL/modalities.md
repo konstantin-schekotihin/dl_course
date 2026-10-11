@@ -4,10 +4,12 @@ This document describes how the course is organized, how it is graded, and what 
 
 ### Course goals
 
+The course focuses on deep learning. It starts with a short recap of the mathematical foundations (probability, information theory, linear algebra), which are usually covered in other courses. Most of the time, including most exercises, is spent on deep learning itself.
+
 After completing the course, you will be able to:
 - formulate a learning task with its training experience, task and performance measure, and choose suitable data and evaluation measures;
-- explain the mathematical foundations of deep learning: probability, information theory, linear algebra and optimization;
 - design, implement and train neural networks in PyTorch, from single-layer models to convolutional networks, sequence models, transformers and graph neural networks;
+- choose an architecture, loss function and optimizer for a given task, and justify the choice;
 - diagnose and fix training problems such as overfitting, vanishing gradients and poor convergence, using regularization and modern optimizers;
 - evaluate models rigorously against baselines and report the results reproducibly, in the form of a scientific paper.
 
