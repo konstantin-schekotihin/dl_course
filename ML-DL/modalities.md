@@ -209,6 +209,24 @@ Your code must allow us to reproduce the main results of your report. Your code 
 
 Your evaluation should run on Google Colab or a standard laptop. If training needs more resources, state the hardware you used and the training time in the README.
 
+### Training on Google Colab
+
+[Google Colab](https://colab.research.google.com/) gives you **free GPU access**, which speeds up training deep networks considerably. To use it, select *Runtime → Change runtime type → T4 GPU*. Free GPU time is limited, and Colab disconnects sessions after a period of inactivity or a maximum runtime, so plan longer training runs accordingly.
+
+> ⚠️ **Important:** Everything stored in the Colab runtime (`/content`) is **deleted when the session ends**, including downloaded data, trained models and results. **Always store your files and checkpoints on Google Drive** to avoid losing your work.
+
+Mount your Drive at the start of the notebook and save all files there:
+
+```python
+from google.colab import drive
+drive.mount("/content/drive")
+
+CHECKPOINT_DIR = "/content/drive/MyDrive/dl_project/checkpoints"
+```
+
+- **Save checkpoints regularly during training**, e.g. after every epoch: model weights, optimizer state and the current epoch (`torch.save({...}, f"{CHECKPOINT_DIR}/epoch_{epoch}.pt")`). Then you can resume training after a disconnect instead of starting again.
+- **Keep your data, notebooks and results on Drive as well**, so that they survive the end of the session.
+
 ---
 
 ## 8. Experiment Tracking with Weights & Biases
