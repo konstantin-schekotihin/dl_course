@@ -68,7 +68,7 @@ The deadlines are the latest possible dates. Earlier submissions are welcome!
 | Deliverable | Due date (draft) | Cut-off date |
 | :--- | :---: | :---: |
 | Project proposal (PDF) | 10 November 2026 | 15 November 2026 |
-| Project report (PDF + code archive) | 20 January 2027 | 30 January 2027 |
+| Project report (PDF + code) | 20 January 2027 | 30 January 2027 |
 | Presentation slides (PDF) | 30 January 2027 | 8 February 2027 |
 | **Presentations** | — | 2nd week of February 2027 (8–12 Feb) |
 
@@ -181,9 +181,9 @@ The report is a research paper of at most **9 pages** in the paper format (Secti
 
 ### Submission
 
-Submit **two files** in Moodle:
+Submit in Moodle:
 1. the report as a **PDF**;
-2. **one archive** with your code and artifacts, meeting the requirements in Section 7. If the archive is too large, publish it elsewhere (e.g. on GitHub) and put the link in the report.
+2. **your code**, in one of the two forms described in Section 7: either an archive, or a link to your repository or Colab notebook in the report. If an archive is too large, publish it elsewhere (e.g. on GitHub) and put the link in the report.
 
 Paste the link to your public **Weights & Biases (W&B) project** (Section 8) into the submission comments, because Moodle does not open links from the report review page.
 
@@ -193,19 +193,24 @@ Paste the link to your public **Weights & Biases (W&B) project** (Section 8) int
 
 ## 7. Code & Reproducibility
 
-Your code must allow us to reproduce the main results of your report. Your code archive (or repository) must contain:
+Your code must allow us to reproduce the main results of your report. There are **two possibilities** to provide it:
 
-- **A `README.md`** that explains how to set up the environment, obtain the data, train your models, and reproduce the tables and figures of your report.
-- **An environment specification** with pinned package versions and the Python version, e.g. `requirements.txt`, or `pyproject.toml` with a lock file.
-- **Data or how to get it:**
+1. **A code archive or repository**, e.g. a ZIP file or a link to a GitHub repository, containing:
+   - **a `README.md`** that explains how to set up the environment, obtain the data, train your models, and reproduce the tables and figures of your report;
+   - **an environment specification** with pinned package versions and the Python version, e.g. `requirements.txt`, or `pyproject.toml` with a lock file;
+   - **a clear entry point** for each main result, e.g. `train.py` and `evaluate.py`, or a notebook that runs from top to bottom.
+2. **A Google Colab notebook** that runs from top to bottom.
+   - It installs the packages with pinned versions, downloads the data and trained weights, and reproduces your main results.
+   - Text cells explain each step.
+   - Share it with *Anyone with the link can view* and put the link in the report.
+
+In both cases, provide:
+- **The data, or how to get it:**
   - Include the data if it is small.
   - Otherwise, provide a download link or script.
   - Always include the preprocessing code. Processed data on its own, without the code that produced it, is not enough.
 - **Fixed random seeds** for Python, NumPy and PyTorch, so that runs can be repeated.
 - **The trained weights** of your final models, or a link to them, so that the evaluation can be rerun without retraining.
-- **A clear entry point** for each main result, e.g. `train.py` and `evaluate.py`, or a notebook that runs from top to bottom.
-
-**Google Colab notebook (optional):** you may also provide a Colab notebook that reproduces your main results. It installs the packages, downloads the data and trained weights, and runs the evaluation. Share it with *Anyone with the link can view* and put the link in the README and the report. Such a notebook can serve as your entry point, and its package installation cell, with pinned versions, as your environment specification.
 
 Your evaluation should run on Google Colab or a standard laptop. If training needs more resources, state the hardware you used and the training time in the README.
 
