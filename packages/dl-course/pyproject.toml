@@ -22,3 +22,8 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/dl_course"]
+
+# RISE slideshow settings for all course notebooks. Installed into <env>/etc/jupyter/nbconfig/rise.d/,
+# which Jupyter Notebook reads automatically (notebook metadata would still override these).
+[tool.hatch.build.targets.wheel.shared-data]
+"jupyter-config/nbconfig/rise.d/dl-course.json" = "etc/jupyter/nbconfig/rise.d/dl-course.json"

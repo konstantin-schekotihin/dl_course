@@ -33,6 +33,5 @@ uv run jupyter notebook Extended/01_reinforcement_learning/
 ```
 
 Navigate to `Extended/01_reinforcement_learning/07_RL.ipynb`. Interactive RISE slides can be activated via **`Alt + R`**.
-The course slide stylesheet is kept in `shared/styles/rise.css`. RISE picks up a `rise.css` placed in the notebook's own folder.
 
 > 📝 **Note:** The notebook imports its simulation package from the local `rf/` folder, so it currently needs a local checkout of the repository (it does not run when opened directly from GitHub in Colab).

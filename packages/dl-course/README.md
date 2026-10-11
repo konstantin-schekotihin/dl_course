@@ -25,6 +25,17 @@ from dl_course import deep_learning as hp
 | `dl_course.foundations` | ML-DL, part 1: mathematical foundations |
 | `dl_course.deep_learning` | ML-DL, part 2: deep learning |
 
+## Slideshow settings
+
+The package also installs the course's RISE slideshow settings into the environment's Jupyter configuration (`etc/jupyter/nbconfig/rise.d/dl-course.json`):
+- the AAU header
+- the white theme
+- scrolling
+- slide numbers
+- the chalkboard
+
+Jupyter Notebook picks them up automatically, so the notebooks contain no slideshow configuration. Colab ignores the file.
+
 ## Development and releases
 
 - **Local development:** in the course repository, `uv sync` installs this package in editable mode. Changes take effect after a kernel restart.

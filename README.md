@@ -15,7 +15,7 @@ This repository hosts interactive lecture slides, laboratory notebooks, and cour
 3. [`Extended/`](Extended/) — Specialized & Advanced Electives
 
 Shared resources:
-- [`shared/`](shared/) — datasets (`shared/data/`), images (`shared/images/`) and the slide stylesheet (`shared/styles/rise.css`) used by all courses.
+- [`shared/`](shared/) — datasets (`shared/data/`) and images (`shared/images/`) used by all courses.
 - [`packages/dl-course/`](packages/dl-course/) — the course helper package (plotting, slide styling, dataset loading) that every notebook imports as `hp`. It is installed automatically, both locally and in Colab.
 
 ## 🚀 Quick Start (Local Setup with `uv`)
@@ -66,7 +66,7 @@ uv run jupyter notebook
 source .venv/bin/activate
 jupyter notebook
 ```
-In Jupyter Notebook, press **`Alt + R`** to start the RISE slideshow of the open notebook.
+In Jupyter Notebook, press **`Alt + R`** to start the RISE slideshow of the open notebook. The slideshow settings (AAU header, theme, scrolling, slide numbers, chalkboard) come from `packages/dl-course/jupyter-config/nbconfig/rise.d/dl-course.json`, which `uv sync` installs into `.venv`.
 
 ### 4. Using with VS Code / Cursor / PyCharm
 
