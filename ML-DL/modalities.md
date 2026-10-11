@@ -102,7 +102,7 @@ Projects are done in **groups of 2–3 students**. Use the Moodle Group Choice t
 
 ### Deliverables at a glance
 
-- **LaTeX:** you don't need to install LaTeX. You can write the proposal and the report online in [Overleaf](https://www.overleaf.com/): upload the course template folder with *New Project → Upload Project*, and work on the document together with your group.
+- **LaTeX templates:** the course provides LaTeX templates for the proposal and the report. Open them in [Overleaf](https://www.overleaf.com/) with one click from the [project guide](https://github.com/konstantin-schekotihin/dl_course/tree/master/ML-DL/deliverables), and share the project with your group to write together. You don't need to install LaTeX.
 - **Proposal:** at most **4 pages** (excluding references), written with the course LaTeX template and submitted as a PDF.
 - **Report:** at most **9 pages** (excluding references), written with the course LaTeX template and submitted as a PDF. Its evaluation **must compare every approach against a baseline**. Also submit:
   - **your code**, as an archive or repository, or as a Google Colab notebook;

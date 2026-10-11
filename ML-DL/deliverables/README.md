@@ -4,8 +4,8 @@ This guide describes how to find a project topic and how to prepare each project
 
 | Deliverable | Template | Page limit (excluding references) |
 |---|---|---|
-| Project proposal | [`proposal/`](proposal/) | 4 pages |
-| Project report | [`report/`](report/) | 9 pages |
+| Project proposal | **[Open in Overleaf](https://www.overleaf.com/docs?snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Fproposal%2Fmain.tex&snip_name%5B%5D=main.tex&snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Fproposal%2Freferences.bib&snip_name%5B%5D=references.bib&snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Fproposal%2Fneurips_2025.sty&snip_name%5B%5D=neurips_2025.sty&main_document=main.tex&engine=pdflatex)** · [files](proposal/) | 4 pages |
+| Project report | **[Open in Overleaf](https://www.overleaf.com/docs?snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Freport%2Fmain.tex&snip_name%5B%5D=main.tex&snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Freport%2Freferences.bib&snip_name%5B%5D=references.bib&snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Freport%2Fneurips_2025.sty&snip_name%5B%5D=neurips_2025.sty&main_document=main.tex&engine=pdflatex)** · [files](report/) | 9 pages |
 | Project presentation | any tool (Section 7) | 15 minutes |
 
 ---
@@ -38,11 +38,12 @@ Please get in touch with the lecturer if you have any questions!
 Write the proposal and the report like papers for a machine learning conference, using the LaTeX templates in [`proposal/`](proposal/) and [`report/`](report/). They are based on the official NeurIPS style and contain all required sections. The LaTeX comments (`% ...`) under each heading describe what the section must contain; as comments, they never appear in your PDF.
 
 **How to use a template:**
-1. **Overleaf (recommended):** download the folder as a ZIP file, then in [Overleaf](https://www.overleaf.com/) choose *New Project → Upload Project*.
+1. **Open the template in Overleaf:** click [Open the proposal template in Overleaf](https://www.overleaf.com/docs?snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Fproposal%2Fmain.tex&snip_name%5B%5D=main.tex&snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Fproposal%2Freferences.bib&snip_name%5B%5D=references.bib&snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Fproposal%2Fneurips_2025.sty&snip_name%5B%5D=neurips_2025.sty&main_document=main.tex&engine=pdflatex) or [Open the report template in Overleaf](https://www.overleaf.com/docs?snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Freport%2Fmain.tex&snip_name%5B%5D=main.tex&snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Freport%2Freferences.bib&snip_name%5B%5D=references.bib&snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Freport%2Fneurips_2025.sty&snip_name%5B%5D=neurips_2025.sty&main_document=main.tex&engine=pdflatex). Log in to [Overleaf](https://www.overleaf.com/), or create a free account. Overleaf creates your own copy of the template as a new project, ready to compile. You don't need to install LaTeX.
+2. **Share it with your group:** click *Share* in Overleaf and invite your group members, so that you can write together.
+3. **Write:** replace the title, the authors and every "Your text." with your content, following the comments under each heading. Add the sources you cite to `references.bib`.
+4. **Submit:** check the page limit, then download the PDF from Overleaf and submit it in Moodle.
 
-   **Locally:** compile `main.tex`, e.g. with `latexmk -pdf main.tex`.
-2. Replace the title, the authors and every "Your text." with your content, following the comments under each heading. Add the sources you cite to `references.bib`.
-3. Check the page limit, then submit the PDF in Moodle.
+If you prefer to work locally, download the files from the template folder and compile `main.tex`, e.g. with `latexmk -pdf main.tex`.
 
 **Rules:**
 - Keep the `preprint` option in `\usepackage[preprint]{neurips_2025}`, so that your names appear on the paper.
