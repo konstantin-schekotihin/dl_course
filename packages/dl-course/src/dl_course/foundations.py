@@ -10,9 +10,8 @@ Provides structured, decoupled visualization classes and functional facades for:
 """
 
 import math
-from typing import Any, Callable, Dict, List, Literal, Optional, Sequence, Tuple, Union, overload
+from typing import Any, Dict, Optional, Sequence, Tuple
 
-from IPython.display import Markdown, display
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure

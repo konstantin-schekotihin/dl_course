@@ -12,7 +12,7 @@ Modules:
 """
 
 import os
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, List, Optional, Sequence, Tuple, Union
 
 from IPython.display import Markdown, display
 import matplotlib.pyplot as plt

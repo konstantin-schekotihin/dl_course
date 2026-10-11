@@ -14,7 +14,6 @@ from typing import Any, Callable, Dict, Optional, Sequence, Tuple
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-import scipy.stats as stats
 import seaborn as sns
 import torch
 

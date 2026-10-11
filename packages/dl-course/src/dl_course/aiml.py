@@ -11,13 +11,12 @@ Provides structured, decoupled visualization and diagnostic routines for:
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, Dict, Optional, Sequence, Tuple, Union
 
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import numpy as np
 import pandas as pd
-import scipy.stats as stats
 import seaborn as sns
 import sklearn.metrics as metrics
 
