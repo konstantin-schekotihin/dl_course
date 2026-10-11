@@ -1,0 +1,32 @@
+# Publishes the course helper package (packages/dl-course) to PyPI whenever it changes on master.
+# Colab notebooks install it with `%pip install -q dl-course`, so they always get the latest version.
+#
+# Authentication uses PyPI trusted publishing (no API token stored in GitHub). One-time setup on
+# https://pypi.org/manage/account/publishing/ -> "Add a new pending publisher":
+#   PyPI project name: dl-course | Owner: konstantin-schekotihin | Repository: dl_course
+#   Workflow name: publish-dl-course.yml | Environment: pypi
+name: Publish dl-course
+
+on:
+  push:
+    branches: [master]
+    paths: ["packages/dl-course/**"]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write   # required for trusted publishing
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      # PyPI never accepts the same version twice, so each run gets a unique date-based version.
+      - name: Set version
+        run: uv version --project packages/dl-course --frozen "$(date -u +%Y.%-m.%-d).${{ github.run_number }}"
+      - name: Build
+        run: uv build packages/dl-course --out-dir dist
+      - name: Publish
+        run: uv publish dist/*

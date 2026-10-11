@@ -10,8 +10,6 @@ Provides structured, decoupled visualization classes and functional facades for:
 """
 
 import math
-import os
-import sys
 from typing import Any, Callable, Dict, List, Literal, Optional, Sequence, Tuple, Union, overload
 
 from IPython.display import Markdown, display
@@ -29,22 +27,7 @@ import torch
 # 1. Core Shared Foundation (Asset Resolution, Aesthetics, Base Plotters)
 # ---------------------------------------------------------------------------
 
-try:
-    import shared.helpers as _shared
-except ImportError:
-    try:
-        _repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-        if os.path.exists(os.path.join(_repo_root, "shared", "helpers.py")):
-            if _repo_root not in sys.path:
-                sys.path.insert(0, _repo_root)
-            import shared.helpers as _shared
-        else:
-            raise ImportError("Not in repository")
-    except Exception:
-        import urllib.request
-        _shared_url = "https://raw.githubusercontent.com/konstantin-schekotihin/dl_course/master/shared/helpers.py"
-        urllib.request.urlretrieve(_shared_url, "shared_helpers.py")
-        import shared_helpers as _shared
+from . import shared as _shared
 
 # Core base plotter and foundation utilities
 BasePlotter = _shared.BasePlotter

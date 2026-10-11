@@ -27,7 +27,12 @@ dependencies = [
     "notebook==6.5.7",
     "rise>=5.7.1",
     "setuptools<70.0.0",
+    "dl-course",
 ]
 
 [tool.uv]
 package = false
+
+[tool.uv.sources]
+# Course helpers are developed in-repo and installed in editable mode; Colab installs them from PyPI.
+dl-course = { path = "packages/dl-course", editable = true }

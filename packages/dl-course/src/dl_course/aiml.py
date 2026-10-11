@@ -11,8 +11,6 @@ Provides structured, decoupled visualization and diagnostic routines for:
 
 from __future__ import annotations
 
-import os
-import sys
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import matplotlib.pyplot as plt
@@ -28,22 +26,7 @@ import sklearn.metrics as metrics
 # 1. Core Shared Foundation (Asset Resolution, Aesthetics, Base Plotter)
 # ---------------------------------------------------------------------------
 
-try:
-    import shared.helpers as _shared
-except ImportError:
-    try:
-        _repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-        if os.path.exists(os.path.join(_repo_root, "shared", "helpers.py")):
-            if _repo_root not in sys.path:
-                sys.path.insert(0, _repo_root)
-            import shared.helpers as _shared
-        else:
-            raise ImportError("Not in repository")
-    except Exception:
-        import urllib.request
-        _shared_url = "https://raw.githubusercontent.com/konstantin-schekotihin/dl_course/master/shared/helpers.py"
-        urllib.request.urlretrieve(_shared_url, "shared_helpers.py")
-        import shared_helpers as _shared
+from . import shared as _shared
 
 # Core base plotter and foundation utilities
 BasePlotter = _shared.BasePlotter

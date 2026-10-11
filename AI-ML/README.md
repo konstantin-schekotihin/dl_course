@@ -74,7 +74,7 @@ uv run jupyter lab AI-ML/
 
 ## ⚙️ Configuration & Custom Mirrors
 
-By default, notebooks fetch datasets from the official course repository using `helpers.py`:
+By default, notebooks fetch datasets from the official course repository using the course helper package [`dl-course`](../packages/dl-course) (imported as `hp`):
 - `hp.get_file("dataset.csv")` automatically resolves local files or fetches them on standalone Colab runs.
 - `hp.get_data_path("")` resolves directory roots for dataset loaders.
 - To use a local mirror or private fork, configure `COURSE_DATA_URL`:

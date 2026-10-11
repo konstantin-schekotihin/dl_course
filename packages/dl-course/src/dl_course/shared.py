@@ -11,9 +11,7 @@ Modules:
 4. Functional Facades (plot_residuals, plot_binary, plot_correlation_matrix, plot_pairgrid, annotate)
 """
 
-import math
 import os
-import sys
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 from IPython.display import Markdown, display
@@ -66,13 +64,32 @@ def get_url(filename: str, category: Optional[str] = None) -> str:
         Canonical HTTPS URL to the raw asset on GitHub.
     """
     basename = os.path.basename(filename)
-    if category is None:
-        ext = os.path.splitext(basename)[1].lower()
-        if ext in {".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".bmp", ".tif", ".tiff"}:
-            category = "images"
-        else:
-            category = "data"
+    category = category or _category(basename)
     return f"{COURSE_RAW_URL}/{category}/{basename}"
+
+
+_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".bmp", ".tif", ".tiff"}
+
+
+def _category(filename: str) -> str:
+    """Infer the 'shared/' asset directory ('images' or 'data') from a file extension."""
+    return "images" if os.path.splitext(filename)[1].lower() in _IMAGE_EXTENSIONS else "data"
+
+
+def _find_shared_dir(category: str) -> Optional[str]:
+    """
+    Locate the repository's 'shared/<category>' directory by searching the working
+    directory and its parents (notebooks run from course subfolders such as 'ML-DL/04_...').
+    """
+    directory = os.path.abspath(os.getcwd())
+    while True:
+        candidate = os.path.join(directory, "shared", category)
+        if os.path.isdir(candidate):
+            return candidate
+        parent = os.path.dirname(directory)
+        if parent == directory:
+            return None
+        directory = parent
 
 
 def get_file(filename: str = "", category: Optional[str] = None) -> str:
@@ -93,27 +110,13 @@ def get_file(filename: str = "", category: Optional[str] = None) -> str:
     str
         Absolute local filesystem path to the asset file or directory.
     """
-    if category is None:
-        if filename == "":
-            category = "data"
-        else:
-            ext = os.path.splitext(filename)[1].lower()
-            if ext in {".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".bmp", ".tif", ".tiff"}:
-                category = "images"
-            else:
-                category = "data"
+    category = category or (_category(filename) if filename else "data")
+    # In the repository this is '<repo>/shared/<category>'; in Colab it is created under the working directory.
+    shared_dir = _find_shared_dir(category) or os.path.join(os.getcwd(), "shared", category)
 
     if filename == "":
-        candidates = [
-            os.path.join(os.path.dirname(__file__), category),
-            os.path.join(os.getcwd(), "shared", category),
-            os.path.join(os.getcwd(), category),
-        ]
-        for c in candidates:
-            if os.path.isdir(c):
-                return os.path.abspath(c)
-        os.makedirs(category, exist_ok=True)
-        return os.path.abspath(category)
+        os.makedirs(shared_dir, exist_ok=True)
+        return shared_dir
 
     clean_rel = filename.replace("\\", "/").lstrip("/")
     if clean_rel.startswith(f"shared/{category}/"):
@@ -122,20 +125,17 @@ def get_file(filename: str = "", category: Optional[str] = None) -> str:
         clean_rel = clean_rel[len(f"{category}/"):]
 
     candidates = [
-        os.path.join(os.path.dirname(__file__), category, clean_rel),
-        os.path.join(os.getcwd(), "shared", category, clean_rel),
+        os.path.join(shared_dir, clean_rel),
         os.path.join(os.getcwd(), category, clean_rel),
         os.path.join(os.getcwd(), clean_rel),
-        os.path.join(os.path.dirname(__file__), "..", clean_rel),
     ]
 
     for c in candidates:
         if os.path.isfile(c):
             return os.path.abspath(c)
 
-    target_dir = os.path.join(os.getcwd(), "shared", category)
-    os.makedirs(target_dir, exist_ok=True)
-    target_path = os.path.join(target_dir, clean_rel)
+    os.makedirs(shared_dir, exist_ok=True)
+    target_path = os.path.join(shared_dir, clean_rel)
 
     url = get_url(clean_rel, category=category)
     try:
