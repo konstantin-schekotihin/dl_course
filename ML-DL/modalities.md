@@ -103,7 +103,7 @@ Projects are done in **groups of 2–3 students**. Use the Moodle Group Choice t
 ### Deliverables at a glance
 
 - **Proposal:** at most **4 pages** (excluding references), written with the course LaTeX template and submitted as a PDF.
-- **Report:** at most **9 pages** (excluding references), written with the course LaTeX template and submitted as a PDF. Also submit:
+- **Report:** at most **9 pages** (excluding references), written with the course LaTeX template and submitted as a PDF. Its evaluation **must compare every approach against a baseline**. Also submit:
   - **your code**, as an archive or repository, or as a Google Colab notebook;
   - **a link to a public Weights & Biases (W&B) project** with all your experiments. Do **not** add the lecturer to the project; make it public and provide the link.
 

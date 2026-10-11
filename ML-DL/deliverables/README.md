@@ -70,6 +70,8 @@ Write your report with the [report template](report/). It is a research paper of
 - Related Work, Data, Method and Experimental Setup
 - Results
 - Analysis, i.e. ablation study and error analysis
+
+> ⚠️ **Important:** In the Results section, you **must compare every approach against a baseline**: at least one simple baseline, and one from the literature, blogs, Kaggle, etc., if available. Evaluate the approaches and baselines on the same test data with the same measures. A report without a baseline comparison is incomplete.
 - Limitations and Conclusions
 - Author Contributions and References
 - Appendix, including the AI disclosure statement
