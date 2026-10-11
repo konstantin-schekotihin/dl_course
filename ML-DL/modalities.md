@@ -2,12 +2,21 @@
 
 This document describes how the course is organized, how it is graded, and what you need to submit and when.
 
+### Course goals
+
+After completing the course, you will be able to:
+- formulate a learning task with its training experience, task and performance measure, and choose suitable data and evaluation measures;
+- explain the mathematical foundations of deep learning: probability, information theory, linear algebra and optimization;
+- design, implement and train neural networks in PyTorch, from single-layer models to convolutional networks, sequence models, transformers and graph neural networks;
+- diagnose and fix training problems such as overfitting, vanishing gradients and poor convergence, using regularization and modern optimizers;
+- evaluate models rigorously against baselines and report the results reproducibly, in the form of a scientific paper.
+
 ---
 
 ## 1. Course Organization & Attendance
 
-- **Format:** lectures combined with in-class exercises, plus **8 practical sessions**.
-- **Attendance:** not compulsory, but strongly recommended. If you miss a class, you don't need an excuse, but you are responsible for the material covered and all announcements made in class. 
+- **Format:** lectures combined with in-class exercises, plus **8 practical sessions**. The schedule, tasks, submission rules and points per practical session will be announced by the lecturer of the practical sessions.
+- **Attendance:** not compulsory, but strongly recommended. If you miss a class, you don't need an excuse, but you are responsible for the material covered and all announcements made in class.
 - **Online resources** (links in Moodle):
   - Course notebooks: <https://github.com/konstantin-schekotihin/dl_course>
   - Announcements and feedback: Moodle forum
@@ -21,9 +30,9 @@ This document describes how the course is organized, how it is graded, and what 
 | :--- | :---: | :--- |
 | **Practical sessions** | **30%** | 8 practical sessions, 100 points in total. |
 | **Project** | **70%** | Made up of three deliverables: |
-| &nbsp;&nbsp;• Project proposal | 10% of project (7% of final) | Written plan of your project (Section 5). |
-| &nbsp;&nbsp;• Project report | 30% of project (21% of final) | 6–8 page paper with code and data (Section 7). |
-| &nbsp;&nbsp;• Project presentation | 60% of project (42% of final) | 15-minute presentation followed by 5 minutes of questions (Section 6). |
+| &nbsp;&nbsp;• Project proposal | 10% of project (7% of final) | Project plan, up to 4 pages (Section 5). |
+| &nbsp;&nbsp;• Project report | 30% of project (21% of final) | Research paper, up to 9 pages, with code and W&B logs (Sections 6–8). |
+| &nbsp;&nbsp;• Project presentation | 60% of project (42% of final) | 15-minute presentation followed by 5 minutes of questions (Section 9). |
 
 The practical sessions and each project deliverable are graded with 0–100 points. The scores combine as follows:
 
@@ -88,6 +97,18 @@ Excellent deliverables of students from previous years are available in the **Ex
 
 Please get in touch with the lecturer if you have any questions!
 
+### Paper format
+
+Write the proposal and the report like papers for a machine learning conference:
+- Use the official **NeurIPS LaTeX template** on [Overleaf](https://www.overleaf.com/latex/templates?q=neurips). Choose the template for the latest NeurIPS conference, or upload the [official style files](https://media.neurips.cc/Conferences/NeurIPS2025/Styles.zip) to a new Overleaf project.
+- Load the style with the `preprint` option, e.g. `\usepackage[preprint]{neurips_2025}`, so that your names appear on the paper. Without it, the template produces an anonymous submission.
+- **Page limits** apply to the main text, including all figures and tables:
+  - **proposal:** at most **4 pages**, like a short (workshop) paper;
+  - **report:** at most **9 pages**, like a full NeurIPS paper.
+
+  References, appendices and the AI disclosure statement do not count towards the limit. Do not change margins, font sizes or spacing to fit more content.
+- The NeurIPS paper checklist is not required.
+
 ### Group projects
 
 A group of students can work on one project. This is reserved for complex projects in which every student does the same amount of work as in a single-person project. The requirements:
@@ -96,11 +117,16 @@ A group of students can work on one project. This is reserved for complex projec
 - Every deliverable states clearly what each student is expected to do and has done. For example, in the learning task section: "In this project, *(name)* will focus on … whereas *(name)* will …".
 - The group submits one version of every deliverable. Every member must be able to answer any question about the presented work.
 
+**Individual assessment:**
+- The proposal and the report are graded once, for the whole group.
+- In the presentation, every member presents their own part. Each member is then questioned individually, both on their own part and on the project as a whole.
+- The presentation is graded individually for each member.
+
 ---
 
 ## 5. Project Proposal
 
-Prepare your proposal with LaTeX or an office program and submit it as a **PDF**. It must contain at least the following five sections and answer all of their questions:
+Write your proposal in the paper format (Section 4) and submit it as a **PDF** of at most 4 pages. It must contain at least the following five sections and answer all of their questions:
 
 1. **Motivation:** Why are you doing this project, e.g. personal motivation or importance of the problem? What is the goal of your application, and why is it important? What is your hypothesis, i.e. why do you believe the problem is solvable?
 2. **Learning task:**
@@ -115,7 +141,90 @@ If you have doubts about your proposal, contact the lecturer well before the dea
 
 ---
 
-## 6. Project Presentation
+## 6. Project Report
+
+The report is a research paper of at most **9 pages** in the paper format (Section 4). Use the structure of a typical machine learning paper:
+
+1. **Abstract:** one paragraph summarizing the problem, your approach and your main result.
+2. **Introduction:** the problem you are solving and why it is important, your hypothesis, what you contribute, and a short summary of your results.
+3. **Related work:** which models and approaches from the literature suit this problem and your data, and why? How does your work relate to them? Cite all sources properly.
+4. **Data:** the data you use, with examples.
+   - Where does it come from?
+   - What are its properties, such as class balance, missing values and scale, and how do you deal with them?
+   - Which preprocessing, filtering, augmentation or other manipulations do you apply?
+   - How do you split the data into training, validation and test sets, and how do you prevent information from the test set leaking into training?
+5. **Method:** your approach and why it fits the problem.
+   - Model architecture, output activation and loss function.
+   - Training procedure: optimizer, learning-rate schedule, regularization.
+   - Which hyperparameters does your approach have, and how can they influence the results?
+   - How do these choices relate to your hypothesis?
+   - You must show that you applied methods covered during the semester to your problem. Figures of your architecture or pipeline are welcome.
+6. **Experimental setup:**
+   - Baselines: at least one simple baseline, and one from the literature, blogs, Kaggle, etc., if available.
+   - Evaluation measures and why they fit the task.
+   - Hyperparameter search: search space, strategy, and the data used for model selection.
+   - Implementation details: framework, hardware and training time.
+7. **Results:** present your main results in a comparison table against the baselines, with learning curves where they help. If feasible, report the mean and standard deviation over several random seeds. Explain what your results mean: why was your approach successful, or why not?
+8. **Analysis:**
+   - *Ablation study:* which parts of your approach contribute to the result?
+   - *Error analysis:* on which examples does your model fail, and why?
+9. **Limitations and conclusions:** what are the limits of your results? How do you assess your work, and what would you recommend as next steps?
+10. **References**
+11. **Appendix (optional):** additional results, the full hyperparameter configuration, and interesting code snippets or algorithms. Put the **AI disclosure statement** here (Section 10).
+
+### Submission
+
+Submit **two files** in Moodle:
+1. the report as a **PDF**;
+2. **one archive** with your code and artifacts, meeting the requirements in Section 7. If the archive is too large, publish it elsewhere (e.g. on GitHub) and put the link in the report.
+
+Paste the link to your **Weights & Biases (W&B) project** (Section 8) into the submission comments, because Moodle does not open links from the report review page. Do not invite the lecturer to the project. Instead, make it public (*Project page → Overview → Edit → Project Visibility → Public*) and share the link.
+
+> ⚠️ **Important:** Reports that do not meet these requirements will not be considered!
+
+---
+
+## 7. Code & Reproducibility
+
+Your code must allow us to reproduce the main results of your report. Your code archive (or repository) must contain:
+
+- **A `README.md`** that explains how to set up the environment, obtain the data, train your models, and reproduce the tables and figures of your report.
+- **An environment specification** with pinned package versions and the Python version, e.g. `requirements.txt`, or `pyproject.toml` with a lock file.
+- **Data or how to get it:**
+  - Include the data if it is small.
+  - Otherwise, provide a download link or script.
+  - Always include the preprocessing code. Processed data on its own, without the code that produced it, is not enough.
+- **Fixed random seeds** for Python, NumPy and PyTorch, so that runs can be repeated.
+- **The trained weights** of your final models, or a link to them, so that the evaluation can be rerun without retraining.
+- **A clear entry point** for each main result, e.g. `train.py` and `evaluate.py`, or a notebook that runs from top to bottom.
+
+Your evaluation should run on Google Colab or a standard laptop. If training needs more resources, state the hardware you used and the training time in the README.
+
+---
+
+## 8. Experiment Tracking with Weights & Biases
+
+Track **all experiments** of your project with [Weights & Biases (W&B)](https://wandb.ai/). Use one W&B project per course project; group members share it. For every run, log:
+
+- **Configuration:**
+  - architecture
+  - optimizer
+  - learning rate and schedule
+  - batch size
+  - number of epochs
+  - regularization settings
+  - random seed
+- **Training curves:** training and validation loss and metrics for every epoch, and the learning rate.
+- **Final results:** test metrics of your final models.
+- **Diagnostics:** e.g. sample predictions, confusion matrices or ROC curves.
+
+Name, tag or group your runs, so that baselines, hyperparameter searches, ablations and final models are easy to tell apart. Results and figures in your report should come from runs logged in this project. If you use W&B sweeps for hyperparameter search, include them too.
+
+Make the project **public** and share its link as described in Section 6.
+
+---
+
+## 9. Project Presentation
 
 You get a 20-minute slot: 15 minutes for the presentation and 5 minutes for questions. Present the main points of your work:
 - the learning task,
@@ -126,43 +235,26 @@ You get a 20-minute slot: 15 minutes for the presentation and 5 minutes for ques
 
 Prepare the slides in PowerPoint or LaTeX Beamer and upload them to Moodle as a **PDF**. You can also present the Jupyter notebook of your project as a slideshow using the RISE plug-in.
 
----
+### What we look for
 
-## 7. Project Report
-
-The report is a **6–8 page** document structured like a research paper. You may adapt the structure below, but it is a good starting point.
-
-1. **Motivation:** the problem you are solving and why it is important, plus a short summary of your methods and results.
-2. **Data:** the data you use, with examples.
-   - Where does it come from?
-   - What are its properties, such as class balance, missing values and scale, and how do you deal with them?
-   - Which preprocessing, filtering, augmentation or other manipulations do you apply?
-3. **Theory and approach:**
-   - Literature overview: which models from the literature suit this problem and your data, and why? Which algorithms can train them? How do these models relate to your hypothesis?
-   - Overview of your approach: which steps does your learning pipeline execute? Which hyperparameters does the learning algorithm have, and how can they influence the results?
-   - You must show that you applied methods covered during the semester to your problem. Figures and tables that describe your method or compare it with others are welcome. Cite all information from other sources properly.
-4. **Implementation:** how you implemented your approach and which tools you used. Show interesting code snippets or present your algorithms.
-5. **Evaluation:** present and visualize your results and explain what they mean. Why was your approach successful, or why not? Compare it to a baseline, implemented by yourself or taken from the literature, blogs, Kaggle, etc.
-6. **Conclusions:** how do you assess the results of your work, and what would you recommend as next steps?
-7. **AI disclosure statement:** see Section 8.
-
-### Submission
-
-Submit **two files** in Moodle:
-1. the report as a **PDF**;
-2. **one archive** with all code and artifacts needed to reproduce and evaluate your work: data, custom Python modules, images, videos, etc. If the archive is too large, publish it elsewhere (e.g. on GitHub) and put the link in the report. The same applies to large datasets: provide a link from which they can be downloaded.
-
-Paste the link to your **Weights & Biases (W&B) project** into the submission comments, because Moodle does not open links from the report review page. Do not invite the lecturer to the project. Instead, make it public (*Project page → Overview → Edit → Project Visibility → Public*) and share the link.
-
-> ⚠️ **Important:** Reports that do not meet these requirements will not be considered!
+The presentation and your answers to the questions are assessed on:
+- **Learning task and data:** a clear formulation of the task, the properties of the data, and splits without data leakage.
+- **Model choices:** why your architecture, output activation and loss function fit the task.
+- **Training:**
+  - your choice of optimizer, learning rate and batch size;
+  - how you detected convergence problems and overfitting, e.g. from learning curves;
+  - how you addressed them, e.g. with regularization, early stopping or data augmentation.
+- **Evaluation:** suitable measures, a fair comparison with baselines, the reliability of your results, and what your error analysis shows.
+- **Understanding:** you can explain the mathematics behind the methods you use, e.g. your loss function, how gradients flow through your model, or how attention works, as well as the limitations of your results.
+- **Presentation:** a clear structure, readable slides and keeping to the time.
 
 ---
 
-## 8. Generative AI & AI Coding Assistants
+## 10. Generative AI & AI Coding Assistants
 
 You may use generative AI tools and coding assistants (e.g. ChatGPT, Claude, GitHub Copilot) for your project, under these conditions:
 
-1. **Disclosure:** declare any use of AI tools in an *AI disclosure statement* at the end of your proposal and report. State which tools you used and for what purpose, e.g. brainstorming, literature search, code generation or text drafting.
+1. **Disclosure:** declare any use of AI tools in an *AI disclosure statement* in the appendix of your proposal and report. State which tools you used and for what purpose, e.g. brainstorming, literature search, code generation or text drafting.
 2. **You must be able to explain everything you submit.** During the presentation and the questions, you must be able to explain and justify every part of your work: the data processing, model architecture, loss function, training procedure, hyperparameters and evaluation. An AI tool cannot answer the questions for you.
 3. **Check what the tools produce.** You are responsible for the correctness of AI-generated code and text. Typical errors to look for:
    - **data leakage**, e.g. normalization statistics computed on the whole dataset before the train/test split, or test data used for model selection;
@@ -173,7 +265,7 @@ You may use generative AI tools and coding assistants (e.g. ChatGPT, Claude, Git
 
 ---
 
-## 9. Recommended Literature
+## 11. Recommended Literature
 
 ### Course books
 - Bishop, C. M., & Bishop, H. (2024). *Deep Learning: Foundations and Concepts*. Springer. [Book website](https://www.bishopbook.com/)
