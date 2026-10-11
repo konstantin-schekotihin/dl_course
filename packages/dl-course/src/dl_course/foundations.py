@@ -10,14 +10,13 @@ Provides structured, decoupled visualization classes and functional facades for:
 """
 
 import math
-from typing import Any, Dict, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, Optional, Sequence, Tuple
 
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 import numpy as np
 import pandas as pd
-import scipy.stats as stats
 import seaborn as sns
 import torch
 
@@ -54,62 +53,60 @@ class ProbabilityPlotter(BasePlotter):
     """Visualizer for empirical probability distributions and diagnostics."""
 
     @classmethod
-    def plot_gaussian_vs_uniform(cls, figsize: Tuple[float, float] = (10.0, 4.0)) -> None:
-        """Render 2-panel comparison of standard normal vs uniform distributions."""
-        fig, axes = plt.subplots(1, 2, figsize=figsize)
-        x_norm = np.linspace(-4, 4, 300)
-        axes[0].plot(x_norm, stats.norm.pdf(x_norm), color="royalblue", lw=2)
-        axes[0].fill_between(x_norm, stats.norm.pdf(x_norm), color="royalblue", alpha=0.25)
-        axes[0].set_title(r"Gaussian $\mathcal{N}(0, 1)$", fontsize=12)
-        axes[0].set_xlabel("$x$", fontsize=11)
-        axes[0].set_ylabel("$p(x)$", fontsize=11)
-        axes[0].grid(True, linestyle="--", alpha=0.5)
-
-        x_uni = np.linspace(-0.5, 1.5, 300)
-        axes[1].plot(x_uni, stats.uniform.pdf(x_uni), color="forestgreen", lw=2)
-        axes[1].fill_between(x_uni, stats.uniform.pdf(x_uni), color="forestgreen", alpha=0.25)
-        axes[1].set_title(r"Uniform $\mathcal{U}(0, 1)$", fontsize=12)
-        axes[1].set_xlabel("$x$", fontsize=11)
-        axes[1].set_ylabel("$p(x)$", fontsize=11)
-        axes[1].grid(True, linestyle="--", alpha=0.5)
-
-        fig.tight_layout()
-        plt.show()
+    def plot_gaussian_vs_uniform(
+        cls,
+        g_wide: Sequence[float],
+        g_narrow: Sequence[float],
+        u_draws: Sequence[float],
+        labels: Sequence[str] = ("Gaussian (wide)", "Gaussian (narrow)", "Uniform"),
+        title: str = "Densities of Gaussian and Uniform Samples",
+        figsize: Tuple[float, float] = (8.0, 4.5),
+        ax: Optional[Axes] = None,
+        show: bool = True,
+    ):
+        """Plot kernel density estimates of pre-sampled wide/narrow Gaussian and uniform draws."""
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel="$x$", ylabel="$p(x)$")
+        for samples, label in zip((g_wide, g_narrow, u_draws), labels):
+            sns.kdeplot(cls.to_numpy(samples, ravel=True), label=label, lw=2, ax=ax)
+        ax.legend(loc="upper right", fontsize=10)
+        return cls.finalize(fig, ax, show=show)
 
     @classmethod
     def plot_regression_dataset(
         cls,
-        N: int = 30,
-        seed: int = 42,
-        figsize: Tuple[float, float] = (7.5, 4.5),
-    ) -> None:
-        """Plot synthetic polynomial regression observations and ground-truth curve."""
-        rng = np.random.default_rng(seed)
-        x = np.sort(rng.uniform(0.0, 1.0, N))
-        t = np.sin(2 * np.pi * x) + rng.normal(0.0, 0.25, N)
-        x_dense = np.linspace(0.0, 1.0, 300)
-        t_true = np.sin(2 * np.pi * x_dense)
-
-        fig, ax = cls.canvas(figsize=figsize, xlabel="$x$", ylabel="$t$")
-        ax.plot(x_dense, t_true, color="forestgreen", lw=2.0, label="Ground Truth $f(x) = \\sin(2\\pi x)$")
-        ax.scatter(x, t, color="royalblue", s=40, edgecolors="k", lw=0.8, alpha=0.85, label=f"Observations ($N={N}$)")
-        ax.legend(loc="upper right", fontsize=10)
-        cls.finalize(fig, ax, show=True)
+        X: Any,
+        t: Any,
+        f: Optional[Callable[[Any], Any]] = None,
+        title: str = "Synthetic Nonlinear Data with Additive Noise",
+        figsize: Tuple[float, float] = (8.0, 4.5),
+        ax: Optional[Axes] = None,
+        show: bool = True,
+    ):
+        """Plot noisy observations t over inputs X and, if given, the ground-truth function f."""
+        X_np = cls.to_numpy(X, ravel=True)
+        t_np = cls.to_numpy(t, ravel=True)
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel="$x$", ylabel="$t$")
+        ax.scatter(X_np, t_np, color="royalblue", s=35, alpha=0.75, label=f"Noisy targets $t$ ($N={len(X_np)}$)")
+        if f is not None:
+            x_grid = np.linspace(float(X_np.min()), float(X_np.max()), 200)
+            ax.plot(x_grid, f(x_grid), color="forestgreen", lw=2, label="Ground truth $f(x)$")
+        ax.legend(loc="upper left", fontsize=10)
+        return cls.finalize(fig, ax, show=show)
 
     @classmethod
-    def plot_gmm_samples(cls, figsize: Tuple[float, float] = (7.0, 5.0)) -> None:
-        """Render 2D Gaussian Mixture Model sample scatter with component density contours."""
-        rng = np.random.default_rng(42)
-        means = [np.array([-1.5, -1.0]), np.array([1.5, 1.2])]
-        covs = [np.array([[0.5, 0.2], [0.2, 0.4]]), np.array([[0.4, -0.2], [-0.2, 0.5]])]
-        s1 = rng.multivariate_normal(means[0], covs[0], 120)
-        s2 = rng.multivariate_normal(means[1], covs[1], 120)
-
-        fig, ax = cls.canvas(figsize=figsize, xlabel="$x_1$", ylabel="$x_2$")
-        ax.scatter(s1[:, 0], s1[:, 1], color="royalblue", alpha=0.6, s=30, label=r"Component $\pi_1$")
-        ax.scatter(s2[:, 0], s2[:, 1], color="crimson", alpha=0.6, s=30, label=r"Component $\pi_2$")
-        ax.legend(loc="upper left", fontsize=10)
-        cls.finalize(fig, ax, show=True)
+    def plot_gmm_samples(
+        cls,
+        X_gmm: Any,
+        title: str = "Samples from a Gaussian Mixture Model",
+        figsize: Tuple[float, float] = (6.0, 5.0),
+        ax: Optional[Axes] = None,
+        show: bool = True,
+    ):
+        """Scatter-plot pre-sampled 2D points from a Gaussian mixture model."""
+        X_np = cls.to_numpy(X_gmm)
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel="$x_1$", ylabel="$x_2$")
+        ax.scatter(X_np[:, 0], X_np[:, 1], color="royalblue", alpha=0.7, edgecolors="k", s=35)
+        return cls.finalize(fig, ax, show=show)
 
     @classmethod
     def render_bias_variance_plot(
