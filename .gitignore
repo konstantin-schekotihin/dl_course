@@ -106,3 +106,13 @@ shared/data/cifar*
 # --- Archives ---
 archive/
 **/archive/
+
+# --- LaTeX build files (project deliverable templates) ---
+ML-DL/deliverables/**/*.aux
+ML-DL/deliverables/**/*.bbl
+ML-DL/deliverables/**/*.blg
+ML-DL/deliverables/**/*.out
+ML-DL/deliverables/**/*.fls
+ML-DL/deliverables/**/*.fdb_latexmk
+ML-DL/deliverables/**/*.synctex.gz
+ML-DL/deliverables/**/*.pdf

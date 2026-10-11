@@ -106,8 +106,8 @@ Please get in touch with the lecturer if you have any questions!
 ### Paper format
 
 Write the proposal and the report like papers for a machine learning conference:
-- Use the official **NeurIPS LaTeX template** on [Overleaf](https://www.overleaf.com/latex/templates?q=neurips). Choose the template for the latest NeurIPS conference, or upload the [official style files](https://media.neurips.cc/Conferences/NeurIPS2025/Styles.zip) to a new Overleaf project.
-- Load the style with the `preprint` option, e.g. `\usepackage[preprint]{neurips_2025}`, so that your names appear on the paper. Without it, the template produces an anonymous submission.
+- Use the **course LaTeX templates** for the [proposal](https://github.com/konstantin-schekotihin/dl_course/tree/master/ML-DL/deliverables/proposal) and the [report](https://github.com/konstantin-schekotihin/dl_course/tree/master/ML-DL/deliverables/report). They are based on the official NeurIPS style, contain all required sections, and describe what each section must contain. Upload a template folder to [Overleaf](https://www.overleaf.com/) (*New Project → Upload Project*) or compile it locally.
+- Keep the `preprint` option in `\usepackage[preprint]{neurips_2025}`, so that your names appear on the paper.
 - **Page limits**, **excluding references**:
   - **proposal:** at most **4 pages**, like a short (workshop) paper;
   - **report:** at most **9 pages**, like a full NeurIPS paper.
@@ -135,16 +135,7 @@ Projects are done in **groups of 2–3 students**. Use the Moodle Group Choice t
 
 ## 5. Project Proposal
 
-Write your proposal in the paper format (Section 4) and submit it as a **PDF** of at most 4 pages. It must contain at least the following five sections and answer all of their questions:
-
-1. **Motivation:** Why are you doing this project, e.g. personal motivation or importance of the problem? What is the goal of your application, and why is it important? What is your hypothesis, i.e. why do you believe the problem is solvable?
-2. **Learning task:**
-   - *Training experience:* Where does your training data come from? Why do you think it can actually be used to solve the problem? Show examples of your data and use them to explain the learning task.
-   - *Learning task:* What are you going to do? Which type of learning suits the task?
-   - *Performance measure:* How will you measure success? Which measures will you use, and why? How do you interpret their values for your problem? For example, is a precision of 0.7 good or bad?
-3. **Previous work:** Summarize two to three papers, blog posts or articles that consider a learning task (problem, dataset, measures) similar to yours. How can you apply their approach to your problem? What modifications might be required? Can you use it as a baseline in your evaluation?
-4. **Plan:** How will you solve the learning task with (an extension of) state-of-the-art methods? Describe the approaches in enough detail to show their benefits, how they differ from previous work, and that they can be implemented within the project. State which approach each group member takes.
-5. **Risk management:** What is your "plan B" if something does not go as expected, e.g. no data, poor-quality data, or training that does not converge?
+Write your proposal with the [proposal template](https://github.com/konstantin-schekotihin/dl_course/tree/master/ML-DL/deliverables/proposal) and submit it as a **PDF** of at most 4 pages. The template contains the five required sections: *Motivation*, *Learning Task*, *Previous Work*, *Plan* and *Risk Management*. It also describes the questions each section must answer, and you must answer all of them.
 
 If you have doubts about your proposal, contact the lecturer well before the deadline!
 
@@ -152,34 +143,16 @@ If you have doubts about your proposal, contact the lecturer well before the dea
 
 ## 6. Project Report
 
-The report is a research paper of at most **9 pages** in the paper format (Section 4). Use the structure of a typical machine learning paper:
+Write your report with the [report template](https://github.com/konstantin-schekotihin/dl_course/tree/master/ML-DL/deliverables/report). It is a research paper of at most **9 pages**, with the structure of a typical machine learning paper:
+- Abstract and Introduction
+- Related Work, Data, Method and Experimental Setup
+- Results
+- Analysis, i.e. ablation study and error analysis
+- Limitations and Conclusions
+- Author Contributions and References
+- Appendix, including the AI disclosure statement (Section 10)
 
-1. **Abstract:** one paragraph summarizing the problem, your approach and your main result.
-2. **Introduction:** the problem you are solving and why it is important, your hypothesis, what you contribute, and a short summary of your results.
-3. **Related work:** which models and approaches from the literature suit this problem and your data, and why? How does your work relate to them? Cite all sources properly.
-4. **Data:** the data you use, with examples.
-   - Where does it come from?
-   - What are its properties, such as class balance, missing values and scale, and how do you deal with them?
-   - Which preprocessing, filtering, augmentation or other manipulations do you apply?
-   - How do you split the data into training, validation and test sets, and how do you prevent information from the test set leaking into training?
-5. **Method:** your approach and why it fits the problem.
-   - Model architecture, output activation and loss function.
-   - Training procedure: optimizer, learning-rate schedule, regularization.
-   - Which hyperparameters does your approach have, and how can they influence the results?
-   - How do these choices relate to your hypothesis?
-   - You must show that you applied methods covered during the semester to your problem. Figures of your architecture or pipeline are welcome.
-6. **Experimental setup:**
-   - Baselines: at least one simple baseline, and one from the literature, blogs, Kaggle, etc., if available.
-   - Evaluation measures and why they fit the task.
-   - Hyperparameter search: search space, strategy, and the data used for model selection.
-   - Implementation details: framework, hardware and training time.
-7. **Results:** present your main results in one comparison table covering the approaches of all group members and the baselines, with learning curves where they help. If feasible, report the mean and standard deviation over several random seeds. Explain what your results mean: why was your approach successful, or why not?
-8. **Analysis:**
-   - *Ablation study:* which parts of your approach contribute to the result?
-   - *Error analysis:* on which examples does your model fail, and why?
-9. **Limitations and conclusions:** what are the limits of your results? How do you assess your work, and what would you recommend as next steps?
-10. **References**
-11. **Appendix (optional):** additional results, the full hyperparameter configuration, and interesting code snippets or algorithms. Put the **AI disclosure statement** here (Section 10).
+The template describes what each section must contain.
 
 ### Submission
 

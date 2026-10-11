@@ -18,6 +18,7 @@ The course material is based on:
 
 1. [`01_foundations/`](01_foundations/) — a short recap of the mathematical and conceptual foundations, which are usually covered in other courses: notation, the history of AI, probability, information theory, linear algebra, functions used in neural networks, and MLOps.
 2. [`02_deep_learning/`](02_deep_learning/) — the core of the course, with most of the exercises: single-layer networks for regression and classification, deep networks, gradient descent, backpropagation, regularization, convolutional networks, sequence models, transformers, and graph neural networks.
+3. [`deliverables/`](deliverables/) — LaTeX templates for the project proposal and report.
 
 Each folder's README gives a one-sentence overview of every notebook.
 
