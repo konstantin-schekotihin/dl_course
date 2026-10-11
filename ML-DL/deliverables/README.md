@@ -39,7 +39,7 @@ Write the proposal and the report like papers for a machine learning conference,
 
 **How to use a template:**
 1. **Open the template in Overleaf:** click [Open the proposal template in Overleaf](https://www.overleaf.com/docs?snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Fproposal%2Fmain.tex&snip_name%5B%5D=main.tex&snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Fproposal%2Freferences.bib&snip_name%5B%5D=references.bib&snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Fproposal%2Fneurips_2025.sty&snip_name%5B%5D=neurips_2025.sty&main_document=main.tex&engine=pdflatex) or [Open the report template in Overleaf](https://www.overleaf.com/docs?snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Freport%2Fmain.tex&snip_name%5B%5D=main.tex&snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Freport%2Freferences.bib&snip_name%5B%5D=references.bib&snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Freport%2Fneurips_2025.sty&snip_name%5B%5D=neurips_2025.sty&main_document=main.tex&engine=pdflatex). Log in to [Overleaf](https://www.overleaf.com/), or create a free account. Overleaf creates your own copy of the template as a new project, ready to compile. You don't need to install LaTeX.
-2. **Share it with your group:** click *Share* in Overleaf and invite your group members, so that you can write together.
+2. **Share it with your group by link:** click *Share* in Overleaf, turn on link sharing, and send the **edit link** to your group members, so that you can write together. We recommend link sharing instead of invitations by email.
 3. **Write:** replace the title, the authors and every "Your text." with your content, following the comments under each heading. Add the sources you cite to `references.bib`.
 4. **Submit:** check the page limit, then download the PDF from Overleaf and submit it in Moodle.
 
@@ -52,7 +52,6 @@ If you prefer to work locally, download the files from the template folder and c
   - **report:** at most **9 pages**, like a full NeurIPS paper.
 
   Everything except the references counts towards the limit: figures, tables, appendices and the AI disclosure statement. Do not change margins, font sizes or spacing to fit more content.
-- The NeurIPS paper checklist is not required.
 
 ---
 
