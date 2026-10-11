@@ -34,7 +34,7 @@ After completing the course, you will be able to:
 | **Project** | **70%** | Made up of three deliverables: |
 | &nbsp;&nbsp;• Project proposal | 10% of project (7% of final) | Project plan, up to 4 pages (Section 5). |
 | &nbsp;&nbsp;• Project report | 30% of project (21% of final) | Research paper, up to 9 pages, with code and W&B logs (Sections 6–8). |
-| &nbsp;&nbsp;• Project presentation | 60% of project (42% of final) | 15-minute group presentation, then at least 3 questions to every student (Section 9). |
+| &nbsp;&nbsp;• Project presentation | 60% of project (42% of final) | 30-minute slot per group: 15 minutes of presentation, 15 minutes of questions, at least 3 to every student (Section 9). |
 
 The practical sessions and each project deliverable are graded with 0–100 points. The scores combine as follows:
 
@@ -235,7 +235,7 @@ Name, tag or group your runs, so that baselines, hyperparameter searches, ablati
 
 ## 9. Project Presentation
 
-Each group gives a **15-minute presentation**, in which every member presents their own part. After the presentation, **every student gets at least three questions** about the project. The questions aim at your **theoretical understanding of the methods you used**.
+Each group gets a **30-minute slot**: **15 minutes for the presentation**, in which every member presents their own part, and **15 minutes for questions**. In the question part, **every student gets at least three questions** about the project. The questions aim at your **theoretical understanding of the methods you used**.
 
 Present the main points of your work:
 - the learning task,
