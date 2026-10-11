@@ -34,7 +34,7 @@ After completing the course, you will be able to:
 | **Project** | **70%** | Made up of three deliverables: |
 | &nbsp;&nbsp;• Project proposal | 10% of project (7% of final) | Project plan, up to 4 pages (Section 5). |
 | &nbsp;&nbsp;• Project report | 30% of project (21% of final) | Research paper, up to 9 pages, with code and W&B logs (Sections 6–8). |
-| &nbsp;&nbsp;• Project presentation | 60% of project (42% of final) | 15-minute presentation followed by 5 minutes of questions (Section 9). |
+| &nbsp;&nbsp;• Project presentation | 60% of project (42% of final) | 15-minute group presentation, then at least 3 questions to every student (Section 9). |
 
 The practical sessions and each project deliverable are graded with 0–100 points. The scores combine as follows:
 
@@ -78,22 +78,24 @@ Registration for a presentation slot will be done using the registration link pr
 
 ## 4. Projects
 
-A project shows that you can apply machine learning methods to a problem of your choice. Suitable domains include computer vision, natural language processing, time series analysis and reinforcement learning. A project has three deliverables: (1) proposal, (2) report, and (3) presentation.
+Projects are **group work for 2–3 students**. A project shows that you can apply deep learning methods to a problem of your choice. Suitable domains include computer vision, natural language processing, time series analysis and reinforcement learning. A project has three deliverables: (1) proposal, (2) report, and (3) presentation.
 
 ### Finding a topic
 
 Start with a domain that interests you, for example computer vision. Then identify a task in that domain, such as image classification, object detection, image generation or image modification. These websites list tasks, datasets and approaches to solve them:
-- ScholarWiki or SOTAPapers (PapersWithCode mirrors)
+- [ScholarWiki](http://scholarwiki.ai) or [SOTAPapers](https://sotapapers.com/) (successors of Papers with Code): tasks, benchmarks and leaderboards with linked papers and code
 - [Kaggle](https://www.kaggle.com/)
 - [Hugging Face](https://huggingface.co/)
-- [UC Irvine Machine Learning Repository](https://archive.ics.uci.edu/)
 - [Google Scholar](https://scholar.google.com/) or [Semantic Scholar](https://www.semanticscholar.org/)
 
 On paper-listing sites, solutions are described in scientific publications. On Kaggle, they are described in notebooks written by professionals, students and enthusiasts. You may use any material you find on the Web. The only requirement is that **you understand and can explain the approach, the data and the results**.
 
-> 📝 **Example:** A student interested in astronomy picks the pulsar classification problem. Given measurements from radio telescopes, the task is to classify stars into pulsars (1) and non-pulsars (0). Kaggle lists solutions to this problem as notebooks. A typical solution:
-> - visualizes the data and studies the statistical properties of the features, to find the most valuable features and to get a first idea of which ML methods can train a classifier;
-> - then trains classification models and compares them using measures such as accuracy, precision and recall.
+> 📝 **Example:** A group interested in medical imaging picks pneumonia detection from chest X-rays, using the [Chest X-Ray Images (Pneumonia)](https://www.kaggle.com/datasets/paultimothymooney/chest-xray-pneumonia) dataset on Kaggle. Given an X-ray image, the task is to classify it as *normal* or *pneumonia*. Kaggle lists many solutions to this problem as notebooks. A typical solution:
+> - looks at example images and the class balance, and decides on preprocessing and data augmentation;
+> - trains a convolutional network from scratch and fine-tunes a network pre-trained on ImageNet;
+> - compares the models using precision, recall and ROC-AUC, since a missed pneumonia costs more than a false alarm.
+>
+> In a group, each member could take one of these approaches, or a third one such as a vision transformer.
 
 Excellent deliverables of students from previous years are available in the **Examples** folder in Moodle. Feel free to use them as a guide.
 
@@ -104,20 +106,23 @@ Please get in touch with the lecturer if you have any questions!
 Write the proposal and the report like papers for a machine learning conference:
 - Use the official **NeurIPS LaTeX template** on [Overleaf](https://www.overleaf.com/latex/templates?q=neurips). Choose the template for the latest NeurIPS conference, or upload the [official style files](https://media.neurips.cc/Conferences/NeurIPS2025/Styles.zip) to a new Overleaf project.
 - Load the style with the `preprint` option, e.g. `\usepackage[preprint]{neurips_2025}`, so that your names appear on the paper. Without it, the template produces an anonymous submission.
-- **Page limits** apply to the main text, including all figures and tables:
+- **Page limits**, **excluding references**:
   - **proposal:** at most **4 pages**, like a short (workshop) paper;
   - **report:** at most **9 pages**, like a full NeurIPS paper.
 
-  References, appendices and the AI disclosure statement do not count towards the limit. Do not change margins, font sizes or spacing to fit more content.
+  Everything except the references counts towards the limit: figures, tables, appendices and the AI disclosure statement. Do not change margins, font sizes or spacing to fit more content.
 - The NeurIPS paper checklist is not required.
 
-### Group projects
+### Group work
 
-A group of students can work on one project. This is reserved for complex projects in which every student does the same amount of work as in a single-person project. The requirements:
-- Discuss group projects with the lecturer **before** submitting the proposal.
-- Each student provides their own solution to the project's learning task, using an approach that is significantly different from those of the other group members.
-- Every deliverable states clearly what each student is expected to do and has done. For example, in the learning task section: "In this project, *(name)* will focus on … whereas *(name)* will …".
-- The group submits one version of every deliverable. Every member must be able to answer any question about the presented work.
+Projects are done in **groups of 2–3 students**. Use the Moodle Group Choice tool to find teammates.
+- **Common task:** the group shares one domain, one dataset and one learning task (training experience, task and performance measure).
+- **Distinct approaches:** each member formulates, trains, tunes and evaluates a **significantly different deep learning approach** to this task. For example, for image classification:
+  - *Student A:* a convolutional network trained from scratch;
+  - *Student B:* a pre-trained network fine-tuned to the task (transfer learning);
+  - *Student C:* a transformer-based model, such as a vision transformer.
+- **Clear attribution:** every deliverable states what each student is expected to do and has done. For example: "In this project, *(name)* will focus on … whereas *(name)* will …".
+- **One deliverable per group:** the group submits one proposal and one report, which compare the approaches of all members. Every member must be able to answer any question about the presented work.
 
 **Individual assessment:**
 - The proposal and the report are graded once, for the whole group.
@@ -136,7 +141,7 @@ Write your proposal in the paper format (Section 4) and submit it as a **PDF** o
    - *Learning task:* What are you going to do? Which type of learning suits the task?
    - *Performance measure:* How will you measure success? Which measures will you use, and why? How do you interpret their values for your problem? For example, is a precision of 0.7 good or bad?
 3. **Previous work:** Summarize two to three papers, blog posts or articles that consider a learning task (problem, dataset, measures) similar to yours. How can you apply their approach to your problem? What modifications might be required? Can you use it as a baseline in your evaluation?
-4. **Plan:** How will you solve the learning task with (an extension of) state-of-the-art methods? Describe your approach in enough detail to show its benefits, how it differs from previous work, and that it can be implemented within the project.
+4. **Plan:** How will you solve the learning task with (an extension of) state-of-the-art methods? Describe the approaches in enough detail to show their benefits, how they differ from previous work, and that they can be implemented within the project. State which approach each group member takes.
 5. **Risk management:** What is your "plan B" if something does not go as expected, e.g. no data, poor-quality data, or training that does not converge?
 
 If you have doubts about your proposal, contact the lecturer well before the deadline!
@@ -166,7 +171,7 @@ The report is a research paper of at most **9 pages** in the paper format (Secti
    - Evaluation measures and why they fit the task.
    - Hyperparameter search: search space, strategy, and the data used for model selection.
    - Implementation details: framework, hardware and training time.
-7. **Results:** present your main results in a comparison table against the baselines, with learning curves where they help. If feasible, report the mean and standard deviation over several random seeds. Explain what your results mean: why was your approach successful, or why not?
+7. **Results:** present your main results in one comparison table covering the approaches of all group members and the baselines, with learning curves where they help. If feasible, report the mean and standard deviation over several random seeds. Explain what your results mean: why was your approach successful, or why not?
 8. **Analysis:**
    - *Ablation study:* which parts of your approach contribute to the result?
    - *Error analysis:* on which examples does your model fail, and why?
@@ -180,7 +185,7 @@ Submit **two files** in Moodle:
 1. the report as a **PDF**;
 2. **one archive** with your code and artifacts, meeting the requirements in Section 7. If the archive is too large, publish it elsewhere (e.g. on GitHub) and put the link in the report.
 
-Paste the link to your **Weights & Biases (W&B) project** (Section 8) into the submission comments, because Moodle does not open links from the report review page. Do not invite the lecturer to the project. Instead, make it public (*Project page → Overview → Edit → Project Visibility → Public*) and share the link.
+Paste the link to your public **Weights & Biases (W&B) project** (Section 8) into the submission comments, because Moodle does not open links from the report review page.
 
 > ⚠️ **Important:** Reports that do not meet these requirements will not be considered!
 
@@ -199,6 +204,8 @@ Your code must allow us to reproduce the main results of your report. Your code 
 - **Fixed random seeds** for Python, NumPy and PyTorch, so that runs can be repeated.
 - **The trained weights** of your final models, or a link to them, so that the evaluation can be rerun without retraining.
 - **A clear entry point** for each main result, e.g. `train.py` and `evaluate.py`, or a notebook that runs from top to bottom.
+
+**Google Colab notebook (optional):** you may also provide a Colab notebook that reproduces your main results. It installs the packages, downloads the data and trained weights, and runs the evaluation. Share it with *Anyone with the link can view* and put the link in the README and the report. Such a notebook can serve as your entry point, and its package installation cell, with pinned versions, as your environment specification.
 
 Your evaluation should run on Google Colab or a standard laptop. If training needs more resources, state the hardware you used and the training time in the README.
 
@@ -222,13 +229,15 @@ Track **all experiments** of your project with [Weights & Biases (W&B)](https://
 
 Name, tag or group your runs, so that baselines, hyperparameter searches, ablations and final models are easy to tell apart. Results and figures in your report should come from runs logged in this project. If you use W&B sweeps for hyperparameter search, include them too.
 
-Make the project **public** and share its link as described in Section 6.
+> ⚠️ **Important:** Do **not** add the lecturer to your W&B project. Instead, make the project **public** (*Project page → Overview → Edit → Project Visibility → Public*) and provide its link in your report and in the Moodle submission comments (Section 6).
 
 ---
 
 ## 9. Project Presentation
 
-You get a 20-minute slot: 15 minutes for the presentation and 5 minutes for questions. Present the main points of your work:
+Each group gives a **15-minute presentation**, in which every member presents their own part. After the presentation, **every student gets at least three questions** about the project. The questions aim at your **theoretical understanding of the methods you used**.
+
+Present the main points of your work:
 - the learning task,
 - the data analysis,
 - the literature overview,
@@ -258,12 +267,6 @@ You may use generative AI tools and coding assistants (e.g. ChatGPT, Claude, Git
 
 1. **Disclosure:** declare any use of AI tools in an *AI disclosure statement* in the appendix of your proposal and report. State which tools you used and for what purpose, e.g. brainstorming, literature search, code generation or text drafting.
 2. **You must be able to explain everything you submit.** During the presentation and the questions, you must be able to explain and justify every part of your work: the data processing, model architecture, loss function, training procedure, hyperparameters and evaluation. An AI tool cannot answer the questions for you.
-3. **Check what the tools produce.** You are responsible for the correctness of AI-generated code and text. Typical errors to look for:
-   - **data leakage**, e.g. normalization statistics computed on the whole dataset before the train/test split, or test data used for model selection;
-   - **unsuitable evaluation**, e.g. accuracy on a heavily imbalanced dataset instead of precision/recall, $F_1$ or ROC-AUC;
-   - **mismatched losses and outputs**, e.g. applying softmax before a loss that already includes it, such as `torch.nn.CrossEntropyLoss`;
-   - **invented APIs**, i.e. functions or parameters that do not exist in the library version you use;
-   - **references** that do not exist or do not say what is claimed.
 
 ---
 
