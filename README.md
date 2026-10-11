@@ -10,9 +10,13 @@ Interactive lecture slides and laboratory notebooks for an AI, Machine Learning,
 
 This repository hosts interactive lecture slides, laboratory notebooks, and course materials organized into two distinct academic tracks and specialized electives:
 
-- 1. [ML-DL/] — Machine Learning & Deep Learning
-- 2. [AI-ML/] — AI and Machine Learning
-- 3. [Extended/] — Specialized & Advanced Electives
+1. [`ML-DL/`](ML-DL/) — Machine Learning & Deep Learning
+2. [`AI-ML/`](AI-ML/) — AI and Machine Learning
+3. [`Extended/`](Extended/) — Specialized & Advanced Electives
+
+Shared resources:
+- [`shared/`](shared/) — datasets (`shared/data/`), images (`shared/images/`) and the slide stylesheet (`shared/styles/rise.css`) used by all courses.
+- [`packages/dl-course/`](packages/dl-course/) — the course helper package (plotting, slide styling, dataset loading) that every notebook imports as `hp`. It is installed automatically, both locally and in Colab.
 
 ## 🚀 Quick Start (Local Setup with `uv`)
 
@@ -48,7 +52,7 @@ uv sync
 This single command (`uv sync`) will:
 1. Automatically fetch the pinned Python runtime (Python 3.12).
 2. Create the isolated `.venv` virtual environment.
-3. Install all required packages (PyTorch, PyTorch Geometric, Scikit-Learn, Jupyter Notebook, RISE slide extension, Matplotlib, Seaborn, Pandas, NLTK, etc.).
+3. Install all required packages (PyTorch, PyTorch Geometric, Scikit-Learn, Jupyter Notebook, RISE slide extension, Matplotlib, Seaborn, Pandas, etc.), together with the course helper package `dl-course` from [`packages/dl-course/`](packages/dl-course/).
 
 ### 3. Launch the Course Environment
 
@@ -62,6 +66,7 @@ uv run jupyter notebook
 source .venv/bin/activate
 jupyter notebook
 ```
+In Jupyter Notebook, press **`Alt + R`** to start the RISE slideshow of the open notebook.
 
 ### 4. Using with VS Code / Cursor / PyCharm
 
@@ -73,7 +78,7 @@ jupyter notebook
 
 ## ☁️ Google Colab Usage & Drive Setup
 
-Students can run and edit all notebooks directly in Google Colab with free GPU acceleration (NVIDIA T4 / A100).
+Students can run and edit the notebooks directly in Google Colab, with free GPU acceleration (NVIDIA T4; faster GPUs require a paid Colab plan). The first cell of each notebook installs the course helper package (`%pip install dl-course`), and datasets are downloaded automatically on first use.
 
 ### 🚀 1-Click Setup Utility (`colab_setup.ipynb`)
 
@@ -87,11 +92,13 @@ We provide an interactive **`colab_setup.ipynb`** notebook to automate the entir
 ### Opening Lecture Notebooks in Colab
 
 - **From Google Drive (Recommended):** After running `colab_setup.ipynb`, open [Google Drive](https://drive.google.com/), navigate to `MyDrive/dl_course/`, right-click any `.ipynb` notebook $\rightarrow$ **Open with $\rightarrow$ Google Colaboratory**.
-- **Directly from GitHub:** In [Google Colab](https://colab.research.google.com/), go to **File $\rightarrow$ Open notebook $\rightarrow$ GitHub** tab, search `konstantin-schekotihin/dl_course`, and select any notebook.
+- **Directly from GitHub:** Click the **Open in Colab** badge at the top of a notebook (AI-ML), or in [Google Colab](https://colab.research.google.com/) go to **File $\rightarrow$ Open notebook $\rightarrow$ GitHub** tab, search `konstantin-schekotihin/dl_course`, and select any notebook.
 
 ---
 
 ## 🛠️ Maintenance & Dependency Updates
+
+The `uv` environment contains **only the packages students need** to run the notebooks locally. Do not add tools that are used only for course preparation.
 
 To add new dependencies or update existing ones:
 ```bash
@@ -102,3 +109,5 @@ uv add <package-name>
 uv lock --upgrade
 uv sync
 ```
+
+The course helper package is developed in [`packages/dl-course/`](packages/dl-course/). Locally, `uv sync` installs it in editable mode, so changes take effect immediately (restart the kernel). Every push to `master` that changes the package publishes a new version to [PyPI](https://pypi.org/project/dl-course/), which Colab users install automatically. See [`packages/dl-course/README.md`](packages/dl-course/README.md).

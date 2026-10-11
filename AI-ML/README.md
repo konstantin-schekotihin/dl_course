@@ -20,7 +20,7 @@ You can run these notebooks in two ways:
 ### Option 1: 1-Click Google Colab
 Every notebook includes an **Open in Colab** badge at the very top.
 - Simply click the badge to open the notebook directly in your web browser.
-- Datasets are automatically loaded via direct streaming—no manual file uploads or Drive mounting required!
+- The first cell installs the course helper package `dl-course`, and datasets are downloaded automatically on first use. No manual file uploads or Drive mounting are required.
 
 ---
 
@@ -49,10 +49,7 @@ Start Jupyter inside the synchronized environment:
 ```bash
 uv run jupyter notebook AI-ML/
 ```
-or
-```bash
-uv run jupyter lab AI-ML/
-```
+Alternatively, open the notebooks in VS Code and select the `.venv` interpreter as the kernel (see the [main README](../README.md)).
 
 ---
 
@@ -68,6 +65,9 @@ uv run jupyter lab AI-ML/
 8. **[`07_unsupervised.ipynb`](07_unsupervised.ipynb)**: Unsupervised Structure Discovery without Labels, $k$-Means, Hierarchical Clustering, PCA.
 9. **[`08_ml_agents.ipynb`](08_ml_agents.ipynb)**: AI Coding Agents in Applied ML: Specification-Driven Engineering, $(T, P, E)$ Invariants, TDD, Modular Architectures, W&B Tracking, Defensio Readiness.
 
+Supplementary material:
+- **[`aux1_BN.ipynb`](aux1_BN.ipynb)**: Bayesian Classifiers & Generative Learning.
+
 - **Course Policies & Modalities**: See [`modalities.md`](modalities.md) for grading scale, group project, deadlines, and GenAI policy.
 
 ---
@@ -77,7 +77,7 @@ uv run jupyter lab AI-ML/
 By default, notebooks fetch datasets from the official course repository using the course helper package [`dl-course`](../packages/dl-course) (imported as `hp`):
 - `hp.get_file("dataset.csv")` automatically resolves local files or fetches them on standalone Colab runs.
 - `hp.get_data_path("")` resolves directory roots for dataset loaders.
-- To use a local mirror or private fork, configure `COURSE_DATA_URL`:
+- To use a mirror or private fork, set `COURSE_RAW_URL` to the URL of its `shared` folder before starting Jupyter. Files are then fetched from `<COURSE_RAW_URL>/data/` and `<COURSE_RAW_URL>/images/`:
   ```bash
-  export COURSE_DATA_URL="https://your-mirror-url/shared/data"
+  export COURSE_RAW_URL="https://your-mirror-url/shared"
   ```

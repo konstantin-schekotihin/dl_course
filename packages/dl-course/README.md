@@ -24,3 +24,12 @@ from dl_course import deep_learning as hp
 | `dl_course.aiml` | AI-ML course |
 | `dl_course.foundations` | ML-DL, part 1: mathematical foundations |
 | `dl_course.deep_learning` | ML-DL, part 2: deep learning |
+
+## Development and releases
+
+- **Local development:** in the course repository, `uv sync` installs this package in editable mode. Changes take effect after a kernel restart.
+- **Releases:** every push to `master` that changes `packages/dl-course/` publishes a new version to PyPI. A GitHub Action (`.github/workflows/publish-dl-course.yml`) does this, using a date-based version number.
+
+## License
+
+MIT (see the `LICENSE` file in the package source).
