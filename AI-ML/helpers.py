@@ -768,7 +768,8 @@ class AIMLUnsupervisedPlotter(BasePlotter):
 
 
 # ---------------------------------------------------------------------------
-# 5. Backward-Compatible Functional Facades & Aliases
+# 5. Backward-Compatible Functional Facades & Aliases for simplified usage
+# in the Jupyter Notebook environment
 # ---------------------------------------------------------------------------
 
 # Regression Facades
