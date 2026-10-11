@@ -7,9 +7,8 @@ This document describes how the course is organized, how it is graded, and what 
 ## 1. Course Organization & Attendance
 
 - **Format:** lectures combined with in-class exercises, plus **8 practical sessions**.
-- **Attendance:** not compulsory, but strongly recommended. If you miss a class, you don't need an excuse.
+- **Attendance:** not compulsory, but strongly recommended. If you miss a class, you don't need an excuse, but you are responsible for the material covered and all announcements made in class. 
 - **Online resources** (links in Moodle):
-  - Lecture stream: ML & DL BigBlueButton room
   - Course notebooks: <https://github.com/konstantin-schekotihin/dl_course>
   - Announcements and feedback: Moodle forum
 - **DataCamp:** you can register for DataCamp as complementary self-study. It is not part of the grading.
@@ -58,11 +57,11 @@ The deadlines are the latest possible dates. Earlier submissions are welcome!
 | Deliverable | Due date (draft) | Cut-off date |
 | :--- | :---: | :---: |
 | Project proposal (PDF) | 10 November 2026 | 15 November 2026 |
-| Project report (PDF + code archive) | announced in Moodle | before the presentation week |
-| Presentation slides (PDF) | announced in Moodle | before the presentation week |
+| Project report (PDF + code archive) | 20 January 2027 | 30 January 2027 |
+| Presentation slides (PDF) | 30 January 2027 | 8 February 2027 |
 | **Presentations** | — | 2nd week of February 2027 (8–12 Feb) |
 
-Register for a presentation slot using the registration link in Moodle. Presentations take place online in the virtual classroom.
+Registration for a presentation slot will be done using the registration link provided in Moodle. **Presentations are in person.**
 
 ---
 
