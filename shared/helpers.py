@@ -14,7 +14,7 @@ Modules:
 import math
 import os
 import sys
-from typing import Any, Callable, Dict, List, Literal, Optional, Sequence, Tuple, Union, overload
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 from IPython.display import Markdown, display
 import matplotlib.pyplot as plt
@@ -247,36 +247,19 @@ class BasePlotter:
 
     create_canvas = canvas
 
-
-    @overload
     @classmethod
     def finalize(
         cls,
         fig: Figure,
-        ax: Axes,
-        show: Literal[True] = True,
-        tight_layout: bool = True,
-    ) -> None: ...
-
-    @overload
-    @classmethod
-    def finalize(
-        cls,
-        fig: Figure,
-        ax: Axes,
-        show: Literal[False],
-        tight_layout: bool = True,
-    ) -> Tuple[Figure, Axes]: ...
-
-    @classmethod
-    def finalize(
-        cls,
-        fig: Figure,
-        ax: Axes,
+        ax: Optional[Axes] = None,
         show: bool = True,
         tight_layout: bool = True,
-    ) -> Optional[Tuple[Figure, Axes]]:
-        """Apply layout adjustments and display or return canvas handles."""
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
+        """
+        Apply layout adjustments and display or return canvas handles.
+
+        `ax` is optional because multi-panel figures have no single axes object.
+        """
         if tight_layout:
             fig.tight_layout()
         if show:
