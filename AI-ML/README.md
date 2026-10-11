@@ -53,22 +53,22 @@ Alternatively, open the notebooks in VS Code and select the `.venv` interpreter 
 
 ---
 
-## 📂 Curriculum Progression
+## 📂 Notebooks
 
-1. **[`00_introduction.ipynb`](00_introduction.ipynb)**: AI and Machine Learning Foundations, Learning Tasks $(T, P, E)$, MLOps, Validation Strategy.
-2. **[`01_classifiers-kNN.ipynb`](01_classifiers-kNN.ipynb)**: Instance-Based Classification, Distance Metrics, Feature Scaling, Grid Search, W&B Tracking *(Semester Project Baseline Template)*.
-3. **[`02_regression.ipynb`](02_regression.ipynb)**: Continuous Prediction, Parameters $\mathbf{w}$, Design Matrix $\mathbf{X}$, OLS, Residuals, $R^2$, MSE, Regularization (Ridge/Lasso).
-4. **[`03_logistic_regression.ipynb`](03_logistic_regression.ipynb)**: Single Artificial Neuron, The Sigmoid Bridge $\sigma(\mathbf{w}^\mathrm{T}\mathbf{x} + w_0)$, Decision Boundaries, Imbalance, ROC-AUC.
-5. **[`04_NN.ipynb`](04_NN.ipynb)**: Multi-Layer Perceptrons (MLP), Stacking Linear Layers with Non-Linear Activations, Loss Curves, Scikit-Learn Pipelines.
-6. **[`05_ensembles.ipynb`](05_ensembles.ipynb)**: Tree Ensembles: Decision Tree Induction & Pruning, Bagging, Random Forests, Boosting (AdaBoost, Gradient Boosting), W&B Logging.
-7. **[`06_SVM.ipynb`](06_SVM.ipynb)**: Geometric Margin Maximization, Support Vectors, Soft Margin $C$, Non-Linear Kernels (RBF).
-8. **[`07_unsupervised.ipynb`](07_unsupervised.ipynb)**: Unsupervised Structure Discovery without Labels, $k$-Means, Hierarchical Clustering, PCA.
-9. **[`08_ml_agents.ipynb`](08_ml_agents.ipynb)**: AI Coding Agents in Applied ML: Specification-Driven Engineering, $(T, P, E)$ Invariants, TDD, Modular Architectures, W&B Tracking, Defensio Readiness.
+| Notebook | Overview |
+|---|---|
+| [`00_introduction.ipynb`](00_introduction.ipynb) | Introduces AI and machine learning: the three learning paradigms, the formal $(T, P, E)$ learning task, MLOps, and the training and validation workflow. |
+| [`01_classifiers-kNN.ipynb`](01_classifiers-kNN.ipynb) | Classifies flowers with $k$-nearest neighbors, from exploratory analysis to cross-validated hyperparameter search and experiment tracking with W&B; it also serves as the semester project template. |
+| [`02_regression.ipynb`](02_regression.ipynb) | Linear regression: simple and multiple regression, statistical inference and goodness of fit, polynomial extensions, feature selection and regularization. |
+| [`03_logistic_regression.ipynb`](03_logistic_regression.ipynb) | Logistic regression for qualitative targets: the sigmoid model, maximum likelihood with cross-entropy, and a credit-default case study. |
+| [`04_NN.ipynb`](04_NN.ipynb) | Neural networks from the perceptron to multi-layer perceptrons, including backpropagation and practical training with scikit-learn. |
+| [`05_ensembles.ipynb`](05_ensembles.ipynb) | Decision trees and tree ensembles (bagging, random forests, boosting), applied to breast-cancer diagnosis with W&B tracking. |
+| [`06_SVM.ipynb`](06_SVM.ipynb) | Support vector machines: maximal- and soft-margin classifiers and the kernel trick, applied to breast-cancer diagnosis. |
+| [`07_unsupervised.ipynb`](07_unsupervised.ipynb) | Unsupervised learning with principal component analysis and clustering. |
+| [`08_ml_agents.ipynb`](08_ml_agents.ipynb) | A specification-driven workflow for ML projects with AI coding agents, from task specification and baselines to test-driven development and preparation for the oral defense. |
+| [`aux1_BN.ipynb`](aux1_BN.ipynb) *(supplementary)* | Bayesian classifiers: Bayes' theorem, ML and MAP estimation, the Bayes optimal classifier, and naive Bayes. |
 
-Supplementary material:
-- **[`aux1_BN.ipynb`](aux1_BN.ipynb)**: Bayesian Classifiers & Generative Learning.
-
-- **Course Policies & Modalities**: See [`modalities.md`](modalities.md) for grading scale, group project, deadlines, and GenAI policy.
+Course policies (grading, group project, deadlines, GenAI policy) are described in [`modalities.md`](modalities.md).
 
 ---
 
