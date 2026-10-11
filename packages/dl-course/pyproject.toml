@@ -5,6 +5,8 @@ version = "0.0.0"
 description = "Plotting and asset helpers for the AAU Machine Learning and Deep Learning course notebooks"
 readme = "README.md"
 requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{ name = "Konstantin Schekotihin" }]
 # No dependencies on purpose: notebooks run in the course .venv or in Google Colab, which already
 # provide numpy, pandas, matplotlib, seaborn, scipy, torch and scikit-learn. Declaring them would
