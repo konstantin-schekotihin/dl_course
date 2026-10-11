@@ -2,7 +2,7 @@
 
 This document describes how the course is organized, how it is graded, and what you need to submit and when.
 
-### Course goals
+## Course goals
 
 The course focuses on deep learning. It starts with a short recap of the mathematical foundations (probability, information theory, linear algebra), which are usually covered in other courses. Most of the time, including most exercises, is spent on deep learning itself.
 
@@ -83,9 +83,9 @@ Projects are **group work for 2–3 students**. A project shows that you can app
 ### Finding a topic
 
 Start with a domain that interests you, for example computer vision. Then identify a task in that domain, such as image classification, object detection, image generation or image modification. These websites list tasks, datasets and approaches to solve them:
-- [ScholarWiki](http://scholarwiki.ai) or [SOTAPapers](https://sotapapers.com/) (successors of Papers with Code): tasks, benchmarks and leaderboards with linked papers and code
-- [Kaggle](https://www.kaggle.com/)
-- [Hugging Face](https://huggingface.co/)
+- [PapersWithCode](https://paperswithcode.co) (**Recommended**) - tasks, benchmarks and leaderboards with linked papers and code
+- [Kaggle](https://www.kaggle.com/) - see the *Competitions* and *Datasets* tabs
+- [Hugging Face](https://huggingface.co/) - see the *Models* and *Datasets* tabs
 - [Google Scholar](https://scholar.google.com/) or [Semantic Scholar](https://www.semanticscholar.org/)
 
 On paper-listing sites, solutions are described in scientific publications. On Kaggle, they are described in notebooks written by professionals, students and enthusiasts. You may use any material you find on the Web. The only requirement is that **you understand and can explain the approach, the data and the results**.
@@ -212,7 +212,7 @@ In both cases, provide:
 - **Fixed random seeds** for Python, NumPy and PyTorch, so that runs can be repeated.
 - **The trained weights** of your final models, or a link to them, so that the evaluation can be rerun without retraining.
 
-Your evaluation should run on Google Colab or a standard laptop. If training needs more resources, state the hardware you used and the training time in the README.
+Your evaluation should run on Google Colab or a standard laptop. If training needs more resources, state the hardware you used and the training time in the README or the notebook.
 
 ### Training on Google Colab
 
@@ -301,7 +301,7 @@ You may use generative AI tools and coding assistants (e.g. ChatGPT, Claude, Git
 - Zhang, A., Lipton, Z. C., Li, M., & Smola, A. J. (2023). *Dive into Deep Learning*. Cambridge University Press. [Free online version](https://d2l.ai/)
 
 ### Introductory machine learning books
-These books are rather old, but they give a good and natural introduction to the main ML concepts.
+These books give a good and natural introduction to the main ML concepts. The first two are rather old, but still very readable.
 - Mitchell, T. M. (1997). *Machine Learning*. McGraw-Hill.
 - Duda, R. O., Hart, P. E., & Stork, D. G. (2000). *Pattern Classification* (2nd ed.). Wiley.
 - James, G., Witten, D., Hastie, T., Tibshirani, R., & Taylor, J. (2023). *An Introduction to Statistical Learning: with Applications in Python*. Springer. [Free PDF](https://www.statlearning.com/) — a very clearly written book for beginners.
