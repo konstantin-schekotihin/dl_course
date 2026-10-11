@@ -6,9 +6,8 @@
 % including figures, tables, the appendix and the AI disclosure statement.
 % Do not change margins, font sizes or spacing.
 %
-% The grey boxes describe what each section must contain. Write your text
-% below each box. Before submitting, hide all boxes by changing
-% \guidancetrue to \guidancefalse below, then submit the PDF in Moodle
+% The comments under each heading describe what the section must contain.
+% Replace every "Your text." with your content and submit the PDF in Moodle,
 % together with your code (see the course modalities, Section 7).
 % =============================================================================
 
@@ -29,17 +28,6 @@
 \usepackage{microtype}      % microtypography
 \usepackage{xcolor}         % colors
 \usepackage{graphicx}       % figures
-
-% --- Guidance boxes -----------------------------------------------------------
-\newif\ifguidance
-\guidancetrue % change to \guidancefalse before submission
-\newcommand{\guide}[1]{%
-  \ifguidance
-    \par\noindent\fcolorbox{gray!60}{gray!8}{%
-      \parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{\small\color{black!75}#1}}%
-    \par\medskip
-  \fi}
-% -----------------------------------------------------------------------------
 
 \title{Your Project Title}
 
@@ -62,61 +50,65 @@
 \maketitle
 
 \begin{abstract}
-\guide{One paragraph summarizing the problem, your approach and your main result.}
+% One paragraph summarizing the problem, your approach and your main result.
 Your abstract.
 \end{abstract}
 
 % =============================================================================
 \section{Introduction}
-
-\guide{The problem you are solving and why it is important, your hypothesis, what you contribute, and a short summary of your results.}
+% - The problem you are solving and why it is important.
+% - Your hypothesis and what you contribute.
+% - A short summary of your results.
 
 Your text.
 
 % =============================================================================
 \section{Related Work}
-
-\guide{Which models and approaches from the literature suit this problem and your data, and why? How does your work relate to them? Cite all sources properly, e.g.\ \citet{bishop2024deep} or \citep{goodfellow2016deep}, and add them to \texttt{references.bib}.}
+% - Which models and approaches from the literature suit this problem and your
+%   data, and why?
+% - How does your work relate to them?
+% - Cite all sources properly, e.g. \citet{bishop2024deep} or
+%   \citep{goodfellow2016deep}, and add them to references.bib.
 
 Your text.
 
 % =============================================================================
 \section{Data}
-
-\guide{The data you use, with examples.
-\begin{itemize}
-  \item Where does it come from?
-  \item What are its properties, such as class balance, missing values and scale, and how do you deal with them?
-  \item Which preprocessing, filtering, augmentation or other manipulations do you apply?
-  \item How do you split the data into training, validation and test sets, and how do you prevent information from the test set leaking into training?
-\end{itemize}}
+% The data you use, with examples:
+% - Where does it come from?
+% - What are its properties, such as class balance, missing values and scale,
+%   and how do you deal with them?
+% - Which preprocessing, filtering, augmentation or other manipulations do you
+%   apply?
+% - How do you split the data into training, validation and test sets, and how
+%   do you prevent information from the test set leaking into training?
 
 Your text.
 
 % =============================================================================
 \section{Method}
-
-\guide{Your approach and why it fits the problem. In a group, describe the approach of every member and state who did what.
-\begin{itemize}
-  \item Model architecture, output activation and loss function.
-  \item Training procedure: optimizer, learning-rate schedule, regularization.
-  \item Which hyperparameters does your approach have, and how can they influence the results?
-  \item How do these choices relate to your hypothesis?
-  \item You must show that you applied methods covered during the semester to your problem. Figures of your architecture or pipeline are welcome.
-\end{itemize}}
+% Your approach and why it fits the problem. In a group, describe the approach
+% of every member and state who did what.
+% - Model architecture, output activation and loss function.
+% - Training procedure: optimizer, learning-rate schedule, regularization.
+% - Which hyperparameters does your approach have, and how can they influence
+%   the results?
+% - How do these choices relate to your hypothesis?
+% - You must show that you applied methods covered during the semester to your
+%   problem. Figures of your architecture or pipeline are welcome.
 
 Your text.
 
 % =============================================================================
 \section{Experimental Setup}
-
-\guide{\begin{itemize}
-  \item Baselines: at least one simple baseline, and one from the literature, blogs, Kaggle, etc., if available.
-  \item Evaluation measures and why they fit the task.
-  \item Hyperparameter search: search space, strategy, and the data used for model selection.
-  \item Implementation details: framework, hardware and training time.
-  \item Links to your code (archive, repository or Colab notebook) and to your public W\&B project.
-\end{itemize}}
+% - Baselines: at least one simple baseline, and one from the literature,
+%   blogs, Kaggle, etc., if available.
+% - Evaluation measures and why they fit the task.
+% - Hyperparameter search: search space, strategy, and the data used for model
+%   selection.
+% - Implementation details: framework, hardware and training time.
+% - Links to your code (archive, repository or Colab notebook) and to your
+%   public W&B project (see the paragraph below).
 
 Your text.
 
@@ -126,8 +118,14 @@ Experiment tracking: \url{https://wandb.ai/your-entity/your-project}.
 
 % =============================================================================
 \section{Results}
-
-\guide{Present your main results in one comparison table covering the approaches of all group members and the baselines (see Table~\ref{tab:results}), with learning curves where they help (see Figure~\ref{fig:curves}). If feasible, report the mean and standard deviation over several random seeds. Explain what your results mean: why was your approach successful, or why not? Results and figures should come from runs logged in your W\&B project.}
+% - Present your main results in one comparison table covering the approaches
+%   of all group members and the baselines (see Table~\ref{tab:results}), with
+%   learning curves where they help (see Figure~\ref{fig:curves}).
+% - If feasible, report the mean and standard deviation over several random
+%   seeds.
+% - Explain what your results mean: why was your approach successful, or why
+%   not?
+% - Results and figures should come from runs logged in your W&B project.
 
 Your text.
 
@@ -162,28 +160,28 @@ Your text.
 \section{Analysis}
 
 \subsection{Ablation Study}
-
-\guide{Which parts of your approach contribute to the result? Remove or replace one component at a time and compare.}
+% - Which parts of your approach contribute to the result?
+% - Remove or replace one component at a time and compare.
 
 Your text.
 
 \subsection{Error Analysis}
-
-\guide{On which examples does your model fail, and why? Show typical failure cases.}
+% - On which examples does your model fail, and why?
+% - Show typical failure cases.
 
 Your text.
 
 % =============================================================================
 \section{Limitations and Conclusions}
-
-\guide{What are the limits of your results? How do you assess your work, and what would you recommend as next steps?}
+% - What are the limits of your results?
+% - How do you assess your work, and what would you recommend as next steps?
 
 Your text.
 
 % =============================================================================
 \section*{Author Contributions}
-
-\guide{State what each group member has done, e.g.\ ``(Name) implemented and evaluated approach A, \ldots''.}
+% State what each group member has done, e.g. "(Name) implemented and evaluated
+% approach A, ...".
 
 Your text.
 
@@ -195,14 +193,17 @@ Your text.
 \appendix
 
 \section{Additional Results}
-
-\guide{Optional: additional results, the full hyperparameter configuration, and interesting code snippets or algorithms. The appendix counts towards the page limit.}
+% Optional: additional results, the full hyperparameter configuration, and
+% interesting code snippets or algorithms. The appendix counts towards the
+% page limit.
 
 Your text.
 
 \section{AI Disclosure Statement}
-
-\guide{Declare any use of generative AI tools and coding assistants. State which tools you used and for what purpose, e.g.\ brainstorming, literature search, code generation or text drafting. If you did not use any, say so.}
+% - Declare any use of generative AI tools and coding assistants.
+% - State which tools you used and for what purpose, e.g. brainstorming,
+%   literature search, code generation or text drafting.
+% - If you did not use any, say so.
 
 Your text.
 
