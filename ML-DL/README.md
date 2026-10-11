@@ -21,6 +21,8 @@ The course material is based on:
 
 Each folder's README gives a one-sentence overview of every notebook.
 
+Course organization, grading, deadlines and project requirements are described in [`modalities.md`](modalities.md).
+
 ---
 
 ## 🚀 Environment Setup
