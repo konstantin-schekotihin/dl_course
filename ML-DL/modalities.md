@@ -17,7 +17,7 @@ After completing the course, you will be able to:
 
 ## 1. Course Organization & Attendance
 
-- **Format:** lectures combined with in-class exercises, plus **8 practical sessions**. The schedule, tasks, submission rules and points per practical session will be announced by the lecturer of the practical sessions.
+- **Format:** lectures combined with in-class exercises, plus **8 practical sessions** with homework submissions and a written exam at the end of the semester (Section 2). The schedule and tasks of the practical sessions are announced by the lecturer of the practical sessions.
 - **Attendance:** not compulsory, but strongly recommended. If you miss a class, you don't need an excuse, but you are responsible for the material covered and all announcements made in class.
 - **Online resources** (links in Moodle):
   - Course notebooks: <https://github.com/konstantin-schekotihin/dl_course>
@@ -30,11 +30,28 @@ After completing the course, you will be able to:
 
 | Component | Weight | Description |
 | :--- | :---: | :--- |
-| **Practical sessions** | **30%** | 8 practical sessions, 100 points in total. |
+| **Practical sessions** | **30%** | Homework submissions and a written exam, at most 100 points (see below). |
 | **Project** | **70%** | Made up of three deliverables: |
 | &nbsp;&nbsp;• Project proposal | 10% of project (7% of final) | Project plan, up to 4 pages (Section 4). |
 | &nbsp;&nbsp;• Project report | 30% of project (21% of final) | Research paper, up to 9 pages, with code and W&B logs (Section 4). |
 | &nbsp;&nbsp;• Project presentation | 60% of project (42% of final) | 30-minute slot per group: 15 minutes of presentation, 15 minutes of questions, at least 3 to every student (Section 4). |
+
+### Practical sessions
+
+The practical part is graded with **at most 100 points**, made up of:
+- **Homework submissions (up to 16 points):** you submit your solution of each of the 8 practical sessions in Moodle. Each submission earns
+  - **0 points** if less than half of it is solved,
+  - **1 point** if the majority is solved, but with mistakes,
+  - **2 points** if everything is solved, with at most small issues.
+- **Written exam (up to 100 points):** one written exam at the end of the semester, with pen and paper, lasting **90 minutes**. It contains **4 questions**, of which you choose **3** and solve them.
+
+The points add up, but the total is capped at 100:
+
+$$\text{Practicals} = \min(100,\ \text{Exam} + \text{Homework})$$
+
+For example, 80 exam points and 16 homework points give 96 points. 90 exam points and 12 homework points give 100 points, because of the cap.
+
+### Final grade
 
 The practical sessions and each project deliverable are graded with 0–100 points. The scores combine as follows:
 
@@ -42,7 +59,7 @@ $$\text{Project} = 0.10 \cdot \text{Proposal} + 0.30 \cdot \text{Report} + 0.60 
 
 $$\text{Final score} = 0.30 \cdot \text{Practicals} + 0.70 \cdot \text{Project}$$
 
-> ⚠️ **Important:** To complete the course with a positive grade, you must collect **more than 50 of the 100 points** in the practical sessions **and** reach a final score of at least 60.
+> ⚠️ **Important:** To complete the course with a positive grade, you must collect **at least 60 of the 100 points** in the practical sessions **and** reach a final score of at least 60.
 
 | Final score | Grade |
 | :---: | :--- |
