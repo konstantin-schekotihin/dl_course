@@ -76,7 +76,7 @@ Write your report with the [report template](report/). It is a research paper of
 - References
 - Appendix, including the AI disclosure statement
 
-> ⚠️ **Important:** A report without **at least three trained models**, an **ablation study**, a **comparative analysis against the state of the art**, and **W&B tracking of all experiments** counts as **not submitted**. A simple baseline, e.g. a majority-class predictor or logistic regression, is recommended, because it shows how hard the task is.
+> ⚠️ **Important:** A report without **at least three trained models**, an **ablation study**, a **comparative analysis against the state of the art**, and **W&B tracking of all experiments** counts as **not submitted**. A simple baseline is recommended, because it shows how hard the task is.
 
 The template describes what each section must contain.
 
