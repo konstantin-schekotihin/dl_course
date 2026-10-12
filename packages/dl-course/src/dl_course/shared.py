@@ -11,8 +11,10 @@ Modules:
 4. Functional Facades (plot_residuals, plot_binary, plot_correlation_matrix, plot_pairgrid, annotate)
 """
 
+from __future__ import annotations
+
 import os
-from typing import Any, Callable, List, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Sequence, Tuple, Union
 
 from IPython.display import Markdown, display
 import matplotlib.pyplot as plt
@@ -20,10 +22,13 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 import numpy as np
 import pandas as pd
-from PIL import Image
-import scipy.stats as stats
 import seaborn as sns
-import torch
+
+# torch, PIL and scipy are imported only inside the helpers that need them, so that
+# importing the course helpers stays fast (e.g. AI-ML notebooks that never use torch).
+if TYPE_CHECKING:
+    import torch
+    from PIL import Image
 
 
 # ---------------------------------------------------------------------------
@@ -134,18 +139,40 @@ def get_file(filename: str = "", category: Optional[str] = None) -> str:
         if os.path.isfile(c):
             return os.path.abspath(c)
 
-    os.makedirs(shared_dir, exist_ok=True)
     target_path = os.path.join(shared_dir, clean_rel)
-
     url = get_url(clean_rel, category=category)
     try:
-        import urllib.request
-        urllib.request.urlretrieve(url, target_path)
+        _download(url, target_path)
         return os.path.abspath(target_path)
     except Exception as exc:
         raise FileNotFoundError(
             f"Asset '{filename}' not found locally and remote download failed from: {url}. Error: {exc}"
         ) from exc
+
+
+DOWNLOAD_TIMEOUT: int = 60  # seconds without any data before a download is aborted
+
+
+def _download(url: str, target_path: str) -> None:
+    """
+    Download url to target_path. The data is written to a temporary file that is renamed only
+    after a complete download, so an interrupted download never leaves a partial file behind.
+    """
+    import shutil
+    import tempfile
+    import urllib.request
+
+    target_dir = os.path.dirname(target_path)
+    os.makedirs(target_dir, exist_ok=True)
+    fd, tmp_path = tempfile.mkstemp(dir=target_dir, suffix=".part")
+    try:
+        with os.fdopen(fd, "wb") as tmp, urllib.request.urlopen(url, timeout=DOWNLOAD_TIMEOUT) as response:
+            shutil.copyfileobj(response, tmp)
+        os.replace(tmp_path, target_path)
+    except BaseException:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+        raise
 
 
 def get_data_path(filename: str = "") -> str:
@@ -307,6 +334,8 @@ class BasePlotter:
         Evaluate predictor on NumPy input X, automatically handling PyTorch tensors,
         device placement, and sklearn-compatible .predict methods, returning a NumPy array.
         """
+        import torch
+
         predict_fn = getattr(predictor, "predict", predictor)
         if as_tensor_like is not None and hasattr(as_tensor_like, "detach"):
             device = getattr(as_tensor_like, "device", "cpu")
@@ -566,6 +595,8 @@ class DiagnosticPlotter(BasePlotter):
 
         x, y = first_arg, second_arg
         ax = plt.gca()
+        from scipy import stats
+
         mask = ~(np.isnan(x) | np.isnan(y))
         if np.sum(mask) > 1:
             r, _ = stats.pearsonr(x[mask], y[mask])
@@ -601,6 +632,8 @@ class ImagePlotter(BasePlotter):
         grayscale : bool, default=False
             If True, converts image to single-channel grayscale.
         """
+        from PIL import Image
+
         path = get_file(name, category="images")
         img = Image.open(path)
         if grayscale:
@@ -608,6 +641,8 @@ class ImagePlotter(BasePlotter):
         else:
             img = img.convert("RGB")
         if as_tensor:
+            import torch
+
             arr = np.array(img, dtype=np.float32) / 255.0
             if grayscale:
                 return torch.from_numpy(arr).unsqueeze(0)
@@ -666,6 +701,8 @@ class ImagePlotter(BasePlotter):
         for i, c in enumerate(colors):
             channel = img_arr[:, :, i]
             if std_pca_fn is not None:
+                import torch
+
                 ch_in = torch.tensor(channel, dtype=torch.float32)
                 sc, cp, ve, _ = std_pca_fn(ch_in, k=comps)
                 ch_recon = np.dot(np.asarray(sc), np.asarray(cp))

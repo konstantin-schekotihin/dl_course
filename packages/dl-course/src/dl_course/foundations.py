@@ -25,22 +25,19 @@ import torch
 # 1. Core Shared Foundation (Asset Resolution, Aesthetics, Base Plotters)
 # ---------------------------------------------------------------------------
 
-from . import shared as _shared
-
-# Core base plotter and foundation utilities
-BasePlotter = _shared.BasePlotter
-COURSE_RAW_URL = _shared.COURSE_RAW_URL
-DATA_BASE_URL = _shared.DATA_BASE_URL
-setup_theme = _shared.setup_theme
-print_math = _shared.print_math
-get_file = _shared.get_file
-get_url = _shared.get_url
-get_data_path = _shared.get_data_path
-
-# Shared visualizers utilized in Foundations notebooks
-plot_correlation_matrix_and_pairgrid = _shared.plot_correlation_matrix_and_pairgrid
-plot_image = _shared.plot_image
-compress_image_svd = _shared.compress_image_svd
+from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
+    COURSE_RAW_URL,
+    DATA_BASE_URL,
+    BasePlotter,
+    compress_image_svd,
+    get_data_path,
+    get_file,
+    get_url,
+    plot_correlation_matrix_and_pairgrid,
+    plot_image,
+    print_math,
+    setup_theme,
+)
 
 
 

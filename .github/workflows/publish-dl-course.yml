@@ -14,7 +14,26 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Colab always installs the newest version, so a broken helper would break every Colab notebook
+  # at once: never publish without the smoke test passing.
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]  # course .venv and Google Colab
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.0  # setup-uv publishes exact version tags only
+      - name: Install the package and the libraries the helpers use
+        run: |
+          uv venv --python ${{ matrix.python-version }}
+          uv pip install torch --index-url https://download.pytorch.org/whl/cpu
+          uv pip install ./packages/dl-course numpy pandas matplotlib seaborn scipy scikit-learn networkx pillow ipython
+      - name: Smoke test
+        run: .venv/bin/python packages/dl-course/tests/smoke_test.py
+
   publish:
+    needs: test
     runs-on: ubuntu-latest
     environment: pypi
     permissions:

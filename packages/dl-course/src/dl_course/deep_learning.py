@@ -28,27 +28,20 @@ except ImportError:
 # 1. Core Shared Foundation (Asset Resolution, Aesthetics, Base Plotter)
 # ---------------------------------------------------------------------------
 
-from . import shared as _shared
+from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
+    COURSE_RAW_URL,
+    DATA_BASE_URL,
+    BasePlotter,
+    annotate,
+    get_data_path,
+    get_file,
+    get_url,
+    plot_residuals,
+    print_math,
+    setup_theme,
+)
 
-# Core base plotter and foundation utilities
-BasePlotter = _shared.BasePlotter
-COURSE_RAW_URL = _shared.COURSE_RAW_URL
-DATA_BASE_URL = _shared.DATA_BASE_URL
-setup_theme = _shared.setup_theme
-print_math = _shared.print_math
-get_file = _shared.get_file
-get_url = _shared.get_url
-get_data_path = _shared.get_data_path
-
-# Shared visualizers utilized in Deep Learning notebooks
-plot_residuals = _shared.plot_residuals
-plot_binary = _shared.plot_binary
-annotate = _shared.annotate
-
-# Backward-compatible aliases
-to_numpy = BasePlotter.to_numpy
-to_scalar = BasePlotter.to_scalar
-_to_numpy = BasePlotter.to_numpy
+_to_numpy = BasePlotter.to_numpy  # short internal name used by the plotters below
 
 
 
