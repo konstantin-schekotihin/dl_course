@@ -1,101 +1,97 @@
 # AI and Machine Learning: Course Modalities
 
-Welcome to the **AI and Machine Learning** course. This course is designed to equip students from diverse disciplines with analytical and applied skills to formulate learning tasks, select suitable algorithms, construct leak-free pipelines, train and validate models, and draw defensible domain conclusions.
+Welcome to the **AI and Machine Learning** course. It equips students from diverse disciplines with analytical and applied skills: to formulate learning tasks, select suitable algorithms, build leak-free pipelines, train and validate models, and draw defensible conclusions in their application domain.
+
+This document describes how the course is organized, how it is graded, and what you need to submit and when.
 
 ---
 
 ## 1. Course Organization & Attendance
 
-- **Course Format**: Integrated lecture sessions coupled with in-class interactive coding exercises and Jupyter notebook walkthroughs.
-- **Attendance Policy**:
-  - No compulsory attendance, but regular participation is strongly recommended.
-  - In case of absence, no formal excuse is required; however, students bear full personal responsibility for following class discussions, coding practices, and organizational announcements.
-- **Online Classroom**: BigBlueButton (link provided in Moodle).
-- **Course Notebook Repository**: Official GitHub repository distributed at the semester start.
+- **Format:** lectures combined with in-class interactive coding exercises and Jupyter notebook walkthroughs.
+- **Attendance:** not compulsory, but regular participation is strongly recommended. If you miss a class, you don't need an excuse, but you are responsible for following the class discussions, coding exercises and organizational announcements.
+- **Course notebooks:** <https://github.com/konstantin-schekotihin/dl_course> (folder `AI-ML`).
 
 ---
 
-## 2. Assessment & Grading Schema
+## 2. Assessment & Grading
 
-Course assessment is divided between continuous laboratory assignments and a comprehensive semester group project:
-
-| Assessment Component | Weight | Requirement / Description |
+| Component | Weight | Description |
 | :--- | :---: | :--- |
-| **DataCamp Laboratory Assignments** | *Prerequisite* | 4 online modules on the e-learning platform; **$\ge 75\%$ completion** required to be eligible for a positive grade. |
-| **Project Proposal** | **10%** (10 pts) | Written specification defining domain problem, $(T, P, E)$, and research plan. |
-| **Project Report & Code Archive** | **30%** (30 pts) | 6–8 page scientific paper with leak-free code archive and public Weights & Biases workspace. |
-| **Oral Defensio Examination** | **60%** (60 pts) | 10-minute group presentation followed by 20-minute individual oral defense. |
-
-### Austrian Grading Scale
+| **DataCamp assignments** | *Prerequisite* | 4 online courses on the e-learning platform. You must complete **all 4** to be eligible for a positive grade. |
+| **Project proposal** | **10%** | Written specification of the domain problem, the learning task $(T, P, E)$ and the research plan (Section 4). |
+| **Project report and code** | **30%** | Scientific paper of up to 9 pages with a reproducible code archive and a public W&B workspace (Section 4). |
+| **Oral defensio** | **60%** | 10-minute team presentation followed by a 20-minute individual oral examination (Section 4). |
 
 The final grade is computed on a scale of 0 to 100 points:
 
-$$\text{Final Score} = 0.10 \times \text{Proposal} + 0.30 \times \text{Report} + 0.60 \times \text{Defensio}$$
+$$\text{Final score} = 0.10 \cdot \text{Proposal} + 0.30 \cdot \text{Report} + 0.60 \cdot \text{Defensio}$$
 
-| Total Points Interval | Grade (Austrian Scale) | Academic Assessment |
-| :---: | :---: | :--- |
-| **$[90, 100]$** | **1** | **Sehr gut** (Excellent) |
-| **$[80, 90)$** | **2** | **Gut** (Good) |
-| **$[70, 80)$** | **3** | **Befriedigend** (Satisfactory) |
-| **$[60, 70)$** | **4** | **Genügend** (Sufficient) |
-| **$[0, 60)$** | **5** | **Nicht genügend** (Insufficient / Fail) |
-
----
-
-## 3. Deliverables & Submission Workflow
-
-All deliverables must be submitted exclusively via the official **Moodle course portal**.
-
-### Submission Policy
-- **Due Date (Draft Registration)**: Students must upload at least an initial draft by this date to confirm registration for the evaluation milestone.
-- **Draft Status**: Clicking the final "Submit" button in Moodle is not required—submissions remain editable in draft state until the cut-off date.
-- **Cut-off Date**: The absolute deadline for file updates. All submissions are locked and graded after the cut-off date. Early submissions are welcome.
-
-### Milestone Schedule
-
-| Milestone | Deliverable | Due Date (Draft) | Cut-off Date (Final) | Notes |
-| :--- | :--- | :---: | :---: | :--- |
-| **Milestone 1** | **Project Proposal** | **27.03 23:59** | **14.04 23:59** | PDF document (LaTeX or Word export). |
-| **Milestone 2** | **Project Defensio** | **28.06 23:00** | **07.07 23:00** | Slide deck (PDF or RISE notebook); exams held 2nd week of July in room S.1.42. |
-| **Milestone 3** | **Project Report & Code** | **28.06 23:00** | **06.07 23:00** | 6–8 page PDF + reproducible code archive (can incorporate defensio feedback within 2 weeks). |
-
-> ℹ️ **International / Incoming Exchange Students**: Online participation for the oral defensio is available upon prior agreement with the instructor.
+| Final score | Grade |
+| :---: | :--- |
+| $[90, 100]$ | 1 — Sehr gut (Excellent) |
+| $[80, 90)$ | 2 — Gut (Good) |
+| $[70, 80)$ | 3 — Befriedigend (Satisfactory) |
+| $[60, 70)$ | 4 — Genügend (Sufficient) |
+| $[0, 60)$ | 5 — Nicht genügend (Fail) |
 
 ---
 
-## 4. Policy on Generative AI & AI Coding Assistants
+## 3. Submissions & Deadlines
 
-Students are permitted to utilize modern AI coding assistants (e.g., **Antigravity / Agy, GitHub Copilot, ChatGPT, Claude Code**) during project execution under strict conditions:
+All deliverables are submitted **only in Moodle**, using the corresponding upload task.
 
-1. **Mandatory Disclosure & Attribution**:
-   - The use of AI tools for brainstorming, exploratory data analysis, code generation, text drafting, or literature search must be explicitly declared in an **Appendix / AI Disclosure Statement** within the Proposal and Report.
-   - Specify the tool(s), model versions, and general purpose of their use.
-2. **Defensibility Principle (60% Oral Exam)**:
-   - An AI agent cannot sit the oral examination on your behalf.
-   - During the oral defensio, every student must independently explain and defend **every line of code, mathematical formula, preprocessing choice, and evaluation metric** presented in their deliverables.
-3. **Audit Against Agent Traps**:
-   - Students are responsible for verifying code generated by AI assistants against critical failure modes:
-     - **Data Leakage**: Preprocessing (e.g. `StandardScaler`, `SimpleImputer`) fitted before train/test splitting.
-     - **Metric Mismatches**: Optimizing raw accuracy on severely imbalanced datasets instead of ROC-AUC or $F_1$-score.
-     - **Hallucinated Parameters**: Using deprecated or fictitious scikit-learn hyperparameters.
-   - *Course Reference*: Consult Lecture **`08_ml_agents.ipynb`** for the Specification-Driven Agent Engineering methodology and the *5-Point Defensio Readiness Checklist*.
+- **Due date:** by this date you must upload at least a draft, to register for the evaluation of the deliverable.
+- **Draft state:** you don't have to click *Submit*; your submission stays editable as a draft until the cut-off date.
+- **Cut-off date:** no updates are possible after this date. All submissions are locked and graded after the cut-off date.
+
+The deadlines are the latest possible dates. Earlier submissions are welcome!
+
+| Deliverable | Due date (draft) | Cut-off date |
+| :--- | :---: | :---: |
+| Project proposal (PDF) | 10 November 2026, 23:59 | 15 November 2026, 23:59 |
+| Project report (PDF + code) | 20 January 2027, 23:59 | 30 January 2027, 23:59 |
+| Defensio slides (PDF) | 30 January 2027, 23:59 | 8 February 2027, 08:00 |
+| **Oral defensio** | — | 2nd week of February 2027 (8–12 Feb) |
+
+All times are local time in Klagenfurt (CET). The oral defensio takes place **in person**; the room is announced in Moodle.
+
+> ℹ️ **International and exchange students:** online participation in the oral defensio is possible upon prior agreement with the lecturer.
 
 ---
 
-## 5. Group Projects & Individual Contribution Architecture
+## 4. Projects
 
-### Group Formation
-- Projects are executed in **teams of 3 students**. Use the Moodle Group Choice tool to find teammates and align on application domains.
+The project is a team project. The **[project guide](https://github.com/konstantin-schekotihin/dl_course/tree/master/AI-ML/deliverables)** describes how to find a topic and how to prepare each deliverable. It also contains the LaTeX templates for the proposal and the report.
 
-### The Individual Method Requirement
-To ensure fair individual assessment during the 60% defensio:
-- **Common Domain & Target**: The team shares a common domain dataset and formal learning task $(T, P, E)$ (e.g., credit card fraud detection, customer churn, biological image classification).
-- **Distinct Modeling Approaches**: Each group member must formulate, train, tune, and evaluate a **fundamentally distinct algorithmic approach**:
-  - *Student A*: Linear / Regularized Parametric Model (Logistic Regression, ElasticNet, OLS).
-  - *Student B*: Non-Linear Tree Ensemble (Random Forest, Gradient Boosted Decision Trees).
-  - *Student C*: Support Vector Machine (RBF Kernel) or Multi-Layer Perceptron (MLP Neural Network).
-- **Clear Attribution**: Expected and completed contributions of each student must be explicitly designated in every section of the Proposal and Report (e.g., *\"Section 4.1: Logistic Regression baseline was implemented and evaluated by Student X...\"*).
-- **Unified Deliverable**: The group submits a single joint Proposal and Report, but each member will be individually examined on their component as well as their understanding of the broader comparative pipeline.
+### Teams and individual methods
+
+- **Teams:** projects are done in teams of **exactly 3 students**. Use the Moodle Group Choice tool to find teammates and agree on an application domain. Exceptions are possible only after discussion with the lecturer.
+- **Common task:** the team shares one dataset and one formal learning task $(T, P, E)$, e.g. credit card fraud detection, customer churn or biological image classification.
+- **Distinct model families:** to allow a fair individual assessment in the defensio, each team member formulates, trains, tunes and evaluates a **fundamentally distinct model family**:
+  - *Student A:* a linear or regularized parametric model (logistic regression, ElasticNet, OLS);
+  - *Student B:* a non-linear tree ensemble (random forest, gradient-boosted decision trees);
+  - *Student C:* a support vector machine (RBF kernel) or a multi-layer perceptron (MLP).
+- **Clear attribution:** every section of the proposal and the report states who is expected to do, or has done, what, e.g. "The logistic regression baseline was implemented and evaluated by *(name)* …".
+- **One deliverable per team:** the team submits one joint proposal and one joint report. In the defensio, each member is examined individually on their own model family and on their understanding of the comparison of all three.
+
+### Deliverables at a glance
+
+- **LaTeX templates:** the course provides LaTeX templates for the proposal and the report. Open them in [Overleaf](https://www.overleaf.com/) with one click from the [project guide](https://github.com/konstantin-schekotihin/dl_course/tree/master/AI-ML/deliverables), and share the project with your team through its edit link (link sharing) to write together. You don't need to install LaTeX.
+- **Proposal:** at most **4 pages** (excluding references), written with the course template and submitted as a PDF.
+- **Report:** at most **9 pages** (excluding references), written with the course template and submitted as a PDF, together with your reproducible code and the public link to your W&B workspace (Section 6).
+- **Oral defensio:** a 10-minute team presentation with 5–6 content slides, followed by a 20-minute oral examination with targeted questions to each student.
+
+---
+
+## 5. Generative AI & AI Coding Assistants
+
+You may use modern AI coding assistants (e.g. Antigravity, GitHub Copilot, ChatGPT, Claude Code) for your project, under these conditions:
+
+1. **Disclosure:** declare any use of AI tools for brainstorming, exploratory data analysis, code generation, text drafting or literature search in an *AI disclosure statement* in the appendix of your proposal and report. State the tools, the model versions and the general purpose of their use.
+2. **Defensibility:** an AI agent cannot sit the oral examination for you. In the defensio, every student must independently explain and defend **every line of code, mathematical formula, preprocessing choice and evaluation metric** presented in the deliverables.
+
+Lecture `08_ml_agents.ipynb` presents a specification-driven way of working with AI coding agents and the *5-point Defensio Readiness Checklist*.
 
 ---
 
@@ -112,86 +108,19 @@ To ensure reproducible machine learning and transparent progress tracking:
 
 ---
 
-## 7. Deliverable Specifications
+## 7. Recommended Literature
 
-### A. Project Proposal (10% of final grade)
-The proposal is a formal 3–4 page document submitted in PDF format. It must follow these **five sections strictly in order**:
+### Core course reference
+- James, G., Witten, D., Hastie, T., Tibshirani, R., & Taylor, J. (2023). *An Introduction to Statistical Learning: with Applications in Python*. Springer. [Free PDF and code](https://www.statlearning.com/)
 
-1. **Motivation & Domain Problem**:
-   - Real-world context and personal motivation.
-   - Domain significance: What decisions or actions depend on these predictions?
-   - Hypothesis: Why is this learning task computationally solvable from empirical data?
-2. **Learning Task Formulation $(T, P, E)$**:
-   - **Task ($T$)**: Formal categorization (binary classification, multi-class, regression, clustering) and target variable definition.
-   - **Performance Measure ($P$)**: Specific evaluation metrics chosen, with explicit justification based on class balance and domain costs of false positives vs. false negatives.
-   - **Experience ($E$)**: Data source, sample size ($N$), feature dimensionality ($D$), variable types (continuous, ordinal, categorical), and representative data samples.
-3. **Previous Work & Literature Baselines**:
-   - Summary of at least **3 related publications, benchmarks, or authoritative studies** tackling similar tasks.
-   - Detailed analysis of their proposed methods, reported performance, and how their findings serve as a baseline for your project.
-4. **Implementation Plan & Individual Roles**:
-   - Proposed ML pipeline architecture: data cleaning, feature encoding, scaling, model training, and cross-validation strategy.
-   - Explicit distribution of individual modeling methods across the 3 students.
-5. **Risk Management ("Plan B")**:
-   - Anticipated bottlenecks (e.g. data scarcity, extreme class imbalance, non-converging optimization, computational runtime limits).
-   - Concrete fallback strategies if primary hypotheses fail.
+### Notation and neural networks
+- Bishop, C. M., & Bishop, H. (2024). *Deep Learning: Foundations and Concepts*. Springer. [Book website](https://www.bishopbook.com/) — the reference for the mathematical notation and for neural networks.
 
----
+### Applied machine learning in Python
+- Raschka, S., Liu, Y., & Mirjalili, V. (2022). *Machine Learning with PyTorch and Scikit-Learn*. Packt Publishing.
 
-### B. Project Report (30% of final grade)
-The final report is a **6–8 page scientific paper** structured as follows:
-
-1. **Abstract & Motivation**: Brief overview of the domain problem, analytical methodology, and key empirical findings.
-2. **Data Exploration & Preprocessing**:
-   - Exploratory Data Analysis (EDA): distributions, correlations, missingness, and imbalance.
-   - Feature engineering, encoding, and scaling encapsulated inside leak-free `sklearn.pipeline.Pipeline` objects.
-3. **Theoretical Background & Model Selection**:
-   - Mathematical formulation of each chosen model family.
-   - Hypotheses on why each algorithm is suitable for the data characteristics.
-4. **Experimental Setup & Hyperparameter Optimization**:
-   - Validation methodology: Stratified $K$-fold cross-validation or temporal split.
-   - Hyperparameter search spaces and optimization strategies (Grid Search, Random Search, Bayesian Optimization).
-5. **Evaluation, Diagnostics & W&B Tracking**:
-   - Consolidated comparison table displaying performance across all group models against literature baselines.
-   - Diagnostic figures: ROC curves, Precision-Recall curves, confusion matrices, and feature importance rankings.
-   - **Mandatory**: Embedded link to public Weights & Biases project dashboard.
-6. **Error Analysis & Discussion**:
-   - Detailed inspection of failure modes: Which instances did the models misclassify, and why?
-   - Substantive domain interpretation: What actionable recommendations follow from the model?
-7. **Conclusions & Future Directions**: Summary of findings and recommendations for production deployment or extended research.
-8. **Appendix & AI Disclosure Statement**: Transparent statement detailing any GenAI assistance used.
-
-**Submission Package**:
-- PDF report file.
-- Clean ZIP archive (or GitHub repository link) containing fully reproducible code, data loaders, virtual environment specification (`pyproject.toml` or `requirements.txt`), and saved model artifacts.
-
----
-
-### C. Oral Defensio (60% of final grade)
-The defensio is an in-person examination held in **Room S.1.42** during the second week of July:
-
-- **Structure**:
-  - **10-minute Joint Presentation**: 5–6 content slides summarizing the task, data, methodology, comparative results, and conclusions. Slides may be prepared in PowerPoint, LaTeX Beamer, or interactive Jupyter RISE slides.
-  - **20-minute Oral Examination**: Targeted questioning directed at each individual student.
-- **Examiner Focus Areas**:
-  - Mathematical principles: Loss functions, gradient updates, decision boundary geometry, regularization penalties.
-  - Architectural justification: Why specific algorithms, hyperparameters, and feature encodings were selected.
-  - Pipeline integrity: Preventing data leakage, understanding cross-validation variances, and diagnosing overfitting.
-  - Result interpretation: Substantive meaning of metrics, trade-offs between precision and recall, and model limitations.
-
----
-
-## 8. Recommended Course Literature
-
-### Core Course Reference
-- **Bishop, C. M., & Bishop, H. (2024)**. *Deep Learning: Foundations and Concepts*. Springer. [Official Book Website](https://www.bishopbook.com/)  
-  *(The primary reference for mathematical notation, optimization, neural networks, and foundational concepts across this course).*
-
-### Applied Machine Learning in Python
-- **James, G., Witten, D., Hastie, T., & Tibshirani, R. (2023)**. *An Introduction to Statistical Learning: with Applications in Python (ISLP)*. Springer. [Free PDF & Code](https://www.statlearning.com/)
-- **Raschka, S., & Mirjalili, V. (2019)**. *Python Machine Learning: Machine Learning and Deep Learning with Python, scikit-learn, and TensorFlow 2* (3rd ed.). Packt Publishing.
-
-### Classic Machine Learning Foundations
-- **Russell, S., & Norvig, P. (2020)**. *Artificial Intelligence: A Modern Approach* (4th ed.). Pearson. *(Chapter 19: Learning from Examples; Decision Tree Induction, Pruning, and Ensembles).*
-- **Hastie, T., Tibshirani, R., & Friedman, J. (2009)**. *The Elements of Statistical Learning: Data Mining, Inference, and Prediction* (2nd ed.). Springer. [Free PDF](https://hastie.su.domains/ElemStatLearn/)
-- **Mitchell, T. M. (1997)**. *Machine Learning*. McGraw-Hill. *(Classical formalization of learning tasks $(T, P, E)$).*
-- **Duda, R. O., Hart, P. E., & Stork, D. G. (2000)**. *Pattern Classification* (2nd ed.). John Wiley & Sons.
+### Classic machine learning foundations
+- Russell, S., & Norvig, P. (2020). *Artificial Intelligence: A Modern Approach* (4th ed.). Pearson. Chapter 19, *Learning from Examples*: decision tree induction, pruning and ensembles.
+- Hastie, T., Tibshirani, R., & Friedman, J. (2009). *The Elements of Statistical Learning* (2nd ed.). Springer. [Free PDF](https://hastie.su.domains/ElemStatLearn/)
+- Mitchell, T. M. (1997). *Machine Learning*. McGraw-Hill. The classical formalization of learning tasks $(T, P, E)$.
+- Duda, R. O., Hart, P. E., & Stork, D. G. (2000). *Pattern Classification* (2nd ed.). Wiley.

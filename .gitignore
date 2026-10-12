@@ -116,3 +116,11 @@ ML-DL/deliverables/**/*.fls
 ML-DL/deliverables/**/*.fdb_latexmk
 ML-DL/deliverables/**/*.synctex.gz
 ML-DL/deliverables/**/*.pdf
+AI-ML/deliverables/**/*.aux
+AI-ML/deliverables/**/*.bbl
+AI-ML/deliverables/**/*.blg
+AI-ML/deliverables/**/*.out
+AI-ML/deliverables/**/*.fls
+AI-ML/deliverables/**/*.fdb_latexmk
+AI-ML/deliverables/**/*.synctex.gz
+AI-ML/deliverables/**/*.pdf

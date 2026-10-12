@@ -68,7 +68,7 @@ Alternatively, open the notebooks in VS Code and select the `.venv` interpreter 
 | [`08_ml_agents.ipynb`](08_ml_agents.ipynb) | A specification-driven workflow for ML projects with AI coding agents, from task specification and baselines to test-driven development and preparation for the oral defense. |
 | [`aux1_BN.ipynb`](aux1_BN.ipynb) *(supplementary)* | Bayesian classifiers: Bayes' theorem, ML and MAP estimation, the Bayes optimal classifier, and naive Bayes. |
 
-Course policies (grading, group project, deadlines, GenAI policy) are described in [`modalities.md`](modalities.md).
+Course policies (grading, team project, deadlines, GenAI policy) are described in [`modalities.md`](modalities.md). The [project guide](deliverables/) explains how to prepare the project deliverables and provides LaTeX templates for the proposal and the report.
 
 ---
 

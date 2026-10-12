@@ -1,0 +1,165 @@
+% =============================================================================
+% AI and Machine Learning -- Project Report Template
+% Alpen-Adria-Universität Klagenfurt
+%
+% Page limit: 9 pages, EXCLUDING references. Everything else counts,
+% including figures, tables, the appendix and the AI disclosure statement.
+% Do not change margins, font sizes or spacing.
+%
+% The comments under each heading describe what the section must contain.
+% Replace every "Your text." with your content and submit the PDF in Moodle,
+% together with your code (see the project guide, README.md).
+%
+% State in every section who did what, e.g. "The logistic regression baseline
+% was implemented and evaluated by (name) ...".
+% =============================================================================
+
+\documentclass{article}
+
+% "preprint" shows your names; without it the template produces an
+% anonymous submission.
+\usepackage[preprint]{neurips_2025}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsmath}        % mathematical environments
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage{graphicx}       % figures
+
+\title{Your Project Title}
+
+\author{%
+  Student A \\
+  Student ID: 00000000 \\
+  \texttt{student.a@edu.aau.at} \\
+  \And
+  Student B \\
+  Student ID: 00000000 \\
+  \texttt{student.b@edu.aau.at} \\
+  \And
+  Student C \\
+  Student ID: 00000000 \\
+  \texttt{student.c@edu.aau.at} \\
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+% Brief overview of the domain problem, your methodology and the key empirical
+% findings.
+Your abstract.
+\end{abstract}
+
+% =============================================================================
+\section{Motivation}
+% - The domain problem, why it matters, and your hypothesis.
+% - A short summary of your approach and results.
+
+Your text.
+
+% =============================================================================
+\section{Data Exploration and Preprocessing}
+% - Exploratory data analysis: distributions, correlations, missing values and
+%   class imbalance.
+% - Feature engineering, encoding and scaling, encapsulated in leak-free
+%   sklearn.pipeline.Pipeline objects.
+
+Your text.
+
+% =============================================================================
+\section{Theoretical Background and Model Selection}
+% - Mathematical formulation of each chosen model family (one per student).
+% - Your hypotheses on why each algorithm suits the characteristics of the data.
+
+Your text.
+
+% =============================================================================
+\section{Experimental Setup and Hyperparameter Optimization}
+% - Validation methodology: stratified K-fold cross-validation or a temporal
+%   split.
+% - Hyperparameter search spaces and optimization strategies (grid search,
+%   random search, Bayesian optimization).
+% - Links to your code and to your public W&B project (see the paragraph
+%   below).
+
+Your text.
+
+\paragraph{Code and experiments.}
+Code: \url{https://github.com/your-team/your-project} (or a Colab notebook). \\
+Experiment tracking: \url{https://wandb.ai/your-entity/your-project}.
+
+% =============================================================================
+\section{Evaluation and Diagnostics}
+% - One consolidated table comparing the models of all team members with the
+%   literature baselines (see Table~\ref{tab:results}).
+% - Diagnostic figures: ROC curves, precision-recall curves, confusion matrices
+%   and feature importance rankings (see Figure~\ref{fig:diagnostics}).
+% - Results and figures should come from runs logged in your public W&B project.
+
+Your text.
+
+\begin{table}[t]
+  \caption{Test results of all models and the literature baselines (mean $\pm$ standard deviation over the cross-validation folds).}
+  \label{tab:results}
+  \centering
+  \begin{tabular}{llccc}
+    \toprule
+    Model & Team member & $F_1$-score & ROC-AUC & Runtime \\
+    \midrule
+    Literature baseline (cite source)       & ---       & 0.00 & 0.00 & --- \\
+    \midrule
+    e.g.\ logistic regression               & Student A & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 & 0\,s \\
+    e.g.\ gradient boosting                 & Student B & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 & 0\,s \\
+    e.g.\ SVM (RBF kernel)                  & Student C & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 & 0\,s \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  % Replace the box with your figure, e.g.:
+  % \includegraphics[width=0.8\linewidth]{figures/roc_curves.pdf}
+  \fbox{\parbox[c][4cm][c]{0.8\linewidth}{\centering ROC and precision-recall curves of all models}}
+  \caption{Diagnostic curves of all models.}
+  \label{fig:diagnostics}
+\end{figure}
+
+% =============================================================================
+\section{Error Analysis and Discussion}
+% - Failure modes: which instances did the models misclassify, and why?
+% - Domain interpretation: which actionable recommendations follow from the
+%   models?
+
+Your text.
+
+% =============================================================================
+\section{Conclusions and Future Directions}
+% - Summary of your findings.
+% - Recommendations for deployment or further research.
+
+Your text.
+
+% =============================================================================
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+% =============================================================================
+\appendix
+
+\section{AI Disclosure Statement}
+% - Declare any use of AI tools, e.g. for brainstorming, exploratory data
+%   analysis, code generation, text drafting or literature search.
+% - Specify the tools, model versions and the general purpose of their use.
+% - If you did not use any, say so.
+
+Your text.
+
+\end{document}
