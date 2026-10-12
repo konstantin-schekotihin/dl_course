@@ -43,7 +43,7 @@ The practical part is graded with **at most 100 points**, made up of:
   - **0 points** if less than half of it is solved,
   - **1 point** if the majority is solved, but with mistakes,
   - **2 points** if everything is solved, with at most small issues.
-- **Written exam (up to 100 points):** one written exam at the end of the semester, with pen and paper, lasting **90 minutes**. It contains **4 questions**, of which you choose **3** and solve them.
+- **Written exam (up to 100 points):** one written exam at the end of the semester, with pen and paper, lasting **90 minutes**. It contains **4 questions**, of which you choose **3** and solve them. The exam date will be announced in Moodle as soon as the room is booked.
 
 The points add up, but the total is capped at 100:
 
@@ -105,12 +105,14 @@ The **[project guide](https://github.com/konstantin-schekotihin/dl_course/tree/m
 
 Projects are done in **groups of 2–3 students**. Use the Moodle Group Choice tool to find teammates.
 - **Common task:** the group shares one domain, one dataset and one learning task (training experience, task and performance measure).
-- **Distinct approaches:** each member formulates, trains, tunes and evaluates a **significantly different deep learning approach** to this task. For example, for image classification:
-  - *Student A:* a convolutional network trained from scratch;
-  - *Student B:* a pre-trained network fine-tuned to the task (transfer learning);
-  - *Student C:* a transformer-based model, such as a vision transformer.
+- **Distinct approaches:** each member formulates, trains, tunes and evaluates a **significantly different deep learning approach** to this task. For example, for classifying chest X-rays:
+  - *Student A:* a plain convolutional network trained from scratch;
+  - *Student B:* a residual network (ResNet), pre-trained and fine-tuned to the task;
+  - *Student C:* a study of the training procedure (optimizers, learning-rate schedules, regularization) on a fixed network.
+- **Ablation studies:** each member plans and runs an ablation study of their own approach: which of its components actually contribute to the result? For example, Student B trains the ResNet with and without skip connections.
+- **Comparative analysis:** as the result of the project, the group compares the approaches of all members on the same test data with the same measures, and draws a justified conclusion.
 - **Clear attribution:** every deliverable states what each student is expected to do and has done. For example: "In this project, *(name)* will focus on … whereas *(name)* will …".
-- **One deliverable per group:** the group submits one proposal and one report, which compare the approaches of all members. Every member must be able to answer any question about the presented work.
+- **One deliverable per group:** the group submits one proposal and one report. Every member must be able to answer any question about the presented work.
 
 **Individual assessment:**
 - The proposal and the report are graded once, for the whole group.
@@ -120,8 +122,8 @@ Projects are done in **groups of 2–3 students**. Use the Moodle Group Choice t
 ### Deliverables at a glance
 
 - **LaTeX templates:** the course provides LaTeX templates for the proposal and the report. Open them in [Overleaf](https://www.overleaf.com/) with one click from the [project guide](https://github.com/konstantin-schekotihin/dl_course/tree/master/ML-DL/deliverables), and share the project with your group through its edit link (link sharing) to write together. You don't need to install LaTeX.
-- **Proposal:** at most **4 pages** (excluding references), written with the course LaTeX template and submitted as a PDF.
-- **Report:** at most **9 pages** (excluding references), written with the course LaTeX template and submitted as a PDF. Its evaluation **must compare every approach against a baseline**. Also submit:
+- **Proposal:** at most **4 pages** (excluding references), written with the course LaTeX template and submitted as a PDF. It includes the plan of every member's ablation study and of the comparative analysis.
+- **Report:** at most **9 pages** (excluding references), written with the course LaTeX template and submitted as a PDF. It **must** report every member's **ablation study** and a **comparative analysis** of all approaches, which also compares every approach against a baseline. The [project guide](https://github.com/konstantin-schekotihin/dl_course/tree/master/ML-DL/deliverables) gives a worked example. Also submit:
   - **your code**, as an archive or repository, or as a Google Colab notebook;
   - **a link to a public Weights & Biases (W&B) project** with all your experiments. Do **not** add the lecturer to the project; make it public and provide the link.
 

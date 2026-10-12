@@ -103,6 +103,9 @@ Your text.
 \section{Experimental Setup}
 % - Baselines: at least one simple baseline, and one from the literature,
 %   blogs, Kaggle, etc., if available.
+% - Fair comparison: the same data split, test data, evaluation measures,
+%   random seeds and a comparable training budget for all approaches.
+% - Ablation design: which components each member removes or replaces.
 % - Evaluation measures and why they fit the task.
 % - Hyperparameter search: search space, strategy, and the data used for model
 %   selection.
@@ -118,35 +121,41 @@ Experiment tracking: \url{https://wandb.ai/your-entity/your-project}.
 
 % =============================================================================
 \section{Results}
-% - REQUIRED: compare every approach against the baselines from the
-%   Experimental Setup, evaluated on the same test data with the same measures.
-%   Does your approach beat the baselines, and by how much? A report without a
-%   baseline comparison is incomplete.
-% - Present your main results in one comparison table covering the approaches
-%   of all group members and the baselines (see Table~\ref{tab:results}), with
-%   learning curves where they help (see Figure~\ref{fig:curves}).
-% - If feasible, report the mean and standard deviation over several random
-%   seeds.
-% - Explain what your results mean: why was your approach successful, or why
-%   not?
+
+\subsection{Comparative Analysis}
+% REQUIRED: the comparative analysis of all approaches is the main result of the
+% project. A report without it is incomplete.
+% - Compare the approaches of all group members with each other and with the
+%   baselines from the Experimental Setup: same data split, test data, evaluation
+%   measures and random seeds, and a comparable training budget.
+% - Present the main results in one table (see Table~\ref{tab:results}): the
+%   main measures (mean and standard deviation over several random seeds), the
+%   number of parameters and the training time. Add learning curves where they
+%   help (see Figure~\ref{fig:curves}).
+% - Does each approach beat the baselines, and by how much?
+% - Explain the differences: which approach works best, why, and at what cost?
+%   End with a justified recommendation, e.g. "Is the ResNet's improvement worth
+%   its size and training time?"
 % - Results and figures should come from runs logged in your W&B project.
 
 Your text.
 
 \begin{table}[t]
-  \caption{Test results of all approaches and baselines (mean $\pm$ standard deviation over 3 random seeds).}
+  \caption{Test results of all approaches and baselines (mean $\pm$ standard deviation over 3 random seeds), with model size and training time.}
   \label{tab:results}
   \centering
-  \begin{tabular}{llccc}
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{llccccc}
     \toprule
-    Approach & Group member & Precision & Recall & ROC-AUC \\
+    Approach & Member & Precision & Recall & ROC-AUC & Parameters & Training time \\
     \midrule
-    Simple baseline          & ---            & 0.00 & 0.00 & 0.00 \\
-    Baseline from literature & ---            & 0.00 & 0.00 & 0.00 \\
+    Simple baseline          & ---    & 0.00 & 0.00 & 0.00 & --- & --- \\
+    Baseline from literature & ---    & 0.00 & 0.00 & 0.00 & --- & --- \\
     \midrule
-    Approach A               & First Student  & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 \\
-    Approach B               & Second Student & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 \\
-    Approach C               & Third Student  & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 \\
+    Approach A               & First  & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 & 0.0\,M & 0\,min \\
+    Approach B               & Second & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 & 0.0\,M & 0\,min \\
+    Approach C               & Third  & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 & 0.0\,M & 0\,min \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -163,15 +172,45 @@ Your text.
 % =============================================================================
 \section{Analysis}
 
-\subsection{Ablation Study}
-% - Which parts of your approach contribute to the result?
-% - Remove or replace one component at a time and compare.
+\subsection{Ablation Studies}
+% REQUIRED: every group member reports the ablation study of their own approach.
+% - Which components of your approach actually contribute to the result?
+% - Remove or replace one component at a time, keep everything else fixed, and
+%   compare with the full approach (see Table~\ref{tab:ablation}).
+% - Did the results confirm the hypotheses from your proposal? Connect each
+%   finding to the lecture, e.g. "without skip connections, the deeper network
+%   trains worse because of vanishing gradients".
+% - State who ran which study.
 
 Your text.
 
+\begin{table}[t]
+  \caption{Ablation studies of all approaches: test ROC-AUC (mean $\pm$ standard deviation over 3 random seeds) and change compared with the full approach.}
+  \label{tab:ablation}
+  \centering
+  \small
+  \begin{tabular}{llcc}
+    \toprule
+    Approach (member) & Variant & ROC-AUC & Change \\
+    \midrule
+    A: plain CNN (First)        & full approach                    & 0.00 $\pm$ 0.00 & --- \\
+                                & without batch normalization      & 0.00 $\pm$ 0.00 & $-0.00$ \\
+                                & without data augmentation        & 0.00 $\pm$ 0.00 & $-0.00$ \\
+    \midrule
+    B: ResNet-18 (Second)       & full approach                    & 0.00 $\pm$ 0.00 & --- \\
+                                & without skip connections         & 0.00 $\pm$ 0.00 & $-0.00$ \\
+                                & random init.\ instead of pre-training & 0.00 $\pm$ 0.00 & $-0.00$ \\
+    \midrule
+    C: training procedure (Third) & best recipe                    & 0.00 $\pm$ 0.00 & --- \\
+                                & SGD instead of Adam              & 0.00 $\pm$ 0.00 & $-0.00$ \\
+                                & constant learning rate           & 0.00 $\pm$ 0.00 & $-0.00$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 \subsection{Error Analysis}
-% - On which examples does your model fail, and why?
-% - Show typical failure cases.
+% - On which examples does each approach fail, and why?
+% - Which examples do all approaches get wrong? Show typical failure cases.
 
 Your text.
 
