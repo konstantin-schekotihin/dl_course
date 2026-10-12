@@ -2,21 +2,23 @@
 
 This guide describes how to find a project topic and how to prepare each project deliverable. The rules on group work, grading and deadlines are in the [course modalities](../modalities.md).
 
-| Deliverable | Template | Page limit (excluding references) |
+| Deliverable | Template | Limit |
 |---|---|---|
-| Project proposal | **[Open in Overleaf](https://www.overleaf.com/docs?snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Fproposal%2Fmain.tex&snip_name%5B%5D=main.tex&snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Fproposal%2Freferences.bib&snip_name%5B%5D=references.bib&snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Fproposal%2Fneurips_2025.sty&snip_name%5B%5D=neurips_2025.sty&main_document=main.tex&engine=pdflatex)** · [files](proposal/) | 4 pages |
-| Project report | **[Open in Overleaf](https://www.overleaf.com/docs?snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Freport%2Fmain.tex&snip_name%5B%5D=main.tex&snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Freport%2Freferences.bib&snip_name%5B%5D=references.bib&snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Freport%2Fneurips_2025.sty&snip_name%5B%5D=neurips_2025.sty&main_document=main.tex&engine=pdflatex)** · [files](report/) | 9 pages |
-| Project presentation | any tool (Section 7) | 15 minutes |
+| Project proposal | **[Open in Overleaf](https://www.overleaf.com/docs?snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Fproposal%2Fmain.tex&snip_name%5B%5D=main.tex&snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Fproposal%2Freferences.bib&snip_name%5B%5D=references.bib&snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Fproposal%2Fneurips_2025.sty&snip_name%5B%5D=neurips_2025.sty&main_document=main.tex&engine=pdflatex)** · [files](proposal/) | 4 pages, excluding references |
+| Project report | **[Open in Overleaf](https://www.overleaf.com/docs?snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Freport%2Fmain.tex&snip_name%5B%5D=main.tex&snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Freport%2Freferences.bib&snip_name%5B%5D=references.bib&snip_uri%5B%5D=https%3A%2F%2Fraw.githubusercontent.com%2Fkonstantin-schekotihin%2Fdl_course%2Fmaster%2FML-DL%2Fdeliverables%2Freport%2Fneurips_2025.sty&snip_name%5B%5D=neurips_2025.sty&main_document=main.tex&engine=pdflatex)** · [files](report/) | 9 pages, excluding references |
+| Project presentation | any tool (Section 7) | 10-minute talk + 20 minutes of questions |
 
 ---
 
 ## 1. Finding a Topic
 
 Start with a domain that interests you, for example computer vision. Then identify a task in that domain, such as image classification, object detection, image generation or image modification. These websites list tasks, datasets and approaches to solve them:
-- [PapersWithCode](https://paperswithcode.co) (**Recommended**) - tasks, benchmarks and leaderboards with linked papers and code
+- [Papers with Code](https://paperswithcode.co) (**Recommended**) - tasks, benchmarks and leaderboards with linked papers and code
 - [Kaggle](https://www.kaggle.com/) - see the *Competitions* and *Datasets* tabs
 - [Hugging Face](https://huggingface.co/) - see the *Models* and *Datasets* tabs
 - [Google Scholar](https://scholar.google.com/) or [Semantic Scholar](https://www.semanticscholar.org/)
+
+> ⚠️ **Important:** Choose data for which **published state-of-the-art results** exist, e.g. a benchmark dataset with a leaderboard. You must compare your results against them (Section 4).
 
 On paper-listing sites, solutions are described in scientific publications. On Kaggle, they are described in notebooks written by professionals, students and enthusiasts. You may use any material you find on the Web. The only requirement is that **you understand and can explain the approach, the data and the results**.
 
@@ -55,7 +57,9 @@ If you prefer to work locally, download the files from the template folder and c
 
 ## 3. Project Proposal
 
-Write your proposal with the [proposal template](proposal/) and submit it as a **PDF** of at most 4 pages. The template contains the five required sections: *Motivation*, *Learning Task*, *Previous Work*, *Plan* and *Risk Management*. It also describes the questions each section must answer, and you must answer all of them. The *Plan* section describes your approach and your plan for the **ablation study** and the **comparative analysis**, including the state-of-the-art results you will compare against (Section 4).
+Write your proposal with the [proposal template](proposal/) and submit it as a **PDF** of at most 4 pages. The template contains the required sections *Motivation*, *Learning Task*, *Previous Work*, *Plan* and *Risk Management*, and the AI disclosure statement in the appendix. It also describes the questions each section must answer, and you must answer all of them. The *Plan* section describes your approach, the **at least three models** you will train, and your plan for the **ablation study** and the **comparative analysis**, including the state-of-the-art results you will compare against (Section 4).
+
+You receive written feedback on your proposal in Moodle.
 
 If you have doubts about your proposal, contact the lecturer well before the deadline!
 
@@ -68,11 +72,11 @@ Write your report with the [report template](report/). It is a research paper of
 - Related Work, Data, Method and Experimental Setup
 - Results, including the **comparative analysis**, within your study and against the state of the art
 - Analysis, i.e. the **ablation study** and error analysis
-
-> ⚠️ **Important:** A report without an **ablation study**, a **comparative analysis against the state of the art**, and **W&B tracking of all experiments** is incomplete. A simple baseline, e.g. a majority-class predictor or logistic regression, is recommended, because it shows how hard the task is.
 - Limitations and Conclusions
 - References
 - Appendix, including the AI disclosure statement
+
+> ⚠️ **Important:** A report without **at least three trained models**, an **ablation study**, a **comparative analysis against the state of the art**, and **W&B tracking of all experiments** counts as **not submitted**. A simple baseline, e.g. a majority-class predictor or logistic regression, is recommended, because it shows how hard the task is.
 
 The template describes what each section must contain.
 
@@ -80,10 +84,12 @@ The template describes what each section must contain.
 
 Both analyses are **required** in every report. Plan them in your proposal, and log every run, including each ablation variant, in your W&B project (Section 6).
 
+- **Models:** train **at least three models**: your final model and at least two more models from your ablation study or hyperparameter tuning.
+
 - **Ablation study:** which components of your approach actually contribute to the result? Remove or replace **one component at a time**, keep everything else fixed, and compare with the full approach. Report the results as a table, and connect your findings to the lecture.
 - **Comparative analysis:** compare your results
   - **within your study:** the models and variants you trained, on the same test data with the same measures;
-  - **against the state of the art:** the best published results on the same data, e.g. from the leaderboards on PapersWithCode or from papers. Make sure the comparison is fair (same test split, same measure), or explain the differences.
+  - **against the state of the art:** the best published results on the same data, e.g. from the leaderboards on Papers with Code or from papers. Use the same test split and the same measure as the published results.
 
   Then explain what you see: what works best, why, and at what cost?
 
@@ -99,7 +105,7 @@ Submit in Moodle:
 
 Paste the link to your public **Weights & Biases (W&B) project** (Section 6) into the submission comments, because Moodle does not open links from the report review page.
 
-> ⚠️ **Important:** Reports that do not meet these requirements will not be considered!
+> ⚠️ **Important:** A report that does not meet the requirements of this guide counts as **not submitted**, and the course cannot be passed (see the course modalities).
 
 ---
 
@@ -162,6 +168,8 @@ Track **all experiments** of your project with [Weights & Biases (W&B)](https://
 - **Final results:** test metrics of your final models.
 - **Diagnostics:** e.g. sample predictions, confusion matrices or ROC curves.
 
+Do not log data whose licence forbids publishing it, e.g. images from a restricted dataset; log metrics and curves instead.
+
 Name, tag or group your runs, so that baselines, hyperparameter searches, ablations and final models are easy to tell apart. Results and figures in your report should come from runs logged in this project. If you use W&B sweeps for hyperparameter search, include them too.
 
 > ⚠️ **Important:** Do **not** add the lecturer to your W&B project. Instead, make the project **public** (*Project page → Overview → Edit → Project Visibility → Public*) and provide its link in your report and in the Moodle submission comments (Section 4).
@@ -170,7 +178,7 @@ Name, tag or group your runs, so that baselines, hyperparameter searches, ablati
 
 ## 7. Project Presentation
 
-Each group gets a **30-minute slot**: **15 minutes for the presentation**, in which every member presents part of the talk, and **15 minutes for questions**. In the question part, **every student gets at least three questions** about the project. The questions aim at your **theoretical understanding of the methods you used**.
+Each group gets a **30-minute slot**: **10 minutes for the presentation**, in which every member presents part of the talk, and **20 minutes for questions**. In the question part, **every student gets at least three questions** about the project. The questions aim at your **theoretical understanding of the methods you used**.
 
 Present the main points of your work:
 - the learning task,

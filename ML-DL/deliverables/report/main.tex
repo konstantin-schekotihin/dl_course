@@ -108,7 +108,8 @@ Your text.
 % - Implementation details: framework, hardware and training time.
 % - Links to your code (archive, repository or Colab notebook) and to your
 %   public W&B project with all experiments, including the ablation runs
-%   (required; see the paragraph below).
+%   (required; see the paragraph below). Do not log data whose licence forbids
+%   publishing it; log metrics and curves instead.
 
 Your text.
 
@@ -121,11 +122,11 @@ Experiment tracking: \url{https://wandb.ai/your-entity/your-project}.
 
 \subsection{Comparative Analysis}
 % REQUIRED: a report without a comparative analysis is incomplete.
-% - Compare the models and variants you trained with each other, on the same
-%   test data with the same measures.
+% - Report at least three trained models (required): your final model and at
+%   least two more models from your ablation study or hyperparameter tuning.
+%   Compare them with each other on the same test data with the same measures.
 % - Compare your results with the state of the art: the best published results
-%   on the same data (cite them). Make sure the comparison is fair (same test
-%   split, same measure), or explain the differences.
+%   on the same data (cite them), using the same test split and measure.
 % - Present the results in a table like Table~\ref{tab:results}, with learning
 %   curves where they help (see Figure~\ref{fig:curves}). If feasible, report the
 %   mean and standard deviation over several random seeds.
@@ -143,8 +144,9 @@ Your text.
     Method & Precision & Recall & ROC-AUC \\
     \midrule
     Simple baseline (optional)     & 0.00 & 0.00 & 0.00 \\
-    Our model 1                    & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 \\
-    Our model 2                    & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 \\
+    Model from ablation / tuning 1 & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 \\
+    Model from ablation / tuning 2 & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 \\
+    Final model                    & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 & 0.00 $\pm$ 0.00 \\
     \midrule
     State of the art (cite source) & 0.00 & 0.00 & 0.00 \\
     \bottomrule

@@ -8,7 +8,7 @@ The course focuses on deep learning. It starts with a short recap of the mathema
 
 After completing the course, you will be able to:
 - formulate a learning task with its training experience, task and performance measure, and choose suitable data and evaluation measures;
-- design, implement and train neural networks in PyTorch, from single-layer models to convolutional networks, sequence models, transformers and graph neural networks;
+- design, implement and train neural networks in PyTorch, from single-layer models to convolutional networks, sequence models and transformers, and, if time permits, graph neural networks;
 - choose an architecture, loss function and optimizer for a given task, and justify the choice;
 - diagnose and fix training problems such as overfitting, vanishing gradients and poor convergence, using regularization and modern optimizers;
 - evaluate models rigorously, with ablation studies and comparisons against the state of the art, and report the results reproducibly in the form of a scientific paper.
@@ -18,7 +18,9 @@ After completing the course, you will be able to:
 ## 1. Course Organization & Attendance
 
 - **Format:** lectures combined with in-class exercises, plus **8 practical sessions** with homework submissions and a written exam at the end of the semester (Section 2). The schedule and tasks of the practical sessions are announced by the lecturer of the practical sessions.
-- **Attendance:** not compulsory, but strongly recommended. If you miss a class, you don't need an excuse, but you are responsible for the material covered and all announcements made in class.
+- **Attendance:**
+  - **Lectures:** attendance is not compulsory, but strongly recommended. If you miss a lecture, you don't need an excuse, but you are responsible for the material covered and all announcements made in class.
+  - **Practical sessions:** attendance is **compulsory**. You may miss at most **2 of the 8** sessions.
 - **Online resources** (links in Moodle):
   - Course notebooks: <https://github.com/konstantin-schekotihin/dl_course>
   - Announcements and feedback: Moodle forum
@@ -34,16 +36,16 @@ After completing the course, you will be able to:
 | **Project** | **70%** | Made up of three deliverables: |
 | &nbsp;&nbsp;• Project proposal | 10% of project (7% of final) | Project plan, up to 4 pages (Section 4). |
 | &nbsp;&nbsp;• Project report | 30% of project (21% of final) | Research paper, up to 9 pages, with code and W&B logs (Section 4). |
-| &nbsp;&nbsp;• Project presentation | 60% of project (42% of final) | 30-minute slot per group: 15 minutes of presentation, 15 minutes of questions, at least 3 to every student (Section 4). |
+| &nbsp;&nbsp;• Project presentation | 60% of project (42% of final) | 30-minute slot per group: 10 minutes of presentation, 20 minutes of questions, at least 3 to every student (Section 4). |
 
 ### Practical sessions
 
 The practical part is graded with **at most 100 points**, made up of:
-- **Homework submissions (up to 16 points):** you submit your solution of each of the 8 practical sessions in Moodle. Each submission earns
+- **Homework submissions (up to 16 points):** you submit your solution to each of the 8 practical sessions in Moodle. Each submission earns
   - **0 points** if less than half of it is solved,
-  - **1 point** if the majority is solved, but with mistakes,
+  - **1 point** if at least half is solved, but the solution is incomplete or has mistakes,
   - **2 points** if everything is solved, with at most small issues.
-- **Written exam (up to 100 points):** one written exam at the end of the semester, with pen and paper, lasting **90 minutes**. It contains **4 questions**, of which you choose **3** and solve them. The exam date will be announced in Moodle as soon as the room is booked.
+- **Written exam (up to 100 points):** one written exam at the end of the semester, with pen and paper, lasting **90 minutes**. It contains **4 questions**, of which you choose **3** and solve them; the points per question are stated on the exam sheet. The exam date will be announced in Moodle as soon as the room is booked. **There is no resit exam.**
 
 The points add up, but the total is capped at 100:
 
@@ -59,7 +61,15 @@ $$\text{Project} = 0.10 \cdot \text{Proposal} + 0.30 \cdot \text{Report} + 0.60 
 
 $$\text{Final score} = 0.30 \cdot \text{Practicals} + 0.70 \cdot \text{Project}$$
 
-> ⚠️ **Important:** To complete the course with a positive grade, you must collect **at least 60 of the 100 points** in the practical sessions **and** reach a final score of at least 60.
+The proposal and the report are graded once for the whole group. The presentation is graded individually, so each student's project score includes their own presentation grade. The final score is rounded to the nearest whole number before the grade table below is applied, e.g. 89.5 becomes 90.
+
+> ⚠️ **Important:** To complete the course with a positive grade, you must
+> - attend at least **6 of the 8** practical sessions,
+> - collect **at least 60 of the 100 points** in the practical part,
+> - submit **all three** project deliverables (proposal, report and presentation), each meeting its requirements, and
+> - reach a **final score of at least 60**.
+>
+> If any of these conditions is not met, the course is graded negative. There is no resit exam.
 
 | Final score | Grade |
 | :---: | :--- |
@@ -75,7 +85,7 @@ $$\text{Final score} = 0.30 \cdot \text{Practicals} + 0.70 \cdot \text{Project}$
 
 All project deliverables are submitted **only in Moodle**, using the corresponding upload task.
 
-- **Due date:** by this date you must upload at least a draft of your submission.
+- **Due date:** by this date you must upload at least a draft of your submission. If nothing is uploaded by the due date, the deliverable counts as **not submitted**, and the course cannot be passed (Section 2).
 - **Draft state:** you don't have to click *Submit*; drafts are accepted.
 - **Updates:** you can upload new versions until the cut-off date, or until you click *Submit*.
 - **Cut-off date:** no updates are possible after this date, not even by email. All submissions are graded after the cut-off date.
@@ -91,37 +101,39 @@ The deadlines are the latest possible dates. Earlier submissions are welcome!
 
 All times are local time in Klagenfurt (CET).
 
-Registration for a presentation slot will be done using the registration link provided in Moodle. **Presentations are in person.**
+Registration for a presentation slot will be done using the registration link provided in Moodle. **Presentations are in person.** If you cannot attend your presentation for a valid reason, e.g. illness with a medical certificate, contact the lecturer to arrange a replacement date.
 
 ---
 
 ## 4. Projects
 
-Projects are **group work for 2–3 students**. You are **free to choose** your topic, your data and the deep learning methods you develop. The **goal** is to solve your chosen learning task **as well as possible**, working on it together as a group. Suitable domains include computer vision, natural language processing, time series analysis and reinforcement learning. A project has three deliverables: (1) proposal, (2) report, and (3) presentation.
+Projects are **group work for 2–3 students**. You are **free to choose** your topic, your data and the deep learning methods you develop. The **goal** is to solve your chosen learning task **as well as possible**, working on it together as a group. Suitable domains include computer vision, natural language processing and time series analysis. A project has three deliverables: (1) proposal, (2) report, and (3) presentation.
 
-> ⚠️ **Important:** Whatever you build, every project **must** contain:
-> 1. an **ablation study**: which components of your approach actually contribute to the result? Remove or replace one component at a time and compare.
-> 2. a **comparative analysis** of your results: compare the models and variants you trained with each other, and with the **state of the art**, i.e. the best published results on the same data.
-> 3. **W&B tracking of all experiments**, including the ablation runs, in a public Weights & Biases project.
+> ⚠️ **Important:** Whatever you build, every project **must**
+> 1. use **data with published state-of-the-art results**, e.g. a benchmark dataset with a leaderboard, so that you can compare against them;
+> 2. train **at least three models**: your final model and at least two more models from your ablation study or hyperparameter tuning;
+> 3. contain an **ablation study**: which components of your approach actually contribute to the result? Remove or replace one component at a time and compare;
+> 4. contain a **comparative analysis** of your results: compare your models with each other, and with the **state of the art**, i.e. the best published results on the same data;
+> 5. **track all experiments in W&B**, including the ablation runs, in a public Weights & Biases project. Do not log data whose licence forbids publishing it, e.g. images from a restricted dataset; log metrics and curves instead.
 
 The **[project guide](https://github.com/konstantin-schekotihin/dl_course/tree/master/ML-DL/deliverables)** describes in detail how to find a topic and how to prepare each deliverable. It also contains the LaTeX templates for the proposal and the report.
 
 ### Group work and assessment
 
-- **Groups:** 2–3 students. Use the Moodle Group Choice tool to find teammates.
-- **Proposal and report:** one per group, graded once for the whole group.
+- **Groups:** 2–3 students. Use the Moodle Group Choice tool to find teammates. The same requirements apply to groups of 2 and 3.
+- **Proposal and report:** one per group, graded once for the whole group. You receive written feedback on your proposal in Moodle.
 - **Presentation:** every member presents part of the talk and is then questioned individually about the whole project, so every member must be able to answer any question about it. The presentation is graded individually for each member.
 
 ### Deliverables at a glance
 
 - **LaTeX templates:** the course provides LaTeX templates for the proposal and the report. Open them in [Overleaf](https://www.overleaf.com/) with one click from the [project guide](https://github.com/konstantin-schekotihin/dl_course/tree/master/ML-DL/deliverables), and share the project with your group through its edit link (link sharing) to write together. You don't need to install LaTeX.
-- **Proposal:** at most **4 pages** (excluding references), written with the course LaTeX template and submitted as a PDF. It includes your plan for the ablation study and the comparative analysis, including the state-of-the-art results you will compare against.
+- **Proposal:** at most **4 pages** (excluding references), written with the course LaTeX template and submitted as a PDF. It includes the models you plan to train and your plan for the ablation study and the comparative analysis, including the state-of-the-art results you will compare against.
 - **Report:** at most **9 pages** (excluding references), written with the course LaTeX template and submitted as a PDF. It **must** contain the **ablation study** and the **comparative analysis**, within your study and against the state of the art. Also submit:
   - **your code**, as an archive or repository, or as a Google Colab notebook;
   - **a link to a public Weights & Biases (W&B) project** with **all** your experiments, including the ablation runs. Do **not** add the lecturer to the project; make it public and provide the link.
 
-  Reports that do not meet the requirements in the project guide will not be considered.
-- **Presentation:** a **30-minute slot** per group, with **15 minutes for the presentation** and **15 minutes for questions**. Every member presents part of the talk, and every student gets **at least three questions** on the theoretical understanding of the methods used. You can present with any tool you like; upload your slides to Moodle as a PDF.
+  A report that does not meet the requirements of the project guide counts as **not submitted**.
+- **Presentation:** a **30-minute slot** per group, with **10 minutes for the presentation** and **20 minutes for questions**. Every member presents part of the talk, and every student gets **at least three questions** on the theoretical understanding of the methods used. You can present with any tool you like; upload your slides to Moodle as a PDF.
 
 Please get in touch with the lecturer if you have any questions!
 
