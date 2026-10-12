@@ -11,7 +11,7 @@ After completing the course, you will be able to:
 - design, implement and train neural networks in PyTorch, from single-layer models to convolutional networks, sequence models, transformers and graph neural networks;
 - choose an architecture, loss function and optimizer for a given task, and justify the choice;
 - diagnose and fix training problems such as overfitting, vanishing gradients and poor convergence, using regularization and modern optimizers;
-- evaluate models rigorously against baselines and report the results reproducibly, in the form of a scientific paper.
+- evaluate models rigorously, with ablation studies and comparisons against the state of the art, and report the results reproducibly in the form of a scientific paper.
 
 ---
 
@@ -97,20 +97,18 @@ Registration for a presentation slot will be done using the registration link pr
 
 ## 4. Projects
 
-Projects are **group work for 2–3 students**. A project shows that you can apply deep learning methods to a problem of your choice. Suitable domains include computer vision, natural language processing, time series analysis and reinforcement learning. A project has three deliverables: (1) proposal, (2) report, and (3) presentation.
+Projects are **group work for 2–3 students**. You are **free to choose** your topic, your data, the deep learning methods you develop, and how you divide the work within the group. Suitable domains include computer vision, natural language processing, time series analysis and reinforcement learning. A project has three deliverables: (1) proposal, (2) report, and (3) presentation.
+
+> ⚠️ **Important:** Whatever you build, every project **must** contain:
+> 1. an **ablation study**: which components of your approach actually contribute to the result? Remove or replace one component at a time and compare.
+> 2. a **comparative analysis** of your results: compare the models and variants you trained with each other, and with the **state of the art**, i.e. the best published results on the same data.
+> 3. **W&B tracking of all experiments**, including the ablation runs, in a public Weights & Biases project.
 
 The **[project guide](https://github.com/konstantin-schekotihin/dl_course/tree/master/ML-DL/deliverables)** describes in detail how to find a topic and how to prepare each deliverable. It also contains the LaTeX templates for the proposal and the report.
 
 ### Group work
 
 Projects are done in **groups of 2–3 students**. Use the Moodle Group Choice tool to find teammates.
-- **Common task:** the group shares one domain, one dataset and one learning task (training experience, task and performance measure).
-- **Distinct approaches:** each member formulates, trains, tunes and evaluates a **significantly different deep learning approach** to this task. For example, for classifying chest X-rays:
-  - *Student A:* a plain convolutional network trained from scratch;
-  - *Student B:* a residual network (ResNet), pre-trained and fine-tuned to the task;
-  - *Student C:* a study of the training procedure (optimizers, learning-rate schedules, regularization) on a fixed network.
-- **Ablation studies:** each member plans and runs an ablation study of their own approach: which of its components actually contribute to the result? For example, Student B trains the ResNet with and without skip connections.
-- **Comparative analysis:** as the result of the project, the group compares the approaches of all members on the same test data with the same measures, and draws a justified conclusion.
 - **Clear attribution:** every deliverable states what each student is expected to do and has done. For example: "In this project, *(name)* will focus on … whereas *(name)* will …".
 - **One deliverable per group:** the group submits one proposal and one report. Every member must be able to answer any question about the presented work.
 
@@ -122,10 +120,10 @@ Projects are done in **groups of 2–3 students**. Use the Moodle Group Choice t
 ### Deliverables at a glance
 
 - **LaTeX templates:** the course provides LaTeX templates for the proposal and the report. Open them in [Overleaf](https://www.overleaf.com/) with one click from the [project guide](https://github.com/konstantin-schekotihin/dl_course/tree/master/ML-DL/deliverables), and share the project with your group through its edit link (link sharing) to write together. You don't need to install LaTeX.
-- **Proposal:** at most **4 pages** (excluding references), written with the course LaTeX template and submitted as a PDF. It includes the plan of every member's ablation study and of the comparative analysis.
-- **Report:** at most **9 pages** (excluding references), written with the course LaTeX template and submitted as a PDF. It **must** report every member's **ablation study** and a **comparative analysis** of all approaches, which also compares every approach against a baseline. The [project guide](https://github.com/konstantin-schekotihin/dl_course/tree/master/ML-DL/deliverables) gives a worked example. Also submit:
+- **Proposal:** at most **4 pages** (excluding references), written with the course LaTeX template and submitted as a PDF. It includes your plan for the ablation study and the comparative analysis, including the state-of-the-art results you will compare against.
+- **Report:** at most **9 pages** (excluding references), written with the course LaTeX template and submitted as a PDF. It **must** contain the **ablation study** and the **comparative analysis**, within your study and against the state of the art. Also submit:
   - **your code**, as an archive or repository, or as a Google Colab notebook;
-  - **a link to a public Weights & Biases (W&B) project** with all your experiments. Do **not** add the lecturer to the project; make it public and provide the link.
+  - **a link to a public Weights & Biases (W&B) project** with **all** your experiments, including the ablation runs. Do **not** add the lecturer to the project; make it public and provide the link.
 
   Reports that do not meet the requirements in the project guide will not be considered.
 - **Presentation:** a **30-minute slot** per group, with **15 minutes for the presentation** and **15 minutes for questions**. Every member presents their own part, and every student gets **at least three questions** on the theoretical understanding of the methods used. You can present with any tool you like; upload your slides to Moodle as a PDF.

@@ -24,8 +24,6 @@ On paper-listing sites, solutions are described in scientific publications. On K
 > - looks at example images and the class balance, and decides on preprocessing and data augmentation;
 > - trains a convolutional network from scratch and fine-tunes a network pre-trained on ImageNet;
 > - compares the models using precision, recall and ROC-AUC, since a missed pneumonia costs more than a false alarm.
->
-> In a group, the members could split this into a plain CNN, a ResNet and a study of the training procedure; see the worked example in Section 4.
 
 Excellent deliverables of students from previous years are available in the **Examples** folder in Moodle. Feel free to use them as a guide.
 
@@ -57,7 +55,7 @@ If you prefer to work locally, download the files from the template folder and c
 
 ## 3. Project Proposal
 
-Write your proposal with the [proposal template](proposal/) and submit it as a **PDF** of at most 4 pages. The template contains the five required sections: *Motivation*, *Learning Task*, *Previous Work*, *Plan* and *Risk Management*. It also describes the questions each section must answer, and you must answer all of them. The *Plan* section states each member's approach, their **ablation-study plan** and the **plan of the comparative analysis** (Section 4).
+Write your proposal with the [proposal template](proposal/) and submit it as a **PDF** of at most 4 pages. The template contains the five required sections: *Motivation*, *Learning Task*, *Previous Work*, *Plan* and *Risk Management*. It also describes the questions each section must answer, and you must answer all of them. The *Plan* section describes your approach, who does what, and your plan for the **ablation study** and the **comparative analysis**, including the state-of-the-art results you will compare against (Section 4).
 
 If you have doubts about your proposal, contact the lecturer well before the deadline!
 
@@ -68,43 +66,30 @@ If you have doubts about your proposal, contact the lecturer well before the dea
 Write your report with the [report template](report/). It is a research paper of at most **9 pages**, with the structure of a typical machine learning paper:
 - Abstract and Introduction
 - Related Work, Data, Method and Experimental Setup
-- Results, including the **comparative analysis** of all approaches
-- Analysis, i.e. the **ablation studies** of all members and error analysis
+- Results, including the **comparative analysis**, within your study and against the state of the art
+- Analysis, i.e. the **ablation study** and error analysis
 
-> ⚠️ **Important:** In the Results section, you **must compare every approach against a baseline**: at least one simple baseline, and one from the literature, blogs, Kaggle, etc., if available. Evaluate the approaches and baselines on the same test data with the same measures. A report without a baseline comparison is incomplete.
+> ⚠️ **Important:** A report without an **ablation study**, a **comparative analysis against the state of the art**, and **W&B tracking of all experiments** is incomplete. A simple baseline, e.g. a majority-class predictor or logistic regression, is recommended, because it shows how hard the task is.
 - Limitations and Conclusions
 - Author Contributions and References
 - Appendix, including the AI disclosure statement
 
 The template describes what each section must contain.
 
-### Ablation studies and comparative analysis
+### Ablation study and comparative analysis
 
-Every report contains two kinds of experimental analysis. Plan both in the *Plan* section of your proposal, and report them in the *Results* and *Analysis* sections of your report.
+Both analyses are **required** in every report. Plan them in your proposal, and log every run, including each ablation variant, in your W&B project (Section 6).
 
-- **Ablation study (each member):** which components of your own approach actually contribute to the result?
-  - Remove or replace **one component at a time**, keep everything else fixed, and compare with the full approach.
-  - Report it as a table: the full approach first, then one row per removed or replaced component, with the change in the main measure.
-  - Connect each finding to the lecture. For example, a deep network without skip connections trains worse because of vanishing gradients.
-- **Comparative analysis (whole group):** as the result of the project, compare the approaches of all members with each other and with the baselines:
-  - the same data split, test data, evaluation measures and random seeds;
-  - a comparable training budget, e.g. the same number of epochs;
-  - the number of parameters and the training time of each approach;
-  - an explanation of the differences: which approach works best, why, and at what cost? Which examples do all approaches get wrong?
+- **Ablation study:** which components of your approach actually contribute to the result? Remove or replace **one component at a time**, keep everything else fixed, and compare with the full approach. Report the results as a table, and connect your findings to the lecture.
+- **Comparative analysis:** compare your results
+  - **within your study:** the models and variants you trained, on the same test data with the same measures;
+  - **against the state of the art:** the best published results on the same data, e.g. from the leaderboards on PapersWithCode or from papers. Make sure the comparison is fair (same test split, same measure), or explain the differences.
 
-**Worked example:** pneumonia detection from chest X-rays (Section 1), for a group of three.
+  Then explain what you see: what works best, why, and at what cost?
 
-| Member | Approach | Ablation study |
-|---|---|---|
-| A | **Plain CNN** trained from scratch: blocks of convolution, batch normalization, ReLU and pooling | without batch normalization · without data augmentation · 2 vs 4 convolutional blocks |
-| B | **ResNet-18**, pre-trained on ImageNet and fine-tuned | without skip connections (same depth) · random initialization instead of pre-training · frozen backbone vs full fine-tuning |
-| C | **Training-procedure study** on a fixed network, e.g. the plain CNN of Student A | SGD vs SGD with momentum vs Adam · constant vs cosine learning-rate schedule · without weight decay · without early stopping |
-
-The comparative analysis of this group contains:
-- one table with test precision, recall and ROC-AUC (mean ± standard deviation over 3 random seeds), parameter count and training time for A's CNN, B's ResNet, C's best training recipe and the baselines;
-- the learning curves of all three approaches;
-- the X-rays that all three approaches misclassify;
-- a justified recommendation, e.g.: is the ResNet's improvement worth its size and training time, or does a well-trained plain CNN suffice?
+> 📝 **Example:** A group classifying chest X-rays (Section 1) trains a small CNN and a pre-trained ResNet.
+> - Their **ablation study** removes the skip connections, the pre-training and the data augmentation, one at a time.
+> - Their **comparative analysis** puts both networks, all ablation variants and the best published results for the dataset into one table, and discusses whether the ResNet's gain is worth its size.
 
 ### Submission
 
@@ -163,7 +148,7 @@ CHECKPOINT_DIR = "/content/drive/MyDrive/dl_project/checkpoints"
 
 ## 6. Experiment Tracking with Weights & Biases
 
-Track **all experiments** of your project with [Weights & Biases (W&B)](https://wandb.ai/). Use one W&B project per course project; group members share it. For every run, log:
+Track **all experiments** of your project with [Weights & Biases (W&B)](https://wandb.ai/), including every ablation run. This is required. Use one W&B project per course project; group members share it. For every run, log:
 
 - **Configuration:**
   - architecture
@@ -205,6 +190,6 @@ The presentation and your answers to the questions are assessed on:
   - your choice of optimizer, learning rate and batch size;
   - how you detected convergence problems and overfitting, e.g. from learning curves;
   - how you addressed them, e.g. with regularization, early stopping or data augmentation.
-- **Evaluation:** suitable measures, a fair comparison with baselines, the reliability of your results, your ablation study, the comparative analysis of the group's approaches, and what your error analysis shows.
+- **Evaluation:** suitable measures, your ablation study, the comparison of your results with each other and with the state of the art, the reliability of your results, and what your error analysis shows.
 - **Understanding:** you can explain the mathematics behind the methods you use, e.g. your loss function, how gradients flow through your model, or how attention works, as well as the limitations of your results.
 - **Presentation:** a clear structure, readable slides and keeping to the time.

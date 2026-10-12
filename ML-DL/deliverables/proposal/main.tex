@@ -9,10 +9,11 @@
 % The comments under each heading describe what the section must contain.
 % Replace every "Your text." with your content and submit the PDF in Moodle.
 %
-% Projects are group work for 2-3 students. The group shares one domain, one
-% dataset and one learning task, and each member takes a significantly
-% different deep learning approach. State clearly what each member will do,
-% e.g. "In this project, (name) will focus on ... whereas (name) will ...".
+% Projects are group work for 2-3 students. You are free to choose your topic,
+% data and methods. Every project must contain an ablation study, a comparative
+% analysis (within your study and against the state of the art) and W&B
+% tracking of all experiments. State clearly what each member will do, e.g.
+% "In this project, (name) will focus on ... whereas (name) will ...".
 % All sections below are required and must answer all of their questions.
 % =============================================================================
 
@@ -33,7 +34,6 @@
 \usepackage{microtype}      % microtypography
 \usepackage{xcolor}         % colors
 \usepackage{graphicx}       % figures
-\usepackage{array}          % left-aligned table columns
 
 \title{Project Proposal: Your Project Title}
 
@@ -94,6 +94,8 @@ Your text.
 % - How can you apply their approach to your problem? What modifications might
 %   be required?
 % - Can you use it as a baseline in your evaluation?
+% - Which published results are the state of the art on your data? You will
+%   compare your results against them.
 % - Cite your sources, e.g. \citet{bishop2024deep} or \citep{goodfellow2016deep},
 %   and add them to references.bib.
 
@@ -101,55 +103,18 @@ Your text.
 
 % =============================================================================
 \section{Plan}
-
-\subsection{Approaches and Roles}
-% - How will you solve the learning task with (an extension of) state-of-the-art
-%   methods?
-% - Describe the approaches in enough detail to show their benefits, how they
-%   differ from previous work, and that they can be implemented within the
-%   project.
-% - State which approach each group member takes and which ablation study they
-%   will run, e.g. in a table like Table~\ref{tab:roles}.
-% - Worked example: Section 4 of the project guide (deliverables/README.md).
-
-Your text.
-
-\begin{table}[h]
-  \caption{Approaches and planned ablation studies of the group members.}
-  \label{tab:roles}
-  \centering
-  \small
-  \begin{tabular}{l>{\raggedright\arraybackslash}p{0.3\linewidth}>{\raggedright\arraybackslash}p{0.4\linewidth}}
-    \toprule
-    Group member & Approach & Ablation study \\
-    \midrule
-    First Student  & e.g.\ plain CNN trained from scratch & e.g.\ without batch normalization; without data augmentation; 2 vs 4 convolutional blocks \\
-    Second Student & e.g.\ ResNet-18, pre-trained and fine-tuned & e.g.\ without skip connections; random initialization instead of pre-training; frozen backbone vs full fine-tuning \\
-    Third Student  & e.g.\ training-procedure study on a fixed network & e.g.\ SGD vs momentum vs Adam; constant vs cosine learning-rate schedule; without weight decay \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\subsection{Ablation Study Plan}
-% Each member plans an ablation study of their own approach:
-% - Which components of your approach do you expect to matter, and why? State a
-%   hypothesis for each, e.g. "without skip connections, the deeper network trains
-%   worse because of vanishing gradients".
-% - Which component do you remove or replace in each run? Change one component at
-%   a time and keep everything else fixed.
-% - Which measure do you compare, and on which data?
-
-Your text.
-
-\subsection{Comparative Analysis Plan}
-% As the result of the project, the group compares the approaches of all members
-% with each other and with the baselines from the Previous Work section:
-% - How do you make the comparison fair? Use the same data split, test data,
-%   evaluation measures and random seeds, and a comparable training budget.
-% - Which results will you report? E.g. the main measures (mean and standard
-%   deviation over several seeds), the number of parameters and the training time.
-% - Which question should the comparison answer, e.g. "Is the ResNet's improvement
-%   worth its size and training time?"
+% - Approach: how will you solve the learning task? Which deep learning methods
+%   will you develop or adapt, and why? Describe them in enough detail to show
+%   that they can be implemented within the project.
+% - Who does what: state each group member's tasks, e.g. "(name) will focus on
+%   ... whereas (name) will ...".
+% - Ablation study (required): which components of your approach do you expect
+%   to matter, and why? Plan to remove or replace one component at a time.
+% - Comparative analysis (required): which of your models and variants will you
+%   compare with each other, and which state-of-the-art results on the same data
+%   will you compare against? Cite them.
+% - Experiment tracking (required): you will log all experiments, including the
+%   ablation runs, in a public W&B project.
 
 Your text.
 
