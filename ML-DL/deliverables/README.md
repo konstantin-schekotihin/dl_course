@@ -55,7 +55,7 @@ If you prefer to work locally, download the files from the template folder and c
 
 ## 3. Project Proposal
 
-Write your proposal with the [proposal template](proposal/) and submit it as a **PDF** of at most 4 pages. The template contains the five required sections: *Motivation*, *Learning Task*, *Previous Work*, *Plan* and *Risk Management*. It also describes the questions each section must answer, and you must answer all of them. The *Plan* section describes your approach, who does what, and your plan for the **ablation study** and the **comparative analysis**, including the state-of-the-art results you will compare against (Section 4).
+Write your proposal with the [proposal template](proposal/) and submit it as a **PDF** of at most 4 pages. The template contains the five required sections: *Motivation*, *Learning Task*, *Previous Work*, *Plan* and *Risk Management*. It also describes the questions each section must answer, and you must answer all of them. The *Plan* section describes your approach and your plan for the **ablation study** and the **comparative analysis**, including the state-of-the-art results you will compare against (Section 4).
 
 If you have doubts about your proposal, contact the lecturer well before the deadline!
 
@@ -71,7 +71,7 @@ Write your report with the [report template](report/). It is a research paper of
 
 > ⚠️ **Important:** A report without an **ablation study**, a **comparative analysis against the state of the art**, and **W&B tracking of all experiments** is incomplete. A simple baseline, e.g. a majority-class predictor or logistic regression, is recommended, because it shows how hard the task is.
 - Limitations and Conclusions
-- Author Contributions and References
+- References
 - Appendix, including the AI disclosure statement
 
 The template describes what each section must contain.
@@ -170,7 +170,7 @@ Name, tag or group your runs, so that baselines, hyperparameter searches, ablati
 
 ## 7. Project Presentation
 
-Each group gets a **30-minute slot**: **15 minutes for the presentation**, in which every member presents their own part, and **15 minutes for questions**. In the question part, **every student gets at least three questions** about the project. The questions aim at your **theoretical understanding of the methods you used**.
+Each group gets a **30-minute slot**: **15 minutes for the presentation**, in which every member presents part of the talk, and **15 minutes for questions**. In the question part, **every student gets at least three questions** about the project. The questions aim at your **theoretical understanding of the methods you used**.
 
 Present the main points of your work:
 - the learning task,

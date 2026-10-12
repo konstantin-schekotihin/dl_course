@@ -97,7 +97,7 @@ Registration for a presentation slot will be done using the registration link pr
 
 ## 4. Projects
 
-Projects are **group work for 2–3 students**. You are **free to choose** your topic, your data, the deep learning methods you develop, and how you divide the work within the group. Suitable domains include computer vision, natural language processing, time series analysis and reinforcement learning. A project has three deliverables: (1) proposal, (2) report, and (3) presentation.
+Projects are **group work for 2–3 students**. You are **free to choose** your topic, your data and the deep learning methods you develop. The **goal** is to solve your chosen learning task **as well as possible**, working on it together as a group. Suitable domains include computer vision, natural language processing, time series analysis and reinforcement learning. A project has three deliverables: (1) proposal, (2) report, and (3) presentation.
 
 > ⚠️ **Important:** Whatever you build, every project **must** contain:
 > 1. an **ablation study**: which components of your approach actually contribute to the result? Remove or replace one component at a time and compare.
@@ -106,16 +106,11 @@ Projects are **group work for 2–3 students**. You are **free to choose** your 
 
 The **[project guide](https://github.com/konstantin-schekotihin/dl_course/tree/master/ML-DL/deliverables)** describes in detail how to find a topic and how to prepare each deliverable. It also contains the LaTeX templates for the proposal and the report.
 
-### Group work
+### Group work and assessment
 
-Projects are done in **groups of 2–3 students**. Use the Moodle Group Choice tool to find teammates.
-- **Clear attribution:** every deliverable states what each student is expected to do and has done. For example: "In this project, *(name)* will focus on … whereas *(name)* will …".
-- **One deliverable per group:** the group submits one proposal and one report. Every member must be able to answer any question about the presented work.
-
-**Individual assessment:**
-- The proposal and the report are graded once, for the whole group.
-- In the presentation, every member presents their own part. Each member is then questioned individually, both on their own part and on the project as a whole.
-- The presentation is graded individually for each member.
+- **Groups:** 2–3 students. Use the Moodle Group Choice tool to find teammates.
+- **Proposal and report:** one per group, graded once for the whole group.
+- **Presentation:** every member presents part of the talk and is then questioned individually about the whole project, so every member must be able to answer any question about it. The presentation is graded individually for each member.
 
 ### Deliverables at a glance
 
@@ -126,7 +121,7 @@ Projects are done in **groups of 2–3 students**. Use the Moodle Group Choice t
   - **a link to a public Weights & Biases (W&B) project** with **all** your experiments, including the ablation runs. Do **not** add the lecturer to the project; make it public and provide the link.
 
   Reports that do not meet the requirements in the project guide will not be considered.
-- **Presentation:** a **30-minute slot** per group, with **15 minutes for the presentation** and **15 minutes for questions**. Every member presents their own part, and every student gets **at least three questions** on the theoretical understanding of the methods used. You can present with any tool you like; upload your slides to Moodle as a PDF.
+- **Presentation:** a **30-minute slot** per group, with **15 minutes for the presentation** and **15 minutes for questions**. Every member presents part of the talk, and every student gets **at least three questions** on the theoretical understanding of the methods used. You can present with any tool you like; upload your slides to Moodle as a PDF.
 
 Please get in touch with the lecturer if you have any questions!
 
