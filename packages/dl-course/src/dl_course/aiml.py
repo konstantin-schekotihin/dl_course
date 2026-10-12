@@ -25,35 +25,26 @@ import sklearn.metrics as metrics
 # 1. Core Shared Foundation (Asset Resolution, Aesthetics, Base Plotter)
 # ---------------------------------------------------------------------------
 
-from . import shared as _shared
+from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
+    COURSE_RAW_URL,
+    DATA_BASE_URL,
+    BasePlotter,
+    annotate,
+    compress_image_svd,
+    get_data_path,
+    get_file,
+    get_url,
+    load_image,
+    plot_binary,
+    plot_correlation_matrix,
+    plot_correlation_matrix_and_pairgrid,
+    plot_image,
+    plot_pairgrid,
+    print_math,
+    setup_theme,
+)
 
-# Core base plotter and foundation utilities
-BasePlotter = _shared.BasePlotter
-COURSE_RAW_URL = _shared.COURSE_RAW_URL
-DATA_BASE_URL = _shared.DATA_BASE_URL
-setup_theme = _shared.setup_theme
-print_math = _shared.print_math
-get_file = _shared.get_file
-get_url = _shared.get_url
-get_data_path = _shared.get_data_path
-
-# Shared visualizers utilized in AI-ML notebooks
-plot_binary = _shared.plot_binary
-plot_correlation_matrix = _shared.plot_correlation_matrix
-plot_pairgrid = _shared.plot_pairgrid
-plot_correlation_matrix_and_pairgrid = _shared.plot_correlation_matrix_and_pairgrid
-compress_image_svd = _shared.compress_image_svd
-load_image = _shared.load_image
-plot_image = _shared.plot_image
-annotate = _shared.annotate
-
-# Backward-compatible aliases
-to_numpy = BasePlotter.to_numpy
-to_scalar = BasePlotter.to_scalar
-_to_numpy = BasePlotter.to_numpy
-
-# Automatically configure course theme on import
-setup_theme()
+_to_numpy = BasePlotter.to_numpy  # short internal name used by the plotters below
 
 cm_binary: ListedColormap = ListedColormap(["green", "blue"])
 
