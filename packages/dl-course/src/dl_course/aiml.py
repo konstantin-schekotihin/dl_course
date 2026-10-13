@@ -184,6 +184,87 @@ class AIMLRegressionPlotter(BasePlotter):
         ax_plot.grid(True)
         return cls.finalize(fig, ax=ax_plot, show=show)
 
+    @classmethod
+    def plot_curves(
+        cls,
+        x: Sequence[float],
+        curves: Dict[str, Sequence[float]],
+        xlabel: Optional[str] = None,
+        ylabel: Optional[str] = None,
+        title: Optional[str] = None,
+        logx: bool = False,
+        mark_x: Optional[float] = None,
+        mark_label: Optional[str] = None,
+        figsize: Tuple[float, float] = (7.5, 4.2),
+        ax: Optional[plt.Axes] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
+        """Draw pre-computed curves over a shared x axis (errors over flexibility, coefficient paths, losses)."""
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel=ylabel)
+        x_arr = _to_numpy(x, ravel=True)
+        marker = "o" if len(x_arr) <= 25 else None
+        for label, values in curves.items():
+            ax.plot(x_arr, _to_numpy(values, ravel=True), lw=2.0, marker=marker, ms=4, label=label)
+        if logx:
+            ax.set_xscale("log")
+        if mark_x is not None:
+            ax.axvline(mark_x, color="gray", linestyle="--", lw=1.2, label=mark_label)
+        if len(curves) > 6:
+            ax.legend(fontsize=7.5, ncol=2, loc="upper left", bbox_to_anchor=(1.01, 1.0))
+        else:
+            ax.legend(fontsize=9.5, loc="best")
+        return cls.finalize(fig, ax, show=show)
+
+    @classmethod
+    def plot_fitted_curves(
+        cls,
+        x: Sequence[float],
+        t: Sequence[float],
+        x_grid: Sequence[float],
+        curves: Dict[str, Sequence[float]],
+        xlabel: Optional[str] = None,
+        ylabel: Optional[str] = None,
+        title: Optional[str] = None,
+        figsize: Tuple[float, float] = (7.5, 4.5),
+        ax: Optional[plt.Axes] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
+        """Scatter observations and overlay model curves pre-computed on x_grid."""
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel=ylabel)
+        ax.scatter(_to_numpy(x, ravel=True), _to_numpy(t, ravel=True), color="royalblue", alpha=0.45, s=16, label="Observations")
+        for label, values in curves.items():
+            ax.plot(_to_numpy(x_grid, ravel=True), _to_numpy(values, ravel=True), lw=2.2, label=label)
+        ax.legend(fontsize=9.5, loc="best")
+        return cls.finalize(fig, ax, show=show)
+
+    @classmethod
+    def plot_residual_panels(
+        cls,
+        panels: Dict[str, Tuple[Sequence[float], Sequence[float]]],
+        xlabel: str = r"Fitted value $\hat{t}_n$",
+        ylabel: str = r"Residual $e_n$",
+        band: Optional[float] = None,
+        n_labels: int = 0,
+        figsize: Optional[Tuple[float, float]] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
+        """Scatter pre-computed residuals against fitted values (or leverage), one panel per entry; label the largest."""
+        fig, axes = plt.subplots(1, len(panels), figsize=figsize or (5.2 * len(panels), 3.9), squeeze=False)
+        for ax, (title, (x_vals, r_vals)) in zip(axes[0], panels.items()):
+            x_arr, r_arr = _to_numpy(x_vals, ravel=True), _to_numpy(r_vals, ravel=True)
+            ax.scatter(x_arr, r_arr, color="royalblue", alpha=0.55, s=16)
+            ax.axhline(0, color="gray", lw=1.0)
+            if band is not None:
+                ax.axhline(band, color="firebrick", linestyle="--", lw=1.2)
+                ax.axhline(-band, color="firebrick", linestyle="--", lw=1.2)
+            for n in np.argsort(-np.abs(r_arr))[:n_labels]:
+                ax.annotate(str(n), (x_arr[n], r_arr[n]), xytext=(4, 2), textcoords="offset points", fontsize=8.5, color="firebrick")
+            ax.set_title(title, fontsize=11.5)
+            ax.set_xlabel(xlabel, fontsize=10.5)
+            ax.set_ylabel(ylabel, fontsize=10.5)
+            ax.grid(True, linestyle="--", alpha=0.5)
+        return cls.finalize(fig, show=show)
+
 
 # ---------------------------------------------------------------------------
 # 3. Instance-Based Classification, Decision Surfaces & Margins (01, 04, 05, 06)
@@ -752,6 +833,9 @@ plot_linear_fit = AIMLRegressionPlotter.plot_linear_classification_fit
 plot_logistic_response_curve = AIMLRegressionPlotter.plot_logistic_response_curve
 plot_logistic_curve = lambda x_vals, y_vals, w_0, w_1: AIMLRegressionPlotter.plot_logistic_response_curve(x_vals, y_vals, w_0=w_0, w_1=w_1)
 plot_positive_vs_log = AIMLRegressionPlotter.plot_positive_vs_log
+plot_curves = AIMLRegressionPlotter.plot_curves
+plot_fitted_curves = AIMLRegressionPlotter.plot_fitted_curves
+plot_residual_panels = AIMLRegressionPlotter.plot_residual_panels
 
 # Classification Facades
 get_boundaries = AIMLClassificationPlotter.get_boundaries
