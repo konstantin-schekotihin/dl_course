@@ -120,6 +120,8 @@ CASES = [
     ("aiml", "plot_pca_scores", lambda hp: hp.plot_pca_scores(X2, np.array([1.0, 0.5]))),
     ("aiml", "plot_variance_explained", lambda hp: hp.plot_variance_explained([3.0, 2.0, 1.0])),
     ("aiml", "plot_pca_biplot", lambda hp: hp.plot_pca_biplot(0, 1, sc, comps, obs, feats, cols)),
+    ("aiml", "plot_directions", lambda hp: hp.plot_directions(X2, {"u": [1.0, 0.5]})),
+    ("aiml", "plot_dendrograms", lambda hp: hp.plot_dendrograms({"complete": __import__("scipy.cluster.hierarchy", fromlist=["linkage"]).linkage(X2[:8], "complete")}, cut_heights={"complete": 1.0})),
     ("aiml", "plot_loading_heatmap", lambda hp: hp.plot_loading_heatmap(comps, x_labels=feats)),
     # foundations
     ("foundations", "plot_gaussian_vs_uniform", lambda hp: hp.plot_gaussian_vs_uniform(rng.normal(0, 20, 300), rng.normal(0, 10, 300), rng.uniform(-100, 100, 300))),
