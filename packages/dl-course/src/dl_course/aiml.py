@@ -382,6 +382,27 @@ class AIMLClassificationPlotter(BasePlotter):
         return cls.finalize(fig, ax, show=show)
 
     @classmethod
+    def plot_classes_2d(
+        cls,
+        X: np.ndarray,
+        t: np.ndarray,
+        xlabel: str = "$x_1$",
+        ylabel: str = "$x_2$",
+        title: Optional[str] = None,
+        figsize: Tuple[float, float] = (6.5, 4.6),
+        ax: Optional[plt.Axes] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
+        """Scatter two-dimensional inputs X coloured by their class labels t."""
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel=ylabel)
+        X_arr, t_arr = _to_numpy(X), _to_numpy(t, ravel=True)
+        for label, color in zip(np.unique(t_arr), ["crimson", "royalblue", "forestgreen", "darkorange"]):
+            mask = t_arr == label
+            ax.scatter(X_arr[mask, 0], X_arr[mask, 1], c=color, alpha=0.7, edgecolors="k", s=28, label=f"class {label}")
+        ax.legend(fontsize=9.5)
+        return cls.finalize(fig, ax, show=show)
+
+    @classmethod
     def plot_class_counts(
         cls,
         frames: Dict[str, pd.DataFrame],
@@ -922,6 +943,7 @@ plot_knn_intuition = lambda iris, show=False: AIMLClassificationPlotter.plot_knn
 )
 plot_knn_classification_results = AIMLClassificationPlotter.plot_knn_classification_results
 plot_class_counts = AIMLClassificationPlotter.plot_class_counts
+plot_classes_2d = AIMLClassificationPlotter.plot_classes_2d
 plot_roc_curves = AIMLClassificationPlotter.plot_roc_curves
 plot_knn_results = lambda train_X, train_y, test_X, test_y, pred_y, target_names=None, feature_cols=None: (
     AIMLClassificationPlotter.plot_knn_classification_results(

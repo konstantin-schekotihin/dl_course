@@ -107,6 +107,7 @@ CASES = [
     ("aiml", "get_boundaries", lambda hp: hp.get_boundaries(X2)),
     ("aiml", "plot_knn_neighborhood_2d", lambda hp: hp.plot_knn_neighborhood_2d(X2, labels, show_neighborhood=True)),
     ("aiml", "plot_knn_intuition", lambda hp: hp.plot_knn_intuition(iris, show=True)),
+    ("aiml", "plot_classes_2d", lambda hp: hp.plot_classes_2d(X2, y2)),
     ("aiml", "plot_class_counts", lambda hp: hp.plot_class_counts({"all": iris, "half": iris.iloc[::2]}, x="species", hue="species")),
     ("aiml", "plot_knn_classification_results", lambda hp: hp.plot_knn_classification_results(X4, labels, X4, labels, labels[::-1])),
     ("aiml", "plot_knn_results", lambda hp: hp.plot_knn_results(X4, labels, X4, labels, labels[::-1])),
