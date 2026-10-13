@@ -184,6 +184,117 @@ class AIMLRegressionPlotter(BasePlotter):
         ax_plot.grid(True)
         return cls.finalize(fig, ax=ax_plot, show=show)
 
+    @classmethod
+    def plot_curves(
+        cls,
+        x: Sequence[float],
+        curves: Dict[str, Sequence[float]],
+        xlabel: Optional[str] = None,
+        ylabel: Optional[str] = None,
+        title: Optional[str] = None,
+        logx: bool = False,
+        mark_x: Optional[float] = None,
+        mark_label: Optional[str] = None,
+        figsize: Tuple[float, float] = (7.5, 4.2),
+        ax: Optional[plt.Axes] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
+        """Draw pre-computed curves over a shared x axis (errors over flexibility, coefficient paths, losses)."""
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel=ylabel)
+        x_arr = _to_numpy(x, ravel=True)
+        marker = "o" if len(x_arr) <= 25 else None
+        colors = plt.cm.tab20.colors if len(curves) > 10 else [None] * len(curves)  # distinct colours for many curves
+        for (label, values), color in zip(curves.items(), colors):
+            ax.plot(x_arr, _to_numpy(values, ravel=True), lw=2.0, marker=marker, ms=4, label=label, color=color)
+        if logx:
+            ax.set_xscale("log")
+        if mark_x is not None:
+            ax.axvline(mark_x, color="gray", linestyle="--", lw=1.2, label=mark_label)
+        if len(curves) > 6:
+            ax.legend(fontsize=7.5, ncol=2, loc="upper left", bbox_to_anchor=(1.01, 1.0))
+        else:
+            ax.legend(fontsize=9.5, loc="best")
+        return cls.finalize(fig, ax, show=show)
+
+    @classmethod
+    def plot_fitted_curves(
+        cls,
+        x: Sequence[float],
+        t: Sequence[float],
+        x_grid: Sequence[float],
+        curves: Dict[str, Sequence[float]],
+        xlabel: Optional[str] = None,
+        ylabel: Optional[str] = None,
+        title: Optional[str] = None,
+        figsize: Tuple[float, float] = (7.5, 4.5),
+        ax: Optional[plt.Axes] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
+        """Scatter observations and overlay model curves pre-computed on x_grid."""
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel=ylabel)
+        ax.scatter(_to_numpy(x, ravel=True), _to_numpy(t, ravel=True), color="royalblue", alpha=0.45, s=16, label="Observations")
+        for label, values in curves.items():
+            ax.plot(_to_numpy(x_grid, ravel=True), _to_numpy(values, ravel=True), lw=2.2, label=label)
+        ax.legend(fontsize=9.5, loc="best")
+        return cls.finalize(fig, ax, show=show)
+
+    @classmethod
+    def plot_confounding(
+        cls,
+        x_mid: Sequence[float],
+        rates: Dict[str, Sequence[float]],
+        overall: Dict[str, float],
+        values_by_group: Dict[str, Sequence[float]],
+        xlabel: str,
+        ylabel: str,
+        value_label: str,
+        figsize: Tuple[float, float] = (11.0, 4.0),
+        show: bool = True,
+    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
+        """Left: pre-computed rate per x-bin for each group (overall group rates dashed); right: boxplots of x per group."""
+        fig, (ax_rate, ax_box) = plt.subplots(1, 2, figsize=figsize, gridspec_kw={"width_ratios": [2, 1]})
+        colors = ["firebrick", "royalblue", "forestgreen", "darkorange"]
+        for (group, values), color in zip(rates.items(), colors):
+            ax_rate.plot(_to_numpy(x_mid, ravel=True), _to_numpy(values, ravel=True), color=color, lw=2, marker="o", ms=3, label=group)
+            ax_rate.axhline(overall[group], color=color, linestyle="--", lw=1.2)
+        ax_rate.set_xlabel(xlabel, fontsize=10.5)
+        ax_rate.set_ylabel(ylabel, fontsize=10.5)
+        ax_rate.legend(fontsize=9.5)
+        ax_rate.grid(True, linestyle="--", alpha=0.5)
+        ax_box.boxplot([_to_numpy(v, ravel=True) for v in values_by_group.values()])
+        ax_box.set_xticks(range(1, len(values_by_group) + 1), list(values_by_group.keys()))
+        ax_box.set_ylabel(value_label, fontsize=10.5)
+        ax_box.grid(True, linestyle="--", alpha=0.5)
+        return cls.finalize(fig, show=show)
+
+    @classmethod
+    def plot_residual_panels(
+        cls,
+        panels: Dict[str, Tuple[Sequence[float], Sequence[float]]],
+        xlabel: str = r"Fitted value $\hat{t}_n$",
+        ylabel: str = r"Residual $e_n$",
+        band: Optional[float] = None,
+        n_labels: int = 0,
+        figsize: Optional[Tuple[float, float]] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
+        """Scatter pre-computed residuals against fitted values (or leverage), one panel per entry; label the largest."""
+        fig, axes = plt.subplots(1, len(panels), figsize=figsize or (5.2 * len(panels), 3.9), squeeze=False)
+        for ax, (title, (x_vals, r_vals)) in zip(axes[0], panels.items()):
+            x_arr, r_arr = _to_numpy(x_vals, ravel=True), _to_numpy(r_vals, ravel=True)
+            ax.scatter(x_arr, r_arr, color="royalblue", alpha=0.55, s=16)
+            ax.axhline(0, color="gray", lw=1.0)
+            if band is not None:
+                ax.axhline(band, color="firebrick", linestyle="--", lw=1.2)
+                ax.axhline(-band, color="firebrick", linestyle="--", lw=1.2)
+            for n in np.argsort(-np.abs(r_arr))[:n_labels]:
+                ax.annotate(str(n), (x_arr[n], r_arr[n]), xytext=(4, 2), textcoords="offset points", fontsize=8.5, color="firebrick")
+            ax.set_title(title, fontsize=11.5)
+            ax.set_xlabel(xlabel, fontsize=10.5)
+            ax.set_ylabel(ylabel, fontsize=10.5)
+            ax.grid(True, linestyle="--", alpha=0.5)
+        return cls.finalize(fig, show=show)
+
 
 # ---------------------------------------------------------------------------
 # 3. Instance-Based Classification, Decision Surfaces & Margins (01, 04, 05, 06)
@@ -249,6 +360,68 @@ class AIMLClassificationPlotter(BasePlotter):
         ax_plot.legend(loc="upper left", fontsize=10)
         ax_plot.grid(True)
         return cls.finalize(fig, ax=ax_plot, show=show)
+
+    @classmethod
+    def plot_roc_curves(
+        cls,
+        curves: Dict[str, Tuple[Sequence[float], Sequence[float]]],
+        title: Optional[str] = None,
+        figsize: Tuple[float, float] = (5.2, 4.6),
+        ax: Optional[plt.Axes] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
+        """ROC curves from pre-computed (false positive rate, true positive rate) pairs, with the chance diagonal."""
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel="False positive rate (1 - specificity)",
+                             ylabel="True positive rate (sensitivity)")
+        for label, (fpr, tpr) in curves.items():
+            ax.plot(_to_numpy(fpr, ravel=True), _to_numpy(tpr, ravel=True), lw=2.2, label=label)
+        ax.plot([0, 1], [0, 1], color="gray", linestyle="--", lw=1.0, label="chance")
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1.01)
+        ax.legend(loc="lower right", fontsize=9.5)
+        return cls.finalize(fig, ax, show=show)
+
+    @classmethod
+    def plot_classes_2d(
+        cls,
+        X: np.ndarray,
+        t: np.ndarray,
+        xlabel: str = "$x_1$",
+        ylabel: str = "$x_2$",
+        title: Optional[str] = None,
+        figsize: Tuple[float, float] = (6.5, 4.6),
+        ax: Optional[plt.Axes] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
+        """Scatter two-dimensional inputs X coloured by their class labels t."""
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel=ylabel)
+        X_arr, t_arr = _to_numpy(X), _to_numpy(t, ravel=True)
+        for label, color in zip(np.unique(t_arr), ["crimson", "royalblue", "forestgreen", "darkorange"]):
+            mask = t_arr == label
+            ax.scatter(X_arr[mask, 0], X_arr[mask, 1], c=color, alpha=0.7, edgecolors="k", s=28, label=f"class {label}")
+        ax.legend(fontsize=9.5)
+        return cls.finalize(fig, ax, show=show)
+
+    @classmethod
+    def plot_class_counts(
+        cls,
+        frames: Dict[str, pd.DataFrame],
+        x: str,
+        hue: str,
+        n_cols: int = 2,
+        figsize: Optional[Tuple[float, float]] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
+        """Count plots of column x coloured by hue, one panel per (pre-split) data frame."""
+        n_rows = (len(frames) + n_cols - 1) // n_cols
+        fig, axes = plt.subplots(n_rows, n_cols, sharey=True, squeeze=False, figsize=figsize or (6.0 * n_cols, 3.0 * n_rows))
+        hue_order = sorted(pd.concat([df[hue] for df in frames.values()]).unique())
+        for ax, (title, df) in zip(axes.ravel(), frames.items()):
+            sns.countplot(x=x, data=df, hue=hue, hue_order=hue_order, ax=ax)
+            ax.set_title(title, fontsize=11)
+            ax.tick_params(axis="x", labelrotation=90, labelsize=7)
+            ax.legend(fontsize=8)
+        return cls.finalize(fig, show=show)
 
     @classmethod
     def plot_knn_classification_results(
@@ -449,64 +622,32 @@ class AIMLClassificationPlotter(BasePlotter):
         return cls.finalize(fig, show=show)
 
     @classmethod
-    def plot_svm_margins(
+    def plot_svm_panels(
         cls,
-        model: Any,
-        ax: Optional[Any] = None,
-        xlim: Optional[Tuple[float, float]] = None,
-        ylim: Optional[Tuple[float, float]] = None,
+        panels: Dict[str, Tuple[Any, Any, Any, Any, Any, Any]],
+        figsize: Optional[Tuple[float, float]] = None,
         show: bool = True,
-    ) -> Optional[plt.Axes]:
-        """Plot SVM decision boundary, margin contours (Z = -1, 0, +1), and support vectors."""
-        standalone = False
-        if ax is None:
-            fig, ax_plot = cls.create_canvas(figsize=(7, 6))
-            standalone = True
-        elif ax is plt:
-            ax_plot = plt.gca()
-            fig = ax_plot.get_figure()
-        else:
-            ax_plot = ax
-            fig = ax_plot.get_figure()
-
-        if xlim is None:
-            xlim = ax_plot.get_xlim()
-        if ylim is None:
-            ylim = ax_plot.get_ylim()
-
-        xx = np.linspace(xlim[0], xlim[1], 80)
-        yy = np.linspace(ylim[0], ylim[1], 80)
-        YY, XX = np.meshgrid(yy, xx)
-        xy = np.vstack([XX.ravel(), YY.ravel()]).T
-
-        Z = model.decision_function(xy).reshape(XX.shape)
-
-        ax_plot.contour(
-            XX,
-            YY,
-            Z,
-            colors=["royalblue", "black", "royalblue"],
-            levels=[-1, 0, 1],
-            alpha=0.6,
-            linestyles=["--", "-", "--"],
-            linewidths=[1.8, 2.2, 1.8],
-        )
-        if hasattr(model, "support_vectors_") and len(model.support_vectors_) > 0:
-            ax_plot.scatter(
-                model.support_vectors_[:, 0],
-                model.support_vectors_[:, 1],
-                facecolors="none",
-                edgecolors="firebrick",
-                s=120,
-                linewidths=1.8,
-                label="Support Vectors",
-                zorder=6,
-            )
-            ax_plot.legend(loc="lower right", fontsize=9.5)
-
-        if standalone:
-            return cls.finalize(fig, ax=ax_plot, show=show)
-        return ax_plot
+    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
+        """One panel per entry (X, t, xx, yy, Z, support_vectors): data, pre-computed decision values Z at -1, 0, +1, support vectors circled."""
+        n = len(panels)
+        n_cols = min(n, 2) if n != 3 else 3
+        n_rows = (n + n_cols - 1) // n_cols
+        fig, axes = plt.subplots(n_rows, n_cols, figsize=figsize or (4.6 * n_cols, 4.2 * n_rows), squeeze=False)
+        for ax, (title, (X, t, xx, yy, Z, support_vectors)) in zip(axes.ravel(), panels.items()):
+            X_arr, sv = _to_numpy(X), _to_numpy(support_vectors)
+            ax.scatter(X_arr[:, 0], X_arr[:, 1], c=_to_numpy(t, ravel=True), cmap=cm_binary, edgecolors="k", s=36)
+            ax.contour(xx, yy, Z, levels=[-1, 0, 1], colors=["royalblue", "black", "royalblue"],
+                       linestyles=["--", "-", "--"], linewidths=[1.6, 2.2, 1.6], alpha=0.8)
+            if len(sv):
+                ax.scatter(sv[:, 0], sv[:, 1], s=140, facecolors="none", edgecolors="firebrick", linewidths=1.6)
+            ax.set_xlim(xx.min(), xx.max())
+            ax.set_ylim(yy.min(), yy.max())
+            ax.set_title(title, fontsize=10.5)
+            ax.set_xlabel("$x_1$")
+            ax.set_ylabel("$x_2$")
+        for ax in axes.ravel()[n:]:
+            ax.axis("off")
+        return cls.finalize(fig, show=show)
 
     @classmethod
     def plot_svm_separating_plane(
@@ -515,11 +656,10 @@ class AIMLClassificationPlotter(BasePlotter):
         y: np.ndarray,
         xlim: Optional[Tuple[float, float]] = None,
         ylim: Optional[Tuple[float, float]] = None,
-        show_margin: bool = False,
         figsize: Tuple[float, float] = (5.5, 5.0),
         show: bool = True,
     ) -> Optional[plt.Figure]:
-        """Render separating hyperplane intuition and shaded half-spaces."""
+        """Scatter linearly separable data with two hand-drawn candidate separating lines."""
         X_arr = _to_numpy(X)
         y_arr = _to_numpy(y)
         if xlim is None or ylim is None:
@@ -529,16 +669,9 @@ class AIMLClassificationPlotter(BasePlotter):
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
         ax.scatter(X_arr[:, 0], X_arr[:, 1], c=y_arr, cmap=cm_binary, edgecolors="k", s=50)
-
-        if not show_margin:
-            ax.plot(xlim, [ylim[1] - 2, ylim[0] + 2], "-c", lw=2, label="Candidate 1")
-            ax.plot(xlim, [ylim[1] + 1, ylim[0] - 2], "-r", lw=2, label="Candidate 2")
-            ax.set_title("Linearly Separable Data: Multiple Valid Planes", fontsize=11)
-        else:
-            ax.plot(xlim, [ylim[1], ylim[0]], "-k", lw=2.4, label="Separating Plane")
-            ax.fill_between(xlim, [ylim[1], ylim[0]], ylim[0], alpha=0.15, color="blue")
-            ax.set_title("Maximum Margin Separating Hyperplane", fontsize=11)
-
+        ax.plot(xlim, [ylim[1] - 2, ylim[0] + 2], "-c", lw=2, label="Candidate 1")
+        ax.plot(xlim, [ylim[1] + 1, ylim[0] - 2], "-r", lw=2, label="Candidate 2")
+        ax.set_title("Linearly Separable Data: Multiple Valid Lines", fontsize=11)
         ax.set_xlabel("$x_1$", fontsize=11)
         ax.set_ylabel("$x_2$", fontsize=11)
         ax.legend(loc="upper right", fontsize=9.5)
@@ -709,6 +842,50 @@ class AIMLUnsupervisedPlotter(BasePlotter):
         return cls.finalize(fig, show=show)
 
     @classmethod
+    def plot_directions(
+        cls,
+        X: np.ndarray,
+        directions: Dict[str, Sequence[float]],
+        xlabel: Optional[str] = None,
+        ylabel: Optional[str] = None,
+        title: Optional[str] = None,
+        figsize: Tuple[float, float] = (5.5, 5.0),
+        show: bool = True,
+    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
+        """Scatter 2D data and draw pre-computed direction vectors as arrows from the origin."""
+        fig, ax = cls.canvas(figsize=figsize, title=title, xlabel=xlabel, ylabel=ylabel)
+        X_arr = _to_numpy(X)
+        ax.scatter(X_arr[:, 0], X_arr[:, 1], color="royalblue", alpha=0.6, s=24)
+        for (label, vector), color in zip(directions.items(), ["firebrick", "darkorange", "forestgreen", "purple"]):
+            v = _to_numpy(vector, ravel=True)
+            ax.arrow(0, 0, v[0], v[1], color=color, width=0.02, head_width=0.15, length_includes_head=True)
+            ax.plot([], [], color=color, lw=2.5, label=label)
+        ax.set_aspect("equal")
+        ax.legend(fontsize=9.5, loc="best")
+        return cls.finalize(fig, ax, show=show)
+
+    @classmethod
+    def plot_dendrograms(
+        cls,
+        linkages: Dict[str, np.ndarray],
+        labels: Optional[Sequence[str]] = None,
+        cut_heights: Optional[Dict[str, float]] = None,
+        figsize: Optional[Tuple[float, float]] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
+        """Dendrograms of pre-computed scipy linkage matrices, one panel each, with an optional horizontal cut line."""
+        from scipy.cluster.hierarchy import dendrogram
+
+        fig, axes = plt.subplots(len(linkages), 1, figsize=figsize or (12, 3.2 * len(linkages)), squeeze=False)
+        for ax, (title, Z) in zip(axes[:, 0], linkages.items()):
+            dendrogram(Z, labels=list(labels) if labels is not None else None, ax=ax, leaf_font_size=7, color_threshold=0)
+            if cut_heights and title in cut_heights:
+                ax.axhline(cut_heights[title], color="firebrick", linestyle="--", lw=1.2)
+            ax.set_title(title, fontsize=11)
+            ax.set_ylabel("fusion height")
+        return cls.finalize(fig, show=show)
+
+    @classmethod
     def plot_loading_heatmap(
         cls,
         loadings: np.ndarray,
@@ -752,6 +929,10 @@ plot_linear_fit = AIMLRegressionPlotter.plot_linear_classification_fit
 plot_logistic_response_curve = AIMLRegressionPlotter.plot_logistic_response_curve
 plot_logistic_curve = lambda x_vals, y_vals, w_0, w_1: AIMLRegressionPlotter.plot_logistic_response_curve(x_vals, y_vals, w_0=w_0, w_1=w_1)
 plot_positive_vs_log = AIMLRegressionPlotter.plot_positive_vs_log
+plot_curves = AIMLRegressionPlotter.plot_curves
+plot_fitted_curves = AIMLRegressionPlotter.plot_fitted_curves
+plot_residual_panels = AIMLRegressionPlotter.plot_residual_panels
+plot_confounding = AIMLRegressionPlotter.plot_confounding
 
 # Classification Facades
 get_boundaries = AIMLClassificationPlotter.get_boundaries
@@ -765,6 +946,9 @@ plot_knn_intuition = lambda iris, show=False: AIMLClassificationPlotter.plot_knn
     show_neighborhood=show,
 )
 plot_knn_classification_results = AIMLClassificationPlotter.plot_knn_classification_results
+plot_class_counts = AIMLClassificationPlotter.plot_class_counts
+plot_classes_2d = AIMLClassificationPlotter.plot_classes_2d
+plot_roc_curves = AIMLClassificationPlotter.plot_roc_curves
 plot_knn_results = lambda train_X, train_y, test_X, test_y, pred_y, target_names=None, feature_cols=None: (
     AIMLClassificationPlotter.plot_knn_classification_results(
         train_X, train_y, test_X, test_y, pred_y, target_names=target_names, feature_cols=feature_cols, feat_idx=(3, 0)
@@ -773,7 +957,7 @@ plot_knn_results = lambda train_X, train_y, test_X, test_y, pred_y, target_names
 plot_confusion_matrix = AIMLClassificationPlotter.plot_confusion_matrix
 plot_decision_boundary = AIMLClassificationPlotter.plot_decision_boundary
 plot_decision_boundaries_comparison = AIMLClassificationPlotter.plot_decision_boundaries_comparison
-plot_svm_margins = AIMLClassificationPlotter.plot_svm_margins
+plot_svm_panels = AIMLClassificationPlotter.plot_svm_panels
 plot_svm_separating_plane = AIMLClassificationPlotter.plot_svm_separating_plane
 plot_feature_importances = AIMLClassificationPlotter.plot_feature_importances
 
@@ -784,6 +968,8 @@ plot_var_exp = AIMLUnsupervisedPlotter.plot_variance_explained
 plot_pca_biplot = AIMLUnsupervisedPlotter.plot_pca_biplot
 biplot = AIMLUnsupervisedPlotter.plot_pca_biplot
 plot_loading_heatmap = AIMLUnsupervisedPlotter.plot_loading_heatmap
+plot_directions = AIMLUnsupervisedPlotter.plot_directions
+plot_dendrograms = AIMLUnsupervisedPlotter.plot_dendrograms
 compress = compress_image_svd
 
 # Conversion & Helper Facades
