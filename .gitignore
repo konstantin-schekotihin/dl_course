@@ -84,6 +84,7 @@ AGENTS.md
 *.ses
 :memory:.ses
 **/review.md
+**/structure.md
 .vscode/
 *.code-workspace
 .idea/
