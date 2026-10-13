@@ -203,8 +203,9 @@ class AIMLRegressionPlotter(BasePlotter):
         fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel=ylabel)
         x_arr = _to_numpy(x, ravel=True)
         marker = "o" if len(x_arr) <= 25 else None
-        for label, values in curves.items():
-            ax.plot(x_arr, _to_numpy(values, ravel=True), lw=2.0, marker=marker, ms=4, label=label)
+        colors = plt.cm.tab20.colors if len(curves) > 10 else [None] * len(curves)  # distinct colours for many curves
+        for (label, values), color in zip(curves.items(), colors):
+            ax.plot(x_arr, _to_numpy(values, ravel=True), lw=2.0, marker=marker, ms=4, label=label, color=color)
         if logx:
             ax.set_xscale("log")
         if mark_x is not None:
