@@ -101,6 +101,8 @@ CASES = [
     ("aiml", "plot_positive_vs_log", lambda hp: hp.plot_positive_vs_log(x_dense + 1, x_dense + 1, np.log(x_dense + 1))),
     ("aiml", "plot_curves", lambda hp: hp.plot_curves([1, 2, 3], {"train": [3.0, 2.0, 1.0], "test": [3.0, 2.5, 2.8]}, mark_x=2)),
     ("aiml", "plot_fitted_curves", lambda hp: hp.plot_fitted_curves(x, t, x_dense, {"fit": torch.sin(2 * torch.pi * x_dense)})),
+    ("aiml", "plot_confounding", lambda hp: hp.plot_confounding([1, 2, 3], {"A": [0.1, 0.2, 0.3], "B": [0.2, 0.3, 0.4]}, {"A": 0.2, "B": 0.3}, {"A": [1, 2, 3], "B": [2, 3, 4]}, "x", "rate", "x")),
+    ("aiml", "plot_roc_curves", lambda hp: hp.plot_roc_curves({"model": ([0.0, 0.2, 1.0], [0.0, 0.7, 1.0])})),
     ("aiml", "plot_residual_panels", lambda hp: hp.plot_residual_panels({"A": (x, t), "B": (t, x)}, band=1.0, n_labels=2)),
     ("aiml", "get_boundaries", lambda hp: hp.get_boundaries(X2)),
     ("aiml", "plot_knn_neighborhood_2d", lambda hp: hp.plot_knn_neighborhood_2d(X2, labels, show_neighborhood=True)),

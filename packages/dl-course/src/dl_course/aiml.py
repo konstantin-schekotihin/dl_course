@@ -239,6 +239,35 @@ class AIMLRegressionPlotter(BasePlotter):
         return cls.finalize(fig, ax, show=show)
 
     @classmethod
+    def plot_confounding(
+        cls,
+        x_mid: Sequence[float],
+        rates: Dict[str, Sequence[float]],
+        overall: Dict[str, float],
+        values_by_group: Dict[str, Sequence[float]],
+        xlabel: str,
+        ylabel: str,
+        value_label: str,
+        figsize: Tuple[float, float] = (11.0, 4.0),
+        show: bool = True,
+    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
+        """Left: pre-computed rate per x-bin for each group (overall group rates dashed); right: boxplots of x per group."""
+        fig, (ax_rate, ax_box) = plt.subplots(1, 2, figsize=figsize, gridspec_kw={"width_ratios": [2, 1]})
+        colors = ["firebrick", "royalblue", "forestgreen", "darkorange"]
+        for (group, values), color in zip(rates.items(), colors):
+            ax_rate.plot(_to_numpy(x_mid, ravel=True), _to_numpy(values, ravel=True), color=color, lw=2, marker="o", ms=3, label=group)
+            ax_rate.axhline(overall[group], color=color, linestyle="--", lw=1.2)
+        ax_rate.set_xlabel(xlabel, fontsize=10.5)
+        ax_rate.set_ylabel(ylabel, fontsize=10.5)
+        ax_rate.legend(fontsize=9.5)
+        ax_rate.grid(True, linestyle="--", alpha=0.5)
+        ax_box.boxplot([_to_numpy(v, ravel=True) for v in values_by_group.values()])
+        ax_box.set_xticks(range(1, len(values_by_group) + 1), list(values_by_group.keys()))
+        ax_box.set_ylabel(value_label, fontsize=10.5)
+        ax_box.grid(True, linestyle="--", alpha=0.5)
+        return cls.finalize(fig, show=show)
+
+    @classmethod
     def plot_residual_panels(
         cls,
         panels: Dict[str, Tuple[Sequence[float], Sequence[float]]],
@@ -331,6 +360,26 @@ class AIMLClassificationPlotter(BasePlotter):
         ax_plot.legend(loc="upper left", fontsize=10)
         ax_plot.grid(True)
         return cls.finalize(fig, ax=ax_plot, show=show)
+
+    @classmethod
+    def plot_roc_curves(
+        cls,
+        curves: Dict[str, Tuple[Sequence[float], Sequence[float]]],
+        title: Optional[str] = None,
+        figsize: Tuple[float, float] = (5.2, 4.6),
+        ax: Optional[plt.Axes] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
+        """ROC curves from pre-computed (false positive rate, true positive rate) pairs, with the chance diagonal."""
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel="False positive rate (1 - specificity)",
+                             ylabel="True positive rate (sensitivity)")
+        for label, (fpr, tpr) in curves.items():
+            ax.plot(_to_numpy(fpr, ravel=True), _to_numpy(tpr, ravel=True), lw=2.2, label=label)
+        ax.plot([0, 1], [0, 1], color="gray", linestyle="--", lw=1.0, label="chance")
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1.01)
+        ax.legend(loc="lower right", fontsize=9.5)
+        return cls.finalize(fig, ax, show=show)
 
     @classmethod
     def plot_class_counts(
@@ -858,6 +907,7 @@ plot_positive_vs_log = AIMLRegressionPlotter.plot_positive_vs_log
 plot_curves = AIMLRegressionPlotter.plot_curves
 plot_fitted_curves = AIMLRegressionPlotter.plot_fitted_curves
 plot_residual_panels = AIMLRegressionPlotter.plot_residual_panels
+plot_confounding = AIMLRegressionPlotter.plot_confounding
 
 # Classification Facades
 get_boundaries = AIMLClassificationPlotter.get_boundaries
@@ -872,6 +922,7 @@ plot_knn_intuition = lambda iris, show=False: AIMLClassificationPlotter.plot_knn
 )
 plot_knn_classification_results = AIMLClassificationPlotter.plot_knn_classification_results
 plot_class_counts = AIMLClassificationPlotter.plot_class_counts
+plot_roc_curves = AIMLClassificationPlotter.plot_roc_curves
 plot_knn_results = lambda train_X, train_y, test_X, test_y, pred_y, target_names=None, feature_cols=None: (
     AIMLClassificationPlotter.plot_knn_classification_results(
         train_X, train_y, test_X, test_y, pred_y, target_names=target_names, feature_cols=feature_cols, feat_idx=(3, 0)
