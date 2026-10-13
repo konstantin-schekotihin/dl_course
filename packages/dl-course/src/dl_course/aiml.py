@@ -842,6 +842,50 @@ class AIMLUnsupervisedPlotter(BasePlotter):
         return cls.finalize(fig, show=show)
 
     @classmethod
+    def plot_directions(
+        cls,
+        X: np.ndarray,
+        directions: Dict[str, Sequence[float]],
+        xlabel: Optional[str] = None,
+        ylabel: Optional[str] = None,
+        title: Optional[str] = None,
+        figsize: Tuple[float, float] = (5.5, 5.0),
+        show: bool = True,
+    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
+        """Scatter 2D data and draw pre-computed direction vectors as arrows from the origin."""
+        fig, ax = cls.canvas(figsize=figsize, title=title, xlabel=xlabel, ylabel=ylabel)
+        X_arr = _to_numpy(X)
+        ax.scatter(X_arr[:, 0], X_arr[:, 1], color="royalblue", alpha=0.6, s=24)
+        for (label, vector), color in zip(directions.items(), ["firebrick", "darkorange", "forestgreen", "purple"]):
+            v = _to_numpy(vector, ravel=True)
+            ax.arrow(0, 0, v[0], v[1], color=color, width=0.02, head_width=0.15, length_includes_head=True)
+            ax.plot([], [], color=color, lw=2.5, label=label)
+        ax.set_aspect("equal")
+        ax.legend(fontsize=9.5, loc="best")
+        return cls.finalize(fig, ax, show=show)
+
+    @classmethod
+    def plot_dendrograms(
+        cls,
+        linkages: Dict[str, np.ndarray],
+        labels: Optional[Sequence[str]] = None,
+        cut_heights: Optional[Dict[str, float]] = None,
+        figsize: Optional[Tuple[float, float]] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
+        """Dendrograms of pre-computed scipy linkage matrices, one panel each, with an optional horizontal cut line."""
+        from scipy.cluster.hierarchy import dendrogram
+
+        fig, axes = plt.subplots(len(linkages), 1, figsize=figsize or (12, 3.2 * len(linkages)), squeeze=False)
+        for ax, (title, Z) in zip(axes[:, 0], linkages.items()):
+            dendrogram(Z, labels=list(labels) if labels is not None else None, ax=ax, leaf_font_size=7, color_threshold=0)
+            if cut_heights and title in cut_heights:
+                ax.axhline(cut_heights[title], color="firebrick", linestyle="--", lw=1.2)
+            ax.set_title(title, fontsize=11)
+            ax.set_ylabel("fusion height")
+        return cls.finalize(fig, show=show)
+
+    @classmethod
     def plot_loading_heatmap(
         cls,
         loadings: np.ndarray,
@@ -924,6 +968,8 @@ plot_var_exp = AIMLUnsupervisedPlotter.plot_variance_explained
 plot_pca_biplot = AIMLUnsupervisedPlotter.plot_pca_biplot
 biplot = AIMLUnsupervisedPlotter.plot_pca_biplot
 plot_loading_heatmap = AIMLUnsupervisedPlotter.plot_loading_heatmap
+plot_directions = AIMLUnsupervisedPlotter.plot_directions
+plot_dendrograms = AIMLUnsupervisedPlotter.plot_dendrograms
 compress = compress_image_svd
 
 # Conversion & Helper Facades
