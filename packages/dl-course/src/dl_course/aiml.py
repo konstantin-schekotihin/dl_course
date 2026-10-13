@@ -622,64 +622,32 @@ class AIMLClassificationPlotter(BasePlotter):
         return cls.finalize(fig, show=show)
 
     @classmethod
-    def plot_svm_margins(
+    def plot_svm_panels(
         cls,
-        model: Any,
-        ax: Optional[Any] = None,
-        xlim: Optional[Tuple[float, float]] = None,
-        ylim: Optional[Tuple[float, float]] = None,
+        panels: Dict[str, Tuple[Any, Any, Any, Any, Any, Any]],
+        figsize: Optional[Tuple[float, float]] = None,
         show: bool = True,
-    ) -> Optional[plt.Axes]:
-        """Plot SVM decision boundary, margin contours (Z = -1, 0, +1), and support vectors."""
-        standalone = False
-        if ax is None:
-            fig, ax_plot = cls.create_canvas(figsize=(7, 6))
-            standalone = True
-        elif ax is plt:
-            ax_plot = plt.gca()
-            fig = ax_plot.get_figure()
-        else:
-            ax_plot = ax
-            fig = ax_plot.get_figure()
-
-        if xlim is None:
-            xlim = ax_plot.get_xlim()
-        if ylim is None:
-            ylim = ax_plot.get_ylim()
-
-        xx = np.linspace(xlim[0], xlim[1], 80)
-        yy = np.linspace(ylim[0], ylim[1], 80)
-        YY, XX = np.meshgrid(yy, xx)
-        xy = np.vstack([XX.ravel(), YY.ravel()]).T
-
-        Z = model.decision_function(xy).reshape(XX.shape)
-
-        ax_plot.contour(
-            XX,
-            YY,
-            Z,
-            colors=["royalblue", "black", "royalblue"],
-            levels=[-1, 0, 1],
-            alpha=0.6,
-            linestyles=["--", "-", "--"],
-            linewidths=[1.8, 2.2, 1.8],
-        )
-        if hasattr(model, "support_vectors_") and len(model.support_vectors_) > 0:
-            ax_plot.scatter(
-                model.support_vectors_[:, 0],
-                model.support_vectors_[:, 1],
-                facecolors="none",
-                edgecolors="firebrick",
-                s=120,
-                linewidths=1.8,
-                label="Support Vectors",
-                zorder=6,
-            )
-            ax_plot.legend(loc="lower right", fontsize=9.5)
-
-        if standalone:
-            return cls.finalize(fig, ax=ax_plot, show=show)
-        return ax_plot
+    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
+        """One panel per entry (X, t, xx, yy, Z, support_vectors): data, pre-computed decision values Z at -1, 0, +1, support vectors circled."""
+        n = len(panels)
+        n_cols = min(n, 2) if n != 3 else 3
+        n_rows = (n + n_cols - 1) // n_cols
+        fig, axes = plt.subplots(n_rows, n_cols, figsize=figsize or (4.6 * n_cols, 4.2 * n_rows), squeeze=False)
+        for ax, (title, (X, t, xx, yy, Z, support_vectors)) in zip(axes.ravel(), panels.items()):
+            X_arr, sv = _to_numpy(X), _to_numpy(support_vectors)
+            ax.scatter(X_arr[:, 0], X_arr[:, 1], c=_to_numpy(t, ravel=True), cmap=cm_binary, edgecolors="k", s=36)
+            ax.contour(xx, yy, Z, levels=[-1, 0, 1], colors=["royalblue", "black", "royalblue"],
+                       linestyles=["--", "-", "--"], linewidths=[1.6, 2.2, 1.6], alpha=0.8)
+            if len(sv):
+                ax.scatter(sv[:, 0], sv[:, 1], s=140, facecolors="none", edgecolors="firebrick", linewidths=1.6)
+            ax.set_xlim(xx.min(), xx.max())
+            ax.set_ylim(yy.min(), yy.max())
+            ax.set_title(title, fontsize=10.5)
+            ax.set_xlabel("$x_1$")
+            ax.set_ylabel("$x_2$")
+        for ax in axes.ravel()[n:]:
+            ax.axis("off")
+        return cls.finalize(fig, show=show)
 
     @classmethod
     def plot_svm_separating_plane(
@@ -688,11 +656,10 @@ class AIMLClassificationPlotter(BasePlotter):
         y: np.ndarray,
         xlim: Optional[Tuple[float, float]] = None,
         ylim: Optional[Tuple[float, float]] = None,
-        show_margin: bool = False,
         figsize: Tuple[float, float] = (5.5, 5.0),
         show: bool = True,
     ) -> Optional[plt.Figure]:
-        """Render separating hyperplane intuition and shaded half-spaces."""
+        """Scatter linearly separable data with two hand-drawn candidate separating lines."""
         X_arr = _to_numpy(X)
         y_arr = _to_numpy(y)
         if xlim is None or ylim is None:
@@ -702,16 +669,9 @@ class AIMLClassificationPlotter(BasePlotter):
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
         ax.scatter(X_arr[:, 0], X_arr[:, 1], c=y_arr, cmap=cm_binary, edgecolors="k", s=50)
-
-        if not show_margin:
-            ax.plot(xlim, [ylim[1] - 2, ylim[0] + 2], "-c", lw=2, label="Candidate 1")
-            ax.plot(xlim, [ylim[1] + 1, ylim[0] - 2], "-r", lw=2, label="Candidate 2")
-            ax.set_title("Linearly Separable Data: Multiple Valid Planes", fontsize=11)
-        else:
-            ax.plot(xlim, [ylim[1], ylim[0]], "-k", lw=2.4, label="Separating Plane")
-            ax.fill_between(xlim, [ylim[1], ylim[0]], ylim[0], alpha=0.15, color="blue")
-            ax.set_title("Maximum Margin Separating Hyperplane", fontsize=11)
-
+        ax.plot(xlim, [ylim[1] - 2, ylim[0] + 2], "-c", lw=2, label="Candidate 1")
+        ax.plot(xlim, [ylim[1] + 1, ylim[0] - 2], "-r", lw=2, label="Candidate 2")
+        ax.set_title("Linearly Separable Data: Multiple Valid Lines", fontsize=11)
         ax.set_xlabel("$x_1$", fontsize=11)
         ax.set_ylabel("$x_2$", fontsize=11)
         ax.legend(loc="upper right", fontsize=9.5)
@@ -953,7 +913,7 @@ plot_knn_results = lambda train_X, train_y, test_X, test_y, pred_y, target_names
 plot_confusion_matrix = AIMLClassificationPlotter.plot_confusion_matrix
 plot_decision_boundary = AIMLClassificationPlotter.plot_decision_boundary
 plot_decision_boundaries_comparison = AIMLClassificationPlotter.plot_decision_boundaries_comparison
-plot_svm_margins = AIMLClassificationPlotter.plot_svm_margins
+plot_svm_panels = AIMLClassificationPlotter.plot_svm_panels
 plot_svm_separating_plane = AIMLClassificationPlotter.plot_svm_separating_plane
 plot_feature_importances = AIMLClassificationPlotter.plot_feature_importances
 
