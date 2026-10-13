@@ -63,7 +63,7 @@ Alternatively, open the notebooks in VS Code and select the `.venv` interpreter 
 | [`03_logistic_regression.ipynb`](03_logistic_regression.ipynb) | Logistic regression for qualitative targets: the sigmoid model, maximum likelihood with cross-entropy, and a credit-default case study. |
 | [`04_NN.ipynb`](04_NN.ipynb) | Neural networks from the perceptron to multi-layer perceptrons, including backpropagation and practical training with scikit-learn. |
 | [`05_ensembles.ipynb`](05_ensembles.ipynb) | Decision trees and tree ensembles (bagging, random forests, boosting), applied to breast-cancer diagnosis with W&B tracking. |
-| [`06_SVM.ipynb`](06_SVM.ipynb) | Support vector machines: maximal- and soft-margin classifiers and the kernel trick, applied to breast-cancer diagnosis. |
+| [`06_SVM.ipynb`](06_SVM.ipynb) | Support vector machines: maximal- and soft-margin classifiers and the kernel trick, applied to predicting breast-cancer recurrence. |
 | [`07_unsupervised.ipynb`](07_unsupervised.ipynb) | Unsupervised learning with principal component analysis and clustering. |
 | [`08_ml_agents.ipynb`](08_ml_agents.ipynb) | A specification-driven workflow for ML projects with AI coding agents, from task specification and baselines to test-driven development and preparation for the oral defense. |
 | [`aux1_BN.ipynb`](aux1_BN.ipynb) *(supplementary)* | Bayesian classifiers: Bayes' theorem, ML and MAP estimation, the Bayes optimal classifier, and naive Bayes. |
