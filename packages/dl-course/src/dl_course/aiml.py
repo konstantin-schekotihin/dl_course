@@ -925,9 +925,7 @@ class AIMLUnsupervisedPlotter(BasePlotter):
 # Regression Facades
 plot_residuals = AIMLRegressionPlotter.plot_residuals
 plot_linear_classification_fit = AIMLRegressionPlotter.plot_linear_classification_fit
-plot_linear_fit = AIMLRegressionPlotter.plot_linear_classification_fit
 plot_logistic_response_curve = AIMLRegressionPlotter.plot_logistic_response_curve
-plot_logistic_curve = lambda x_vals, y_vals, w_0, w_1: AIMLRegressionPlotter.plot_logistic_response_curve(x_vals, y_vals, w_0=w_0, w_1=w_1)
 plot_positive_vs_log = AIMLRegressionPlotter.plot_positive_vs_log
 plot_curves = AIMLRegressionPlotter.plot_curves
 plot_fitted_curves = AIMLRegressionPlotter.plot_fitted_curves
@@ -937,23 +935,10 @@ plot_confounding = AIMLRegressionPlotter.plot_confounding
 # Classification Facades
 get_boundaries = AIMLClassificationPlotter.get_boundaries
 plot_knn_neighborhood_2d = AIMLClassificationPlotter.plot_knn_neighborhood_2d
-plot_knn_intuition = lambda iris, show=False: AIMLClassificationPlotter.plot_knn_neighborhood_2d(
-    np.c_[iris.sepal_length.values, iris.petal_length.values],
-    iris.species.values,
-    query_pt=(5.5, 4.7),
-    radius=0.3,
-    feature_names=("Sepal Length ($x_1$)", "Petal Length ($x_2$)"),
-    show_neighborhood=show,
-)
 plot_knn_classification_results = AIMLClassificationPlotter.plot_knn_classification_results
 plot_class_counts = AIMLClassificationPlotter.plot_class_counts
 plot_classes_2d = AIMLClassificationPlotter.plot_classes_2d
 plot_roc_curves = AIMLClassificationPlotter.plot_roc_curves
-plot_knn_results = lambda train_X, train_y, test_X, test_y, pred_y, target_names=None, feature_cols=None: (
-    AIMLClassificationPlotter.plot_knn_classification_results(
-        train_X, train_y, test_X, test_y, pred_y, target_names=target_names, feature_cols=feature_cols, feat_idx=(3, 0)
-    )
-)
 plot_confusion_matrix = AIMLClassificationPlotter.plot_confusion_matrix
 plot_decision_boundary = AIMLClassificationPlotter.plot_decision_boundary
 plot_decision_boundaries_comparison = AIMLClassificationPlotter.plot_decision_boundaries_comparison
@@ -964,13 +949,10 @@ plot_feature_importances = AIMLClassificationPlotter.plot_feature_importances
 # Unsupervised Facades
 plot_pca_scores = AIMLUnsupervisedPlotter.plot_pca_scores
 plot_variance_explained = AIMLUnsupervisedPlotter.plot_variance_explained
-plot_var_exp = AIMLUnsupervisedPlotter.plot_variance_explained
 plot_pca_biplot = AIMLUnsupervisedPlotter.plot_pca_biplot
-biplot = AIMLUnsupervisedPlotter.plot_pca_biplot
 plot_loading_heatmap = AIMLUnsupervisedPlotter.plot_loading_heatmap
 plot_directions = AIMLUnsupervisedPlotter.plot_directions
 plot_dendrograms = AIMLUnsupervisedPlotter.plot_dendrograms
-compress = compress_image_svd
 
 # Conversion & Helper Facades
 to_numpy = BasePlotter.to_numpy
