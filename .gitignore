@@ -125,3 +125,7 @@ AI-ML/deliverables/**/*.fls
 AI-ML/deliverables/**/*.fdb_latexmk
 AI-ML/deliverables/**/*.synctex.gz
 AI-ML/deliverables/**/*.pdf
+
+# --- Saved models (created by the notebooks) ---
+*.joblib
+AI-ML/models/
