@@ -1,0 +1,16 @@
+/* Course slide styling for RISE. RISE loads rise.css from the notebook's folder automatically.
+   Keep the copies in ML-DL/01_foundations, ML-DL/02_deep_learning and AI-ML identical. */
+
+/* Callouts (> ⚠️ Important, > 💡 Key Takeaway, > 📘 Definition, > 📝 Note, > 🎯 Problem):
+   the Reveal.js theme draws blockquotes at 70 % width, centred and italic. */
+.rise-enabled .reveal blockquote {
+  width: 100%;
+  margin: 15px 0;
+  padding: 6px 14px;
+  font-style: normal;
+  text-align: left;
+  box-sizing: border-box;
+  border-left: 4px solid #b0b8c4;
+  background: rgba(0, 0, 0, 0.03);
+  box-shadow: none;
+}
