@@ -6,7 +6,7 @@ Inherited and re-exported by course-specific helper modules across ML-DL and AI-
 
 Modules:
 1. Course Aesthetics & Asset Resolution (get_file, get_url, get_data_path, setup_theme, print_math)
-2. Base & Specialized Plotter Classes (BasePlotter, RegressionPlotter, BoundaryPlotter, DiagnosticPlotter, ImagePlotter)
+2. Base & Specialized Plotter Classes (BasePlotter, RegressionPlotter, BoundaryPlotter, DiagnosticPlotter, ImagePlotter, PCAPlotter)
 3. Image Loading, Processing & Display (load_image, plot_image, compress_image_svd)
 4. Functional Facades (plot_residuals, plot_binary, plot_correlation_matrix, plot_pairgrid, annotate)
 """
@@ -702,6 +702,28 @@ class ImagePlotter(BasePlotter):
         return cls.finalize(fig, ax, show=show)
 
     @classmethod
+    def plot_image_grid(
+        cls,
+        images: Any,
+        titles: Optional[Sequence[str]] = None,
+        n_cols: int = 4,
+        cmap: str = "gray",
+        figsize: Optional[Tuple[float, float]] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
+        """Show a stack of 2D images (e.g. CNN feature maps) in a grid; receives pre-computed images."""
+        arr = cls.to_numpy(images)
+        n_rows = (len(arr) + n_cols - 1) // n_cols
+        fig, axes = plt.subplots(n_rows, n_cols, figsize=figsize or (2.2 * n_cols, 2.2 * n_rows), squeeze=False)
+        for i, ax in enumerate(axes.ravel()):
+            ax.axis("off")
+            if i < len(arr):
+                ax.imshow(arr[i], cmap=cmap)
+                if titles is not None:
+                    ax.set_title(titles[i], fontsize=10)
+        return cls.finalize(fig, show=show)
+
+    @classmethod
     def compress_image_svd(
         cls,
         img: Any,
@@ -756,6 +778,177 @@ class ImagePlotter(BasePlotter):
         plt.show()
 
 
+class PCAPlotter(BasePlotter):
+    """Visualizer for PCA: projections, principal directions, explained variance, loadings and biplots."""
+
+    @classmethod
+    def plot_projection(
+        cls,
+        X: Any,
+        X_proj: Any,
+        direction: Sequence[float],
+        xlabel: Optional[str] = None,
+        ylabel: Optional[str] = None,
+        title: Optional[str] = None,
+        figsize: Tuple[float, float] = (5.5, 5.0),
+        ax: Optional[Axes] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
+        """Scatter 2D data, the line along a direction through the origin and the drop lines to the pre-computed projections."""
+        X_arr, P_arr = cls.to_numpy(X), cls.to_numpy(X_proj)
+        u = cls.to_numpy(direction, ravel=True)
+        u = u / np.linalg.norm(u)
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel=ylabel)
+        reach = 1.1 * float(np.abs(X_arr).max())
+        ax.plot([-reach * u[0], reach * u[0]], [-reach * u[1], reach * u[1]], color="firebrick", lw=2, label="direction $\\mathbf{u}$")
+        for x_n, p_n in zip(X_arr, P_arr):
+            ax.plot([x_n[0], p_n[0]], [x_n[1], p_n[1]], color="gray", linestyle="--", lw=0.8, alpha=0.6)
+        ax.scatter(X_arr[:, 0], X_arr[:, 1], color="royalblue", alpha=0.7, s=24, label="data $\\mathbf{x}_n$")
+        ax.scatter(P_arr[:, 0], P_arr[:, 1], color="black", marker="x", s=24, label="projections")
+        ax.set_xlim(-reach, reach)
+        ax.set_ylim(-reach, reach)
+        ax.set_aspect("equal")
+        ax.legend(fontsize=9.5, loc="best")
+        return cls.finalize(fig, ax, show=show)
+
+    @classmethod
+    def plot_explained_variance(
+        cls,
+        ratio: Sequence[float],
+        cumulative_ratio: Sequence[float],
+        title: Optional[str] = None,
+        figsize: Tuple[float, float] = (6.5, 4.0),
+        ax: Optional[Axes] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
+        """Scree plot: bars of the pre-computed explained-variance ratios and a line of their cumulative sums."""
+        r, c = cls.to_numpy(ratio, ravel=True), cls.to_numpy(cumulative_ratio, ravel=True)
+        i = np.arange(1, len(r) + 1)
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel="Principal component $i$", ylabel="Proportion of variance")
+        ax.bar(i, r, color="royalblue", alpha=0.8, label="explained by component $i$")
+        ax.plot(i, c, color="forestgreen", marker="o", lw=2, label="cumulative")
+        ax.set_xticks(i)
+        ax.set_ylim(0, 1.05)
+        ax.legend(fontsize=9.5, loc="center right")
+        return cls.finalize(fig, ax, show=show)
+
+    @classmethod
+    def plot_directions(
+        cls,
+        X: Any,
+        directions: Dict[str, Sequence[float]],
+        xlabel: Optional[str] = None,
+        ylabel: Optional[str] = None,
+        title: Optional[str] = None,
+        figsize: Tuple[float, float] = (5.5, 5.0),
+        show: bool = True,
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
+        """Scatter 2D data and draw pre-computed direction vectors as arrows from the origin."""
+        fig, ax = cls.canvas(figsize=figsize, title=title, xlabel=xlabel, ylabel=ylabel)
+        X_arr = cls.to_numpy(X)
+        ax.scatter(X_arr[:, 0], X_arr[:, 1], color="royalblue", alpha=0.6, s=24)
+        for (label, vector), color in zip(directions.items(), ["firebrick", "darkorange", "forestgreen", "purple"]):
+            v = cls.to_numpy(vector, ravel=True)
+            ax.arrow(0, 0, v[0], v[1], color=color, width=0.02, head_width=0.15, length_includes_head=True)
+            ax.plot([], [], color=color, lw=2.5, label=label)
+        ax.set_aspect("equal")
+        ax.legend(fontsize=9.5, loc="best")
+        return cls.finalize(fig, ax, show=show)
+
+    @classmethod
+    def plot_loading_heatmap(
+        cls,
+        loadings: Any,
+        x_labels: Optional[Sequence[str]] = None,
+        y_labels: Optional[Sequence[str]] = None,
+        title: str = "Principal Component Loadings",
+        figsize: Tuple[float, float] = (8, 4.2),
+        show: bool = True,
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
+        """Render styled diverging heatmap for principal component loading matrices."""
+        loadings_arr = cls.to_numpy(loadings)
+        fig, ax = cls.canvas(figsize=figsize, grid=False)
+        cmap = sns.diverging_palette(10, 240, as_cmap=True)
+
+        if y_labels is None:
+            y_labels = [f"$z_{i+1}$" for i in range(len(loadings_arr))]
+
+        sns.heatmap(
+            loadings_arr,
+            cmap=cmap,
+            annot=True,
+            fmt=".2f",
+            xticklabels=list(x_labels) if x_labels is not None else True,
+            yticklabels=list(y_labels),
+            cbar=True,
+            ax=ax,
+        )
+        ax.set_title(title, fontsize=12.5)
+        return cls.finalize(fig, show=show)
+
+    @classmethod
+    def plot_pca_biplot(
+        cls,
+        z1: int,
+        z2: int,
+        sc: Any,
+        comps: Any,
+        obs: Optional[Sequence[Any]],
+        features: Sequence[str],
+        colors: Sequence[str],
+        groups: Optional[Sequence[Any]] = None,
+        figsize: Tuple[float, float] = (9.5, 8.5),
+        show: bool = True,
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
+        """Render PCA biplot: scores as points (labelled by obs, or coloured by groups) and loading vectors as arrows."""
+        x = cls.to_numpy(sc)[:, z1]
+        y = cls.to_numpy(sc)[:, z2]
+        comps_arr = cls.to_numpy(comps)
+
+        fig, ax = cls.canvas(figsize=figsize)
+        ax.set_xlabel(f"$z_{{{z1 + 1}}}$", fontsize=12.5)
+        ax.set_ylabel(f"$z_{{{z2 + 1}}}$", fontsize=12.5)
+
+        sx = float((x.max() - x.min()) / 2)
+        sy = float((y.max() - y.min()) / 2)
+
+        if groups is None:
+            ax.scatter(x, y, alpha=0.5, color="royalblue")
+            for i in range(len(obs)):
+                ax.text(x[i], y[i], str(obs[i]), ha="center", fontsize=10, alpha=0.75)
+        else:
+            g = np.asarray(groups)
+            for label in pd.unique(g):
+                ax.scatter(x[g == label], y[g == label], alpha=0.6, s=28, label=str(label))
+            ax.legend(fontsize=10, loc="best")
+
+        vec = comps_arr[[z1, z2], :].T
+        for i in range(len(vec)):
+            c = colors[i % len(colors)]
+            ax.arrow(
+                0,
+                0,
+                vec[i, 0] * sx,
+                vec[i, 1] * sy,
+                ec=c,
+                head_width=0.08,
+                head_length=0.08,
+                fc=c,
+                lw=1.6,
+            )
+            ax.text(
+                vec[i, 0] * sx * 1.15,
+                vec[i, 1] * sy * 1.15,
+                features[i],
+                color=c,
+                fontsize=11.5,
+                fontweight="bold",
+            )
+
+        ax.set_title(f"Principal Component Biplot: $z_{{{z1 + 1}}}$ vs $z_{{{z2 + 1}}}$", fontsize=13)
+        return cls.finalize(fig, show=show)
+
+
 # ---------------------------------------------------------------------------
 # 3. Public Functional Facades (100% Backward Compatibility)
 # ---------------------------------------------------------------------------
@@ -768,7 +961,13 @@ plot_pairgrid = DiagnosticPlotter.plot_pairgrid
 annotate = DiagnosticPlotter.annotate
 load_image = ImagePlotter.load_image
 plot_image = ImagePlotter.plot_image
+plot_image_grid = ImagePlotter.plot_image_grid
 compress_image_svd = ImagePlotter.compress_image_svd
+plot_projection = PCAPlotter.plot_projection
+plot_explained_variance = PCAPlotter.plot_explained_variance
+plot_directions = PCAPlotter.plot_directions
+plot_loading_heatmap = PCAPlotter.plot_loading_heatmap
+plot_pca_biplot = PCAPlotter.plot_pca_biplot
 
 # Data and Predictor Conversion Facades
 to_numpy = BasePlotter.to_numpy

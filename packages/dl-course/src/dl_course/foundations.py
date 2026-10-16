@@ -9,7 +9,6 @@ Provides structured, decoupled visualization classes and functional facades for:
 5. Model Diagnostics & Quality Metrics (06_mlops)
 """
 
-import math
 from typing import Any, Dict, Optional, Sequence, Tuple
 
 import matplotlib.pyplot as plt
@@ -29,14 +28,19 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
     COURSE_RAW_URL,
     DATA_BASE_URL,
     BasePlotter,
-    compress_image_svd,
     get_data_path,
     get_file,
     get_url,
     plot_correlation_matrix,
+    plot_directions,
+    plot_explained_variance,
     plot_fitted_curves,
-    plot_pairgrid,
     plot_image,
+    plot_image_grid,
+    plot_loading_heatmap,
+    plot_pairgrid,
+    plot_pca_biplot,
+    plot_projection,
     print_math,
     setup_theme,
 )
@@ -123,7 +127,7 @@ class ProbabilityPlotter(BasePlotter):
 # ---------------------------------------------------------------------------
 
 class VectorGeometryPlotter(BasePlotter):
-    """Visualizer for 2D vectors, rotations, and optimization traces."""
+    """Visualizer for 2D vectors and optimization traces."""
 
     @classmethod
     def plot2d(
@@ -147,220 +151,29 @@ class VectorGeometryPlotter(BasePlotter):
         plt.show()
 
     @classmethod
-    def scale_vector(cls, t_vec: torch.Tensor, alpha: float = 1.0) -> None:
-        """Scale a vector and render it with plot2d."""
-        if alpha != 0:
-            cls.plot2d(torch.cat((t_vec, t_vec * alpha), dim=1), title=f"Scale factor: alpha={alpha}")
-        else:
-            cls.plot2d(t_vec, title="Scale factor: alpha=0")
-
-    @classmethod
-    def inspect_angle(cls, y1: float = 0.0, y2: float = 1.0) -> None:
-        """Inspect angle and inner product between (1, 0) and (y1, y2)."""
-        x_base = torch.tensor([[1.0], [0.0]], dtype=torch.float32)
-        y_comp = torch.tensor([[float(y1)], [float(y2)]], dtype=torch.float32)
-        cos_val = cls.to_scalar((torch.matmul(x_base.t(), y_comp) / (torch.norm(x_base) * torch.norm(y_comp))).clamp(-1.0, 1.0))
-        deg = math.degrees(math.acos(cos_val))
-        dot_val = cls.to_scalar(torch.matmul(x_base.t(), y_comp))
-        print_math(
-            rf"Inner product $\mathbf{{x}}^\mathrm{{T}} \mathbf{{y}} = {dot_val:.3f}$ "
-            rf"| Cosine $\cos \theta = {cos_val:.3f}$ | Angle $\theta = {deg:.1f}^\circ$"
-        )
-        cls.plot2d(torch.cat((x_base, y_comp), dim=1), title=f"Angle: {deg:.1f} deg")
-
-    @classmethod
-    def rotate_vector(cls, alpha: float = 90.0) -> None:
-        """Rotate base vector (1, 0) by angle alpha degrees."""
-        rad = math.radians(alpha)
-        rot_mat = torch.tensor([[math.cos(rad), -math.sin(rad)], [math.sin(rad), math.cos(rad)]], dtype=torch.float32)
-        v_init = torch.tensor([[1.0], [0.0]], dtype=torch.float32)
-        v_rot = torch.matmul(rot_mat, v_init)
-        v_0 = cls.to_scalar(v_rot[0, 0])
-        v_1 = cls.to_scalar(v_rot[1, 0])
-        print_math(
-            rf"Rotation angle $\alpha = {alpha:.1f}^\circ$: rotated vector "
-            rf"$\mathbf{{v}}_\mathrm{{rot}} = ({v_0:.3f}, {v_1:.3f})^\mathrm{{T}}$"
-        )
-        cls.plot2d(torch.cat((v_rot, v_init), dim=1), title=f"Rotation by {alpha} deg")
-
-    @classmethod
-    def plot_out(
+    def plot_convergence(
         cls,
-        out: Sequence[Any],
-        title: str = "Gradient Descent Optimization Trace",
+        history: Sequence[float],
+        title: Optional[str] = "Gradient Descent Convergence",
+        ylabel: str = r"$\|\nabla E(\mathbf{w}^{(\tau)})\|$",
         figsize: Tuple[float, float] = (7.0, 4.0),
-    ) -> None:
-        """Render gradient descent optimization history (log-scale gradient norm)."""
-        out_vals = [cls.to_scalar(x) for x in out]
-        if len(out_vals) > 0:
-            print_math(
-                rf"Finished optimization in {len(out_vals)} iterations with final gradient norm "
-                rf"$\|\nabla E(\mathbf{{w}})\| = {out_vals[-1]:.4e}$"
-            )
-        fig, ax = cls.canvas(figsize=figsize, title=title, xlabel=r"Iteration $k$", ylabel=r"Gradient Norm $\|\nabla E(\mathbf{w})\|_2$")
-        ax.plot(range(1, len(out_vals) + 1), out_vals, color="royalblue", lw=2)
+        ax: Optional[Axes] = None,
+        show: bool = True,
+    ):
+        """Plot a pre-recorded optimization history (e.g. gradient norms) per iteration on a log scale."""
+        values = cls.to_numpy(history, ravel=True)
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=r"Iteration $\tau$", ylabel=ylabel)
+        ax.plot(range(1, len(values) + 1), values, color="royalblue", lw=2)
         ax.set_yscale("log")
-        cls.finalize(fig, ax, show=True)
+        return cls.finalize(fig, ax, show=show)
 
 
 # ---------------------------------------------------------------------------
-# 4. Dimensionality Reduction & PCA Plotter (04_algebra)
+# 4. Datasets for the PCA case studies (04_algebra); the PCA plots themselves are in shared.PCAPlotter
 # ---------------------------------------------------------------------------
 
-class PCAPlotter(BasePlotter):
-    """Visualizer for PCA projections, biplots, and variance decomposition."""
-
-    @classmethod
-    def plot_scores(
-        cls,
-        X_us: torch.Tensor,
-        us_columns: Sequence[str],
-        x: float = 0.0,
-        y: float = 0.0,
-    ) -> None:
-        """Plot 2D PCA orthogonal projection and orientation lines."""
-        ort = torch.tensor([[float(x)], [float(y)]], dtype=torch.float32)
-        fig, ax = plt.subplots(1, 2, figsize=(10.0, 4.5), sharey=True)
-        ax[0].set_ylabel(us_columns[1], fontsize=11)
-        X_plot = cls.to_numpy(X_us)
-
-        for a in ax:
-            a.set_xlabel(us_columns[0], fontsize=11)
-            a.scatter(X_plot[:, 0], X_plot[:, 1], alpha=0.7)
-            l, r = a.get_xlim()
-            ort_0 = cls.to_scalar(ort[0])
-            ort_1 = cls.to_scalar(ort[1])
-            if abs(ort_0) > 1e-6:
-                x_vals = np.linspace(l, r, 20)
-                y_vals = (ort_1 / ort_0) * x_vals
-                a.plot(x_vals, y_vals, c="orange", lw=2)
-            a.grid(True, linestyle="--", alpha=0.5)
-
-        denom = cls.to_scalar(torch.matmul(ort.t(), ort))
-        if abs(denom) > 1e-6:
-            proj_matrix = torch.matmul(ort, ort.t()) / denom
-            X_sub = X_us[:, :2] if hasattr(X_us, "device") else torch.tensor(X_us[:, :2], dtype=torch.float32)
-            projected = cls.to_numpy(torch.matmul(X_sub, proj_matrix))
-            for i in range(len(X_plot)):
-                ax[1].plot([X_plot[i, 0], projected[i, 0]], [X_plot[i, 1], projected[i, 1]], c="green", alpha=0.4)
-            ax[1].scatter(projected[:, 0], projected[:, 1], marker="x", c="k", s=25)
-
-        fig.tight_layout()
-        plt.show()
-
-    @classmethod
-    def biplot(
-        cls,
-        z1: int,
-        z2: int,
-        sc: Any,
-        comps: Any,
-        obs: Sequence[Any],
-        features: Sequence[str],
-        colors: Sequence[str],
-    ) -> None:
-        """Render PCA biplot with observation scores and loading vectors."""
-        x = cls.to_numpy(sc)[:, z1]
-        y = cls.to_numpy(sc)[:, z2]
-
-        fig, ax = cls.canvas(figsize=(9.0, 8.0), xlabel=f"$z_{{{z1+1}}}$", ylabel=f"$z_{{{z2+1}}}$")
-        sx = float((x.max() - x.min()) / 2)
-        sy = float((y.max() - y.min()) / 2)
-
-        ax.scatter(x, y, alpha=0.6)
-        for i in range(len(obs)):
-            ax.text(x[i], y[i], str(obs[i]), ha="center", fontsize=9, alpha=0.8)
-
-        comps_mat = cls.to_numpy(comps)[[z1, z2], :].T
-        for i in range(len(comps_mat)):
-            ax.arrow(
-                0,
-                0,
-                comps_mat[i, 0] * sx,
-                comps_mat[i, 1] * sy,
-                ec=colors[i % len(colors)],
-                head_width=0.1,
-                head_length=0.1,
-                fc=colors[i % len(colors)],
-                lw=2,
-            )
-            ax.text(
-                comps_mat[i, 0] * sx * 1.15,
-                comps_mat[i, 1] * sy * 1.15,
-                features[i],
-                color=colors[i % len(colors)],
-                fontsize=12,
-                weight="bold",
-            )
-        cls.finalize(fig, ax, show=True)
-
-    @classmethod
-    def plot_pca_vectors(cls, X: torch.Tensor, feature_names: Sequence[str], loadings: torch.Tensor) -> None:
-        """Plot 2D feature scatter with PCA principal component direction vectors."""
-        X_plot = cls.to_numpy(X)
-        loadings_np = cls.to_numpy(loadings)
-        colors = ["red", "orange"]
-
-        fig, ax = cls.canvas(figsize=(6.0, 5.0), title="Data Scatter and Principal Directions", xlabel=feature_names[0], ylabel=feature_names[1])
-        ax.scatter(X_plot[:, 0], X_plot[:, 1], alpha=0.7)
-        for i in range(min(2, len(loadings_np))):
-            ax.arrow(
-                0,
-                0,
-                loadings_np[i, 0],
-                loadings_np[i, 1],
-                ec=colors[i % len(colors)],
-                head_width=0.12,
-                head_length=0.12,
-                fc=colors[i % len(colors)],
-                lw=2,
-                label=f"Principal direction $\\mathbf{{u}}_{{{i+1}}}$",
-            )
-        ax.legend()
-        cls.finalize(fig, ax, show=True)
-
-    @classmethod
-    def plot_loadings_heatmap(cls, loadings: torch.Tensor, feature_names: Sequence[str]) -> None:
-        """Render heatmap of principal component loadings across feature dimensions."""
-        loadings_np = cls.to_numpy(loadings)
-        fig, ax = cls.canvas(figsize=(7.0, 4.0), title="Principal Component Directions (Loadings)", grid=False)
-        sns.heatmap(
-            loadings_np,
-            cmap=sns.diverging_palette(10, 240, as_cmap=True),
-            annot=True,
-            fmt=".2f",
-            xticklabels=feature_names,
-            yticklabels=[f"u_{i+1}" for i in range(len(loadings_np))],
-            ax=ax,
-        )
-        cls.finalize(fig, ax, show=True)
-
-    @classmethod
-    def plot_explained_variance(cls, ve: torch.Tensor) -> None:
-        """Render 2-panel scree plot: individual variance and cumulative variance ratio."""
-        ve_np = cls.to_numpy(ve)
-        ve_ratio = ve_np / ve_np.sum() if ve_np.sum() > 0 else ve_np
-        cum_ratio = np.cumsum(ve_ratio)
-
-        k_range = list(range(1, len(ve_np) + 1))
-
-        fig, ax = plt.subplots(1, 2, figsize=(10.0, 4.0), sharex=True)
-        ax[0].bar(k_range, ve_np, color="royalblue")
-        ax[0].set_ylabel("Variance Explained")
-        ax[0].set_xlabel("Principal Component")
-        ax[0].set_title("Individual Variance")
-        ax[0].set_xticks(k_range)
-        ax[0].grid(True, linestyle="--", alpha=0.5)
-
-        ax[1].bar(k_range, cum_ratio, color="forestgreen")
-        ax[1].set_ylabel("Cumulative Ratio")
-        ax[1].set_xlabel("Principal Component")
-        ax[1].set_title("Cumulative Variance Ratio")
-        ax[1].set_xticks(k_range)
-        ax[1].grid(True, linestyle="--", alpha=0.5)
-
-        fig.tight_layout()
-        plt.show()
+class IrisPlotter(BasePlotter):
+    """Visualizer for the Iris dataset."""
 
     @classmethod
     def plot_iris_pairplot(cls, df: pd.DataFrame) -> None:
@@ -549,19 +362,9 @@ plot_gmm_samples = ProbabilityPlotter.plot_gmm_samples
 plot_joint_distribution_heatmap = ProbabilityPlotter.plot_joint_distribution_heatmap
 
 plot2d = VectorGeometryPlotter.plot2d
-scale_vector = VectorGeometryPlotter.scale_vector
-inspect_angle = VectorGeometryPlotter.inspect_angle
-rotate_vector = VectorGeometryPlotter.rotate_vector
-plot_out = VectorGeometryPlotter.plot_out
-plot = plot_out
-plot_convergence = plot_out
+plot_convergence = VectorGeometryPlotter.plot_convergence
 
-plot_scores = PCAPlotter.plot_scores
-biplot = PCAPlotter.biplot
-plot_pca_vectors = PCAPlotter.plot_pca_vectors
-plot_loadings_heatmap = PCAPlotter.plot_loadings_heatmap
-plot_explained_variance = PCAPlotter.plot_explained_variance
-plot_iris_pairplot = PCAPlotter.plot_iris_pairplot
+plot_iris_pairplot = IrisPlotter.plot_iris_pairplot
 
 plot_function_and_derivative = FunctionPlotter.plot_function_and_derivative
 plot_multi_curve_comparison = FunctionPlotter.plot_multi_curve_comparison

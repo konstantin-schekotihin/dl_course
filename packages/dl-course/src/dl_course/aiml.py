@@ -37,9 +37,12 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
     load_image,
     plot_binary,
     plot_correlation_matrix,
+    plot_directions,
     plot_fitted_curves,
     plot_image,
+    plot_loading_heatmap,
     plot_pairgrid,
+    plot_pca_biplot,
     print_math,
     setup_theme,
 )
@@ -691,7 +694,7 @@ class AIMLClassificationPlotter(BasePlotter):
 # ---------------------------------------------------------------------------
 
 class AIMLUnsupervisedPlotter(BasePlotter):
-    """Encapsulated unsupervised visualizers: PCA scores, variance explained, biplots, and loadings."""
+    """Unsupervised visualizers: PCA scores, variance explained and dendrograms (biplot, directions, loadings: shared.PCAPlotter)."""
 
     @classmethod
     def plot_pca_scores(
@@ -764,85 +767,6 @@ class AIMLUnsupervisedPlotter(BasePlotter):
         return cls.finalize(fig, show=show)
 
     @classmethod
-    def plot_pca_biplot(
-        cls,
-        z1: int,
-        z2: int,
-        sc: np.ndarray,
-        comps: np.ndarray,
-        obs: Sequence[Any],
-        features: Sequence[str],
-        colors: Sequence[str],
-        figsize: Tuple[float, float] = (9.5, 8.5),
-        show: bool = True,
-    ) -> Optional[plt.Figure]:
-        """Render PCA biplot with observation scores and feature loading vectors."""
-        x = _to_numpy(sc)[:, z1]
-        y = _to_numpy(sc)[:, z2]
-        comps_arr = _to_numpy(comps)
-
-        fig, ax = cls.create_canvas(figsize=figsize)
-        ax.set_xlabel(f"$z_{{{z1 + 1}}}$", fontsize=12.5)
-        ax.set_ylabel(f"$z_{{{z2 + 1}}}$", fontsize=12.5)
-
-        sx = float((x.max() - x.min()) / 2)
-        sy = float((y.max() - y.min()) / 2)
-
-        ax.scatter(x, y, alpha=0.5, color="royalblue")
-        for i in range(len(obs)):
-            ax.text(x[i], y[i], str(obs[i]), ha="center", fontsize=10, alpha=0.75)
-
-        vec = comps_arr[[z1, z2], :].T
-        for i in range(len(vec)):
-            c = colors[i % len(colors)]
-            ax.arrow(
-                0,
-                0,
-                vec[i, 0] * sx,
-                vec[i, 1] * sy,
-                ec=c,
-                head_width=0.08,
-                head_length=0.08,
-                fc=c,
-                lw=1.6,
-            )
-            ax.text(
-                vec[i, 0] * sx * 1.15,
-                vec[i, 1] * sy * 1.15,
-                features[i],
-                color=c,
-                fontsize=11.5,
-                fontweight="bold",
-            )
-
-        ax.set_title(f"Principal Component Biplot: $z_{{{z1 + 1}}}$ vs $z_{{{z2 + 1}}}$", fontsize=13)
-        ax.grid(True)
-        return cls.finalize(fig, show=show)
-
-    @classmethod
-    def plot_directions(
-        cls,
-        X: np.ndarray,
-        directions: Dict[str, Sequence[float]],
-        xlabel: Optional[str] = None,
-        ylabel: Optional[str] = None,
-        title: Optional[str] = None,
-        figsize: Tuple[float, float] = (5.5, 5.0),
-        show: bool = True,
-    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
-        """Scatter 2D data and draw pre-computed direction vectors as arrows from the origin."""
-        fig, ax = cls.canvas(figsize=figsize, title=title, xlabel=xlabel, ylabel=ylabel)
-        X_arr = _to_numpy(X)
-        ax.scatter(X_arr[:, 0], X_arr[:, 1], color="royalblue", alpha=0.6, s=24)
-        for (label, vector), color in zip(directions.items(), ["firebrick", "darkorange", "forestgreen", "purple"]):
-            v = _to_numpy(vector, ravel=True)
-            ax.arrow(0, 0, v[0], v[1], color=color, width=0.02, head_width=0.15, length_includes_head=True)
-            ax.plot([], [], color=color, lw=2.5, label=label)
-        ax.set_aspect("equal")
-        ax.legend(fontsize=9.5, loc="best")
-        return cls.finalize(fig, ax, show=show)
-
-    @classmethod
     def plot_dendrograms(
         cls,
         linkages: Dict[str, np.ndarray],
@@ -861,37 +785,6 @@ class AIMLUnsupervisedPlotter(BasePlotter):
                 ax.axhline(cut_heights[title], color="firebrick", linestyle="--", lw=1.2)
             ax.set_title(title, fontsize=11)
             ax.set_ylabel("fusion height")
-        return cls.finalize(fig, show=show)
-
-    @classmethod
-    def plot_loading_heatmap(
-        cls,
-        loadings: np.ndarray,
-        x_labels: Optional[Sequence[str]] = None,
-        y_labels: Optional[Sequence[str]] = None,
-        title: str = "Principal Component Loadings",
-        figsize: Tuple[float, float] = (8, 4.2),
-        show: bool = True,
-    ) -> Optional[plt.Figure]:
-        """Render styled diverging heatmap for principal component loading matrices."""
-        loadings_arr = _to_numpy(loadings)
-        fig, ax = cls.create_canvas(figsize=figsize)
-        cmap = sns.diverging_palette(10, 240, as_cmap=True)
-
-        if y_labels is None:
-            y_labels = [f"$z_{i+1}$" for i in range(len(loadings_arr))]
-
-        sns.heatmap(
-            loadings_arr,
-            cmap=cmap,
-            annot=True,
-            fmt=".2f",
-            xticklabels=list(x_labels) if x_labels is not None else True,
-            yticklabels=list(y_labels),
-            cbar=True,
-            ax=ax,
-        )
-        ax.set_title(title, fontsize=12.5)
         return cls.finalize(fig, show=show)
 
 
@@ -926,9 +819,6 @@ plot_feature_importances = AIMLClassificationPlotter.plot_feature_importances
 # Unsupervised Facades
 plot_pca_scores = AIMLUnsupervisedPlotter.plot_pca_scores
 plot_variance_explained = AIMLUnsupervisedPlotter.plot_variance_explained
-plot_pca_biplot = AIMLUnsupervisedPlotter.plot_pca_biplot
-plot_loading_heatmap = AIMLUnsupervisedPlotter.plot_loading_heatmap
-plot_directions = AIMLUnsupervisedPlotter.plot_directions
 plot_dendrograms = AIMLUnsupervisedPlotter.plot_dendrograms
 
 # Conversion & Helper Facades
