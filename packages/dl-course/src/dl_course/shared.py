@@ -5,7 +5,7 @@ Provides unified asset resolution, aesthetics, image utilities, and diagnostic v
 Inherited and re-exported by course-specific helper modules across ML-DL and AI-ML.
 
 Modules:
-1. Course Aesthetics & Asset Resolution (get_file, get_url, get_data_path, setup_theme, print_math)
+1. Course Aesthetics & Asset Resolution (get_file, get_url, get_data_path, setup_theme, print_math, format_number)
 2. Base & Specialized Plotter Classes (BasePlotter, RegressionPlotter, BoundaryPlotter, DiagnosticPlotter, ClassificationPlotter, ImagePlotter, ActivationPlotter, PCAPlotter)
 3. Image Loading, Processing & Display (load_image, plot_image, compress_image_svd)
 4. Functional Facades (plot_residuals, plot_binary, plot_correlation_matrix, plot_pairgrid, annotate)
@@ -49,6 +49,14 @@ DATA_BASE_URL: str = os.environ.get(
 def print_math(text: str) -> None:
     """Display formatted LaTeX Markdown output in Jupyter environments."""
     display(Markdown(text))
+
+
+def format_number(value: Any, digits: int = 4) -> str:
+    """Number for display inside a LaTeX formula, with infinity as a symbol."""
+    value = float(value)
+    if np.isinf(value):
+        return r"-\infty" if value < 0 else r"\infty"
+    return f"{value:.{digits}f}"
 
 
 def get_url(filename: str, category: Optional[str] = None) -> str:
