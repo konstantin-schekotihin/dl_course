@@ -38,6 +38,7 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
     plot_binary,
     plot_correlation_matrix,
     plot_correlation_matrix_and_pairgrid,
+    plot_fitted_curves,
     plot_image,
     plot_pairgrid,
     print_math,
@@ -214,28 +215,6 @@ class AIMLRegressionPlotter(BasePlotter):
             ax.legend(fontsize=7.5, ncol=2, loc="upper left", bbox_to_anchor=(1.01, 1.0))
         else:
             ax.legend(fontsize=9.5, loc="best")
-        return cls.finalize(fig, ax, show=show)
-
-    @classmethod
-    def plot_fitted_curves(
-        cls,
-        x: Sequence[float],
-        t: Sequence[float],
-        x_grid: Sequence[float],
-        curves: Dict[str, Sequence[float]],
-        xlabel: Optional[str] = None,
-        ylabel: Optional[str] = None,
-        title: Optional[str] = None,
-        figsize: Tuple[float, float] = (7.5, 4.5),
-        ax: Optional[plt.Axes] = None,
-        show: bool = True,
-    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
-        """Scatter observations and overlay model curves pre-computed on x_grid."""
-        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel=ylabel)
-        ax.scatter(_to_numpy(x, ravel=True), _to_numpy(t, ravel=True), color="royalblue", alpha=0.45, s=16, label="Observations")
-        for label, values in curves.items():
-            ax.plot(_to_numpy(x_grid, ravel=True), _to_numpy(values, ravel=True), lw=2.2, label=label)
-        ax.legend(fontsize=9.5, loc="best")
         return cls.finalize(fig, ax, show=show)
 
     @classmethod
@@ -928,7 +907,6 @@ plot_linear_classification_fit = AIMLRegressionPlotter.plot_linear_classificatio
 plot_logistic_response_curve = AIMLRegressionPlotter.plot_logistic_response_curve
 plot_positive_vs_log = AIMLRegressionPlotter.plot_positive_vs_log
 plot_curves = AIMLRegressionPlotter.plot_curves
-plot_fitted_curves = AIMLRegressionPlotter.plot_fitted_curves
 plot_residual_panels = AIMLRegressionPlotter.plot_residual_panels
 plot_confounding = AIMLRegressionPlotter.plot_confounding
 

@@ -14,7 +14,7 @@ Modules:
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 from IPython.display import Markdown, display
 import matplotlib.pyplot as plt
@@ -453,6 +453,34 @@ class RegressionPlotter(BasePlotter):
         return cls.finalize(fig, ax, show=show)
 
 
+    @classmethod
+    def plot_fitted_curves(
+        cls,
+        x: Sequence[float],
+        t: Sequence[float],
+        x_grid: Sequence[float],
+        curves: Dict[str, Sequence[float]],
+        points: Optional[Dict[str, Tuple[float, float]]] = None,
+        xlabel: Optional[str] = None,
+        ylabel: Optional[str] = None,
+        title: Optional[str] = None,
+        ylim: Optional[Tuple[float, float]] = None,
+        figsize: Tuple[float, float] = (7.5, 4.5),
+        ax: Optional[Axes] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
+        """Scatter observations and overlay model curves pre-computed on x_grid; optionally mark single points."""
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel=ylabel)
+        ax.scatter(cls.to_numpy(x, ravel=True), cls.to_numpy(t, ravel=True), color="royalblue", alpha=0.45, s=16, label="Observations")
+        for label, values in curves.items():
+            ax.plot(cls.to_numpy(x_grid, ravel=True), cls.to_numpy(values, ravel=True), lw=2.2, label=label)
+        for label, (px, py) in (points or {}).items():
+            ax.plot(px, py, marker="o", markersize=9, color="forestgreen", linestyle="none", label=label)
+        if ylim is not None:
+            ax.set_ylim(*ylim)
+        ax.legend(fontsize=9.5, loc="best")
+        return cls.finalize(fig, ax, show=show)
+
 
 class BoundaryPlotter(BasePlotter):
     """Visualizer for 2D decision boundaries and surfaces."""
@@ -744,6 +772,7 @@ class ImagePlotter(BasePlotter):
 # ---------------------------------------------------------------------------
 
 plot_residuals = RegressionPlotter.plot_residuals
+plot_fitted_curves = RegressionPlotter.plot_fitted_curves
 plot_binary = BoundaryPlotter.plot_binary
 plot_correlation_matrix = DiagnosticPlotter.plot_correlation_matrix
 plot_pairgrid = DiagnosticPlotter.plot_pairgrid

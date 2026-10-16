@@ -10,7 +10,7 @@ Provides structured, decoupled visualization classes and functional facades for:
 """
 
 import math
-from typing import Any, Callable, Dict, Optional, Sequence, Tuple
+from typing import Any, Dict, Optional, Sequence, Tuple
 
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -34,6 +34,7 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
     get_file,
     get_url,
     plot_correlation_matrix_and_pairgrid,
+    plot_fitted_curves,
     plot_image,
     print_math,
     setup_theme,
@@ -50,44 +51,21 @@ class ProbabilityPlotter(BasePlotter):
     """Visualizer for empirical probability distributions and diagnostics."""
 
     @classmethod
-    def plot_gaussian_vs_uniform(
+    def plot_sample_histograms(
         cls,
-        g_wide: Sequence[float],
-        g_narrow: Sequence[float],
-        u_draws: Sequence[float],
-        labels: Sequence[str] = ("Gaussian (wide)", "Gaussian (narrow)", "Uniform"),
-        title: str = "Densities of Gaussian and Uniform Samples",
-        figsize: Tuple[float, float] = (8.0, 4.5),
+        samples: Dict[str, Any],
+        title: Optional[str] = None,
+        bins: int = 80,
+        xlabel: str = "$x$",
+        figsize: Tuple[float, float] = (8.0, 4.0),
         ax: Optional[Axes] = None,
         show: bool = True,
     ):
-        """Plot kernel density estimates of pre-sampled wide/narrow Gaussian and uniform draws."""
-        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel="$x$", ylabel="$p(x)$")
-        for samples, label in zip((g_wide, g_narrow, u_draws), labels):
-            sns.kdeplot(cls.to_numpy(samples, ravel=True), label=label, lw=2, ax=ax)
-        ax.legend(loc="upper right", fontsize=10)
-        return cls.finalize(fig, ax, show=show)
-
-    @classmethod
-    def plot_regression_dataset(
-        cls,
-        X: Any,
-        t: Any,
-        f: Optional[Callable[[Any], Any]] = None,
-        title: str = "Synthetic Nonlinear Data with Additive Noise",
-        figsize: Tuple[float, float] = (8.0, 4.5),
-        ax: Optional[Axes] = None,
-        show: bool = True,
-    ):
-        """Plot noisy observations t over inputs X and, if given, the ground-truth function f."""
-        X_np = cls.to_numpy(X, ravel=True)
-        t_np = cls.to_numpy(t, ravel=True)
-        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel="$x$", ylabel="$t$")
-        ax.scatter(X_np, t_np, color="royalblue", s=35, alpha=0.75, label=f"Noisy targets $t$ ($N={len(X_np)}$)")
-        if f is not None:
-            x_grid = np.linspace(float(X_np.min()), float(X_np.max()), 200)
-            ax.plot(x_grid, f(x_grid), color="forestgreen", lw=2, label="Ground truth $f(x)$")
-        ax.legend(loc="upper left", fontsize=10)
+        """Overlay density histograms of named, pre-drawn samples."""
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel="density")
+        for label, values in samples.items():
+            ax.hist(cls.to_numpy(values, ravel=True), bins=bins, density=True, alpha=0.45, label=label)
+        ax.legend(loc="best", fontsize=10)
         return cls.finalize(fig, ax, show=show)
 
     @classmethod
@@ -104,47 +82,6 @@ class ProbabilityPlotter(BasePlotter):
         fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel="$x_1$", ylabel="$x_2$")
         ax.scatter(X_np[:, 0], X_np[:, 1], color="royalblue", alpha=0.7, edgecolors="k", s=35)
         return cls.finalize(fig, ax, show=show)
-
-    @classmethod
-    def render_bias_variance_plot(
-        cls,
-        d_range: Sequence[int],
-        train_sq_err: Sequence[float],
-        test_sq_err: Sequence[float],
-        bias_sq: Sequence[float],
-        var_pred: Sequence[float],
-        sigma_epsilon: float = 0.3,
-        figsize: Tuple[float, float] = (8.0, 4.5),
-    ) -> None:
-        """
-        Render 5-curve bias-variance decomposition across model polynomial degrees.
-
-        Receives pre-computed empirical errors and variance components from the calling notebook.
-        """
-        fig, ax = cls.canvas(figsize=figsize, xlabel="Model Complexity (Polynomial Degree $M$)", ylabel="Expected Error")
-        ax.plot(d_range, train_sq_err, "o-", color="royalblue", lw=1.8, label="Train Error")
-        ax.plot(d_range, test_sq_err, "s-", color="firebrick", lw=2.0, label="Test Error")
-        ax.plot(d_range, bias_sq, "^-", color="darkorange", lw=1.8, label=r"$(\mathrm{bias})^2$")
-        ax.plot(d_range, var_pred, "v-", color="purple", lw=1.8, label=r"$\mathrm{var}$")
-        ax.axhline(sigma_epsilon ** 2, color="gray", linestyle=":", lw=1.5, label=r"Noise Floor $\sigma^2$")
-        ax.set_xticks(list(d_range))
-        ax.legend(loc="upper center", bbox_to_anchor=(0.5, 1.18), ncol=3, fontsize=9.5)
-        cls.finalize(fig, ax, show=True)
-
-    @classmethod
-    def plot_density_comparison(
-        cls,
-        x_dense: np.ndarray,
-        densities_dict: Dict[str, np.ndarray],
-        title: str = "Probability Density Comparison",
-        figsize: Tuple[float, float] = (8.0, 4.0),
-    ) -> None:
-        """Plot comparison of multiple probability density functions."""
-        fig, ax = cls.canvas(figsize=figsize, title=title, xlabel="$x$", ylabel="$p(x)$")
-        for label, dens in densities_dict.items():
-            ax.plot(x_dense, dens, lw=2.0, label=label)
-        ax.legend(loc="best", fontsize=10)
-        cls.finalize(fig, ax, show=True)
 
     @classmethod
     def plot_joint_distribution_heatmap(
@@ -603,11 +540,8 @@ class FunctionPlotter(BasePlotter):
 # 6. Public Functional Facades (100% Backward Compatibility)
 # ---------------------------------------------------------------------------
 
-plot_gaussian_vs_uniform = ProbabilityPlotter.plot_gaussian_vs_uniform
-plot_regression_dataset = ProbabilityPlotter.plot_regression_dataset
+plot_sample_histograms = ProbabilityPlotter.plot_sample_histograms
 plot_gmm_samples = ProbabilityPlotter.plot_gmm_samples
-render_bias_variance_plot = ProbabilityPlotter.render_bias_variance_plot
-plot_density_comparison = ProbabilityPlotter.plot_density_comparison
 plot_joint_distribution_heatmap = ProbabilityPlotter.plot_joint_distribution_heatmap
 
 plot2d = VectorGeometryPlotter.plot2d
