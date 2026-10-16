@@ -35,6 +35,7 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
     plot_directions,
     plot_explained_variance,
     plot_fitted_curves,
+    plot_function_panels,
     plot_image,
     plot_image_grid,
     plot_loading_heatmap,
@@ -191,71 +192,6 @@ class FunctionPlotter(BasePlotter):
     """Visualizer for activation curves, derivatives, and categorical distributions."""
 
     @classmethod
-    def plot_function_and_derivative(
-        cls,
-        x: Sequence[float],
-        y: Sequence[float],
-        dy: Optional[Sequence[float]] = None,
-        title: Optional[str] = None,
-        fn_label: str = "Function $h(a)$",
-        dfn_label: str = "Derivative $h'(a)$",
-        figsize: Tuple[float, float] = (7.5, 4.0),
-        ax: Optional[Axes] = None,
-    ) -> Tuple[Figure, Axes]:
-        """Render activation function curve and its analytical or autograd derivative."""
-        if ax is None:
-            fig, ax = plt.subplots(figsize=figsize)
-        else:
-            fig = ax.get_figure()
-
-        ax.plot(x, y, color="royalblue", lw=2.5, label=fn_label)
-        if dy is not None:
-            ax.plot(x, dy, color="firebrick", lw=2.0, linestyle="--", label=dfn_label)
-
-        ax.axhline(0, color="gray", lw=0.8, alpha=0.6)
-        ax.axvline(0, color="gray", lw=0.8, alpha=0.6)
-        if title:
-            ax.set_title(title, fontsize=12)
-        ax.set_xlabel("Activation input ($a$)", fontsize=11.5)
-        ax.set_ylabel("Output", fontsize=11.5)
-        ax.legend(loc="upper left", fontsize=10)
-        ax.grid(True, linestyle="--", alpha=0.5)
-        fig.tight_layout()
-        plt.show()
-        return fig, ax
-
-    @classmethod
-    def plot_multi_curve_comparison(
-        cls,
-        x: Sequence[float],
-        curves_dict: Dict[str, Sequence[float]],
-        title: str = "Activation Function Comparison",
-        xlabel: str = "Input ($a$)",
-        ylabel: str = "Output $h(a)$",
-        figsize: Tuple[float, float] = (8.0, 4.5),
-        ax: Optional[Axes] = None,
-    ) -> Tuple[Figure, Axes]:
-        """Compare multiple activation functions across a shared input range."""
-        if ax is None:
-            fig, ax = plt.subplots(figsize=figsize)
-        else:
-            fig = ax.get_figure()
-
-        for name, y_vals in curves_dict.items():
-            ax.plot(x, y_vals, lw=2.2, label=name)
-
-        ax.axhline(0, color="gray", lw=0.8, alpha=0.5)
-        ax.axvline(0, color="gray", lw=0.8, alpha=0.5)
-        ax.set_title(title, fontsize=12)
-        ax.set_xlabel(xlabel, fontsize=11)
-        ax.set_ylabel(ylabel, fontsize=11)
-        ax.legend(loc="best", fontsize=10.0)
-        ax.grid(True, linestyle="--", alpha=0.5)
-        fig.tight_layout()
-        plt.show()
-        return fig, ax
-
-    @classmethod
     def plot_curve_with_marker(
         cls,
         x_grid: Sequence[float],
@@ -301,17 +237,19 @@ class FunctionPlotter(BasePlotter):
         categories: Sequence[str],
         probs_dict: Dict[str, Sequence[float]],
         title: str = "Softmax Temperature Output Distribution",
+        ylabel: str = "Probability $y_k$",
+        ylim: Optional[Tuple[float, float]] = None,
         figsize: Tuple[float, float] = (8.0, 4.0),
     ) -> None:
-        """Compare categorical output distributions across softmax temperatures."""
-        fig, ax = cls.canvas(figsize=figsize, title=title, ylabel="Probability $p_k$", grid=False)
+        """Bar chart of pre-computed categorical distributions (e.g. softmax outputs), one bar group per series."""
+        fig, ax = cls.canvas(figsize=figsize, title=title, ylabel=ylabel, ylim=ylim, grid=False)
         n_series = len(probs_dict)
         x = np.arange(len(categories))
         width = 0.8 / n_series
 
         for idx, (label, probs) in enumerate(probs_dict.items()):
             offset = (idx - n_series / 2 + 0.5) * width
-            ax.bar(x + offset, probs, width, label=label, alpha=0.85)
+            ax.bar(x + offset, cls.to_numpy(probs, ravel=True), width, label=label, alpha=0.85)
 
         ax.set_xticks(x)
         ax.set_xticklabels(categories, fontsize=11)
@@ -366,8 +304,6 @@ plot_convergence = VectorGeometryPlotter.plot_convergence
 
 plot_iris_pairplot = IrisPlotter.plot_iris_pairplot
 
-plot_function_and_derivative = FunctionPlotter.plot_function_and_derivative
-plot_multi_curve_comparison = FunctionPlotter.plot_multi_curve_comparison
 plot_curve_with_marker = FunctionPlotter.plot_curve_with_marker
 plot_categorical_probabilities = FunctionPlotter.plot_categorical_probabilities
 plot_classifier_diagnostics = FunctionPlotter.plot_classifier_diagnostics

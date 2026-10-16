@@ -6,7 +6,7 @@ Inherited and re-exported by course-specific helper modules across ML-DL and AI-
 
 Modules:
 1. Course Aesthetics & Asset Resolution (get_file, get_url, get_data_path, setup_theme, print_math)
-2. Base & Specialized Plotter Classes (BasePlotter, RegressionPlotter, BoundaryPlotter, DiagnosticPlotter, ImagePlotter, PCAPlotter)
+2. Base & Specialized Plotter Classes (BasePlotter, RegressionPlotter, BoundaryPlotter, DiagnosticPlotter, ImagePlotter, ActivationPlotter, PCAPlotter)
 3. Image Loading, Processing & Display (load_image, plot_image, compress_image_svd)
 4. Functional Facades (plot_residuals, plot_binary, plot_correlation_matrix, plot_pairgrid, annotate)
 """
@@ -778,6 +778,42 @@ class ImagePlotter(BasePlotter):
         plt.show()
 
 
+class ActivationPlotter(BasePlotter):
+    """Visualizer for activation functions, output functions and their derivatives."""
+
+    @classmethod
+    def plot_function_panels(
+        cls,
+        a: Any,
+        panels: Sequence[Dict[str, Any]],
+        titles: Optional[Sequence[str]] = None,
+        ylims: Optional[Sequence[Optional[Tuple[float, float]]]] = None,
+        points: Optional[Sequence[Optional[Tuple[float, float]]]] = None,
+        dashed: Sequence[str] = (),
+        xlabel: str = "Pre-activation $a$",
+        figsize: Optional[Tuple[float, float]] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
+        """Curves pre-computed on the grid a, one panel per dict {label: values}; optional marked point per panel."""
+        x = cls.to_numpy(a, ravel=True)
+        fig, axes = plt.subplots(1, len(panels), figsize=figsize or (5.25 * len(panels), 4.0), squeeze=False)
+        for i, (ax, curves) in enumerate(zip(axes[0], panels)):
+            for label, values in curves.items():
+                ax.plot(x, cls.to_numpy(values, ravel=True), lw=2.2, ls="--" if label in dashed else "-", label=label)
+            if points is not None and points[i] is not None:
+                ax.scatter([float(points[i][0])], [float(points[i][1])], color="crimson", s=50, zorder=5)
+            ax.axhline(0, color="black", lw=0.8, ls=":")
+            ax.axvline(0, color="black", lw=0.8, ls=":")
+            ax.set_xlabel(xlabel, fontsize=11)
+            if titles is not None:
+                ax.set_title(titles[i], fontsize=12)
+            if ylims is not None and ylims[i] is not None:
+                ax.set_ylim(*ylims[i])
+            ax.grid(True, linestyle="--", alpha=0.5)
+            ax.legend(loc="upper left", fontsize=9.5)
+        return cls.finalize(fig, show=show)
+
+
 class PCAPlotter(BasePlotter):
     """Visualizer for PCA: projections, principal directions, explained variance, loadings and biplots."""
 
@@ -963,6 +999,7 @@ load_image = ImagePlotter.load_image
 plot_image = ImagePlotter.plot_image
 plot_image_grid = ImagePlotter.plot_image_grid
 compress_image_svd = ImagePlotter.compress_image_svd
+plot_function_panels = ActivationPlotter.plot_function_panels
 plot_projection = PCAPlotter.plot_projection
 plot_explained_variance = PCAPlotter.plot_explained_variance
 plot_directions = PCAPlotter.plot_directions

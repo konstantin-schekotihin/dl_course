@@ -36,6 +36,7 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
     get_data_path,
     get_file,
     get_url,
+    plot_function_panels,
     plot_residuals,
     print_math,
     setup_theme,
@@ -722,43 +723,6 @@ class DeepArchitecturePlotter(BasePlotter):
     """Encapsulated diagnostics for activations, feature maps, attention, sequences, and graphs."""
 
     @classmethod
-    def plot_activation_curves(
-        cls,
-        act_name: str = "relu",
-        a_range: Tuple[float, float] = (-4.0, 4.0),
-        figsize: Tuple[float, float] = (7.0, 3.8),
-        show: bool = True,
-    ) -> Optional[plt.Figure]:
-        """Plot activation function h(a) and derivative d/da across a range."""
-        a = torch.linspace(a_range[0], a_range[1], 300, requires_grad=True)
-        act_fns = {
-            "relu": torch.relu,
-            "leaky_relu": lambda x: torch.nn.functional.leaky_relu(x, negative_slope=0.1),
-            "gelu": torch.nn.functional.gelu,
-            "silu": torch.nn.functional.silu,
-            "tanh": torch.tanh,
-            "sigmoid": torch.sigmoid,
-        }
-        fn = act_fns.get(act_name.lower(), torch.relu)
-        y = fn(a)
-        y.sum().backward()
-        grad = cls.to_numpy(a.grad)
-        a_np = cls.to_numpy(a)
-        y_np = cls.to_numpy(y)
-
-        fig, ax = cls.create_canvas(figsize=figsize)
-        ax.plot(a_np, y_np, lw=2.5, color="royalblue", label=f"{act_name}(a)")
-        ax.plot(a_np, grad, lw=2.0, linestyle="--", color="firebrick", label="d/da")
-        ax.axhline(0, color="gray", lw=0.8, alpha=0.6)
-        ax.axvline(0, color="gray", lw=0.8, alpha=0.6)
-        ax.set_title(f"Activation Function: {act_name.upper()} & Derivative", fontsize=12)
-        ax.set_xlabel("Activation input (a)")
-        ax.set_ylabel("Output h(a)")
-        ax.legend(loc="upper left")
-        ax.grid(True)
-        return cls.finalize(fig, show=show)
-
-    @classmethod
     def plot_sobel_filtered(
         cls,
         h_filtered: torch.Tensor | np.ndarray,
@@ -926,7 +890,6 @@ plot_trace = DeepOptimizationPlotter.plot_trace
 plot_grad = DeepOptimizationPlotter.plot_grad
 
 # Architecture & Diagnostics Facades
-plot_activation_curves = DeepArchitecturePlotter.plot_activation_curves
 plot_sobel_filtered = DeepArchitecturePlotter.plot_sobel_filtered
 plot_time_series = DeepArchitecturePlotter.plot_time_series
 plot_series = DeepArchitecturePlotter.plot_time_series
