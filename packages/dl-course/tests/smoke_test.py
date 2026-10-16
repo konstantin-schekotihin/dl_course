@@ -78,7 +78,6 @@ CASES = [
     ("shared", "plot_binary", lambda hp: hp.plot_binary(logreg.predict, X2, y2)),
     ("shared", "plot_correlation_matrix", lambda hp: hp.plot_correlation_matrix(df)),
     ("shared", "plot_pairgrid", lambda hp: hp.plot_pairgrid(df)),
-    ("shared", "plot_correlation_matrix_and_pairgrid", lambda hp: hp.plot_correlation_matrix_and_pairgrid(df)),
     ("shared", "annotate", lambda hp: (
         hp.annotate(img2d[:2, :2], plt.gca()),
         hp.annotate(plt.gca(), "badge"),

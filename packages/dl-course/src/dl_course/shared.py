@@ -567,17 +567,6 @@ class DiagnosticPlotter(BasePlotter):
         return g
 
     @classmethod
-    def plot_correlation_matrix_and_pairgrid(
-        cls,
-        data: Any,
-        figsize: Tuple[float, float] = (7.5, 5.5),
-    ) -> None:
-        """Composite visualizer rendering correlation heatmap followed by PairGrid."""
-        df = pd.DataFrame(data) if not isinstance(data, pd.DataFrame) else data
-        cls.plot_correlation_matrix(df, figsize=figsize, show=True)
-        cls.plot_pairgrid(df, figsize=figsize)
-
-    @classmethod
     def annotate(cls, first_arg: Any, second_arg: Any, **kwargs: Any) -> None:
         """
         Polymorphic annotation helper for:
@@ -776,7 +765,6 @@ plot_fitted_curves = RegressionPlotter.plot_fitted_curves
 plot_binary = BoundaryPlotter.plot_binary
 plot_correlation_matrix = DiagnosticPlotter.plot_correlation_matrix
 plot_pairgrid = DiagnosticPlotter.plot_pairgrid
-plot_correlation_matrix_and_pairgrid = DiagnosticPlotter.plot_correlation_matrix_and_pairgrid
 annotate = DiagnosticPlotter.annotate
 load_image = ImagePlotter.load_image
 plot_image = ImagePlotter.plot_image

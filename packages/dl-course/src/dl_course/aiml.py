@@ -37,7 +37,6 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
     load_image,
     plot_binary,
     plot_correlation_matrix,
-    plot_correlation_matrix_and_pairgrid,
     plot_fitted_curves,
     plot_image,
     plot_pairgrid,
