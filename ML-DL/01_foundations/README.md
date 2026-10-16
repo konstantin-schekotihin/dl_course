@@ -4,7 +4,7 @@ A recap of the mathematical and conceptual background needed for the deep learni
 
 | Notebook | Overview |
 |---|---|
-| [`00_notation.ipynb`](00_notation.ipynb) | Provides an overview of the mathematical notation and the callout conventions used throughout the course. |
+| [`00_notation.ipynb`](00_notation.ipynb) | Reference handout (not presented in class) listing the mathematical notation and the callouts used throughout the course. |
 | [`01_Introduction.ipynb`](01_Introduction.ipynb) | Introduces machine learning and deep learning, covering the history of AI, its symbolic and subsymbolic paradigms, and the formal learning framework. |
 | [`02_probability.ipynb`](02_probability.ipynb) | Represents uncertainty with probability theory, from Bayes' theorem and the Gaussian distribution to maximum likelihood, density transformations and MAP estimation. |
 | [`03_information.ipynb`](03_information.ipynb) | Quantifies uncertainty with information theory: entropy, KL divergence, cross-entropy as a loss function, and mutual information. |
