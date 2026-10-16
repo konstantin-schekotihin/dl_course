@@ -83,7 +83,7 @@ AGENTS.md
 /scratch/
 *.ses
 :memory:.ses
-**/review.md
+**/review*.md
 **/structure.md
 .vscode/
 *.code-workspace
