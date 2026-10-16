@@ -36,6 +36,7 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
     get_url,
     load_image,
     plot_binary,
+    plot_confusion_matrix,
     plot_correlation_matrix,
     plot_directions,
     plot_fitted_curves,
@@ -43,6 +44,7 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
     plot_loading_heatmap,
     plot_pairgrid,
     plot_pca_biplot,
+    plot_roc_curves,
     print_math,
     setup_theme,
 )
@@ -343,26 +345,6 @@ class AIMLClassificationPlotter(BasePlotter):
         return cls.finalize(fig, ax=ax_plot, show=show)
 
     @classmethod
-    def plot_roc_curves(
-        cls,
-        curves: Dict[str, Tuple[Sequence[float], Sequence[float]]],
-        title: Optional[str] = None,
-        figsize: Tuple[float, float] = (5.2, 4.6),
-        ax: Optional[plt.Axes] = None,
-        show: bool = True,
-    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
-        """ROC curves from pre-computed (false positive rate, true positive rate) pairs, with the chance diagonal."""
-        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel="False positive rate (1 - specificity)",
-                             ylabel="True positive rate (sensitivity)")
-        for label, (fpr, tpr) in curves.items():
-            ax.plot(_to_numpy(fpr, ravel=True), _to_numpy(tpr, ravel=True), lw=2.2, label=label)
-        ax.plot([0, 1], [0, 1], color="gray", linestyle="--", lw=1.0, label="chance")
-        ax.set_xlim(0, 1)
-        ax.set_ylim(0, 1.01)
-        ax.legend(loc="lower right", fontsize=9.5)
-        return cls.finalize(fig, ax, show=show)
-
-    @classmethod
     def plot_classes_2d(
         cls,
         X: np.ndarray,
@@ -491,44 +473,6 @@ class AIMLClassificationPlotter(BasePlotter):
         axs[1].set_title("Empirical Classification & Test Faults", fontsize=12)
         axs[1].grid(True)
         return cls.finalize(fig, show=show)
-
-    @classmethod
-    def plot_confusion_matrix(
-        cls,
-        y_true: np.ndarray,
-        y_pred: np.ndarray,
-        labels: Optional[Sequence[str]] = None,
-        title: str = "Confusion Matrix",
-        figsize: Tuple[float, float] = (6.5, 5.5),
-        ax: Optional[plt.Axes] = None,
-        show: bool = True,
-    ) -> Optional[plt.Axes]:
-        """Render styled confusion matrix heatmap from precomputed true and predicted labels."""
-        fig, ax_plot = cls.create_canvas(figsize=figsize, ax=ax)
-        y_t = _to_numpy(y_true)
-        y_p = _to_numpy(y_pred)
-        unique_vals = np.unique(np.concatenate([y_t, y_p]))
-
-        if labels is not None and len(labels) == len(unique_vals) and not np.array_equal(unique_vals, labels):
-            cm = metrics.confusion_matrix(y_t, y_p, labels=unique_vals)
-            display_labels = list(labels)
-        elif labels is not None:
-            try:
-                cm = metrics.confusion_matrix(y_t, y_p, labels=labels)
-                display_labels = list(labels)
-            except Exception:
-                cm = metrics.confusion_matrix(y_t, y_p)
-                display_labels = list(labels)
-        else:
-            cm = metrics.confusion_matrix(y_t, y_p)
-            display_labels = list(unique_vals)
-
-        df_cm = pd.DataFrame(cm, columns=display_labels, index=display_labels)
-        df_cm.index.name = "True Label $t$"
-        df_cm.columns.name = r"Predicted $\hat{t}$"
-        sns.heatmap(df_cm, cmap="Blues", annot=True, fmt="d", annot_kws={"size": 14}, ax=ax_plot)
-        ax_plot.set_title(title, fontsize=12)
-        return cls.finalize(fig, ax=ax_plot, show=show)
 
     @classmethod
     def plot_decision_boundary(
@@ -808,8 +752,6 @@ plot_knn_neighborhood_2d = AIMLClassificationPlotter.plot_knn_neighborhood_2d
 plot_knn_classification_results = AIMLClassificationPlotter.plot_knn_classification_results
 plot_class_counts = AIMLClassificationPlotter.plot_class_counts
 plot_classes_2d = AIMLClassificationPlotter.plot_classes_2d
-plot_roc_curves = AIMLClassificationPlotter.plot_roc_curves
-plot_confusion_matrix = AIMLClassificationPlotter.plot_confusion_matrix
 plot_decision_boundary = AIMLClassificationPlotter.plot_decision_boundary
 plot_decision_boundaries_comparison = AIMLClassificationPlotter.plot_decision_boundaries_comparison
 plot_svm_panels = AIMLClassificationPlotter.plot_svm_panels

@@ -6,7 +6,7 @@ Provides structured, decoupled visualization classes and functional facades for:
 2. Information Theory Visualizations (03_information)
 3. Linear Algebra, Vector Geometry & Dimensionality Reduction (04_algebra)
 4. Mathematical Functions & Activation Profiles (05_functions)
-5. Model Diagnostics & Quality Metrics (06_mlops)
+5. Model evaluation plots for 06_mlops come from shared (plot_confusion_matrix, plot_roc_curves)
 """
 
 from typing import Any, Dict, Optional, Sequence, Tuple
@@ -31,6 +31,7 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
     get_data_path,
     get_file,
     get_url,
+    plot_confusion_matrix,
     plot_correlation_matrix,
     plot_directions,
     plot_explained_variance,
@@ -42,6 +43,7 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
     plot_pairgrid,
     plot_pca_biplot,
     plot_projection,
+    plot_roc_curves,
     print_math,
     setup_theme,
 )
@@ -98,13 +100,10 @@ class ProbabilityPlotter(BasePlotter):
         title: str = r"Joint Probability Distribution $p(x, y)$",
         figsize: Tuple[float, float] = (6.0, 4.5),
         ax: Optional[Axes] = None,
-    ) -> Tuple[Figure, Axes]:
+        show: bool = True,
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
         """Render 2D joint discrete probability distribution matrix as an annotated heatmap."""
-        if ax is None:
-            fig, ax = plt.subplots(figsize=figsize)
-        else:
-            fig = ax.get_figure()
-
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel="$y$", ylabel="$x$", grid=False)
         sns.heatmap(
             joint_matrix,
             annot=True,
@@ -115,12 +114,7 @@ class ProbabilityPlotter(BasePlotter):
             cbar=True,
             ax=ax,
         )
-        ax.set_title(title, fontsize=12)
-        ax.set_xlabel("$y$", fontsize=11)
-        ax.set_ylabel("$x$", fontsize=11)
-        fig.tight_layout()
-        plt.show()
-        return fig, ax
+        return cls.finalize(fig, ax, show=show)
 
 
 # ---------------------------------------------------------------------------
@@ -185,7 +179,7 @@ class IrisPlotter(BasePlotter):
 
 
 # ---------------------------------------------------------------------------
-# 5. Mathematical Functions & Activation Profiles (05_functions, 06_mlops)
+# 5. Mathematical Functions & Activation Profiles (03_information, 05_functions)
 # ---------------------------------------------------------------------------
 
 class FunctionPlotter(BasePlotter):
@@ -207,29 +201,18 @@ class FunctionPlotter(BasePlotter):
         hline_at: Optional[float] = None,
         figsize: Tuple[float, float] = (8.0, 4.2),
         ax: Optional[Axes] = None,
-    ) -> Tuple[Figure, Axes]:
+        show: bool = True,
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
         """Render a pre-computed 1D curve with one highlighted point and optional vertical/horizontal guide lines."""
-        if ax is None:
-            fig, ax = plt.subplots(figsize=figsize)
-        else:
-            fig = ax.get_figure()
-
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel=ylabel)
         ax.plot(x_grid, y_grid, color="crimson", lw=2.5, label=curve_label)
         ax.scatter([x_val], [y_val], color="royalblue", s=75, zorder=5, label=marker_label)
         if vline_at is not None:
             ax.axvline(vline_at, color="gray", linestyle="--", alpha=0.6)
         if hline_at is not None:
             ax.axhline(hline_at, color="black", linestyle=":", alpha=0.7)
-
-        if title:
-            ax.set_title(title, fontsize=12)
-        ax.set_xlabel(xlabel, fontsize=11)
-        ax.set_ylabel(ylabel, fontsize=11)
         ax.legend(loc="best", fontsize=10.0)
-        ax.grid(True, linestyle="--", alpha=0.5)
-        fig.tight_layout()
-        plt.show()
-        return fig, ax
+        return cls.finalize(fig, ax, show=show)
 
     @classmethod
     def plot_categorical_probabilities(
@@ -257,39 +240,6 @@ class FunctionPlotter(BasePlotter):
         ax.grid(True, axis="y", linestyle="--", alpha=0.5)
         cls.finalize(fig, ax, show=True)
 
-    @classmethod
-    def plot_classifier_diagnostics(
-        cls,
-        cm: np.ndarray,
-        y_prob: Optional[Sequence[float]] = None,
-        class_names: Optional[Sequence[str]] = None,
-        figsize: Tuple[float, float] = (10.0, 4.2),
-    ) -> None:
-        """
-        Render 2-panel classification QA diagnostics: Confusion matrix and prediction distributions.
-        Expects pre-computed confusion matrix cm from the calling notebook.
-        """
-        fig, axes = plt.subplots(1, 2, figsize=figsize)
-        labels = class_names if class_names is not None else ["Class 0", "Class 1"]
-
-        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=labels, yticklabels=labels, ax=axes[0])
-        axes[0].set_title("Confusion Matrix", fontsize=12)
-        axes[0].set_xlabel(r"Predicted Label $\hat{t}$", fontsize=11)
-        axes[0].set_ylabel(r"True Target $t$", fontsize=11)
-
-        if y_prob is not None:
-            sns.histplot(y_prob, bins=20, kde=True, ax=axes[1], color="royalblue")
-            axes[1].axvline(0.5, color="crimson", linestyle="--", label="Decision Threshold ($p = 0.5$)")
-            axes[1].set_title("Predicted Probability Distribution", fontsize=12)
-            axes[1].set_xlabel(r"Predicted Probability $p(t=1 \mid \mathbf{x})$", fontsize=11)
-            axes[1].set_ylabel("Count", fontsize=11)
-            axes[1].legend(fontsize=10)
-        else:
-            axes[1].text(0.5, 0.5, "Probability scores not provided", ha="center", va="center")
-
-        fig.tight_layout()
-        plt.show()
-
 
 # ---------------------------------------------------------------------------
 # 6. Public Functional Facades (100% Backward Compatibility)
@@ -306,7 +256,6 @@ plot_iris_pairplot = IrisPlotter.plot_iris_pairplot
 
 plot_curve_with_marker = FunctionPlotter.plot_curve_with_marker
 plot_categorical_probabilities = FunctionPlotter.plot_categorical_probabilities
-plot_classifier_diagnostics = FunctionPlotter.plot_classifier_diagnostics
 
 # Conversion & Helper Facades
 to_numpy = BasePlotter.to_numpy

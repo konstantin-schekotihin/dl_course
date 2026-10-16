@@ -62,8 +62,8 @@
   <g transform="translate(40, 240)">
     <rect class="phase-box" width="240" height="100" fill="#fffaf0" stroke="#dd6b20" />
     <text x="120" y="30" class="phase-title">6. Monitor &amp; Maintain</text>
-    <text x="120" y="52" class="phase-desc">• Data Drift: P(X) Shift</text>
-    <text x="120" y="70" class="phase-desc">• Concept Drift: P(Y|X) Shift</text>
+    <text x="120" y="52" class="phase-desc">• Covariate Shift: <tspan font-style="italic">p</tspan>(<tspan font-weight="bold">x</tspan>) changes</text>
+    <text x="120" y="70" class="phase-desc">• Concept Drift: <tspan font-style="italic">p</tspan>(<tspan font-style="italic">t</tspan> | <tspan font-weight="bold">x</tspan>) changes</text>
     <text x="120" y="88" class="phase-desc">• Performance &amp; Alert Logging</text>
   </g>
 
@@ -87,7 +87,7 @@
     <rect class="phase-box" width="240" height="100" fill="#fff5f5" stroke="#e53e3e" />
     <text x="120" y="30" class="phase-title">4. Quality Assurance</text>
     <text x="120" y="52" class="phase-desc">• Confusion Matrix &amp; ROC/AUC</text>
-    <text x="120" y="70" class="phase-desc">• S-fold Cross-Validation</text>
+    <text x="120" y="70" class="phase-desc">• Validation &amp; Test Evaluation</text>
     <text x="120" y="88" class="phase-desc">• Robustness &amp; Fairness</text>
   </g>
 

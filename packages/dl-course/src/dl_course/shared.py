@@ -6,7 +6,7 @@ Inherited and re-exported by course-specific helper modules across ML-DL and AI-
 
 Modules:
 1. Course Aesthetics & Asset Resolution (get_file, get_url, get_data_path, setup_theme, print_math)
-2. Base & Specialized Plotter Classes (BasePlotter, RegressionPlotter, BoundaryPlotter, DiagnosticPlotter, ImagePlotter, ActivationPlotter, PCAPlotter)
+2. Base & Specialized Plotter Classes (BasePlotter, RegressionPlotter, BoundaryPlotter, DiagnosticPlotter, ClassificationPlotter, ImagePlotter, ActivationPlotter, PCAPlotter)
 3. Image Loading, Processing & Display (load_image, plot_image, compress_image_svd)
 4. Functional Facades (plot_residuals, plot_binary, plot_correlation_matrix, plot_pairgrid, annotate)
 """
@@ -551,8 +551,9 @@ class DiagnosticPlotter(BasePlotter):
         hue: Optional[str] = None,
         annotate_pearson: bool = True,
         figsize: Tuple[float, float] = (7.5, 6.5),
-    ) -> sns.PairGrid:
-        """Render styled PairGrid with scatter, KDE/histogram, and Pearson annotations."""
+        show: bool = True,
+    ) -> Optional[sns.PairGrid]:
+        """Render styled PairGrid with scatter, KDE/histogram, and Pearson annotations (returns it only if not shown)."""
         data = df[list(cols)] if cols is not None else df
         g = sns.PairGrid(data, hue=hue, height=figsize[1] / max(1, data.shape[1]))
         g.map_upper(sns.scatterplot, s=25, alpha=0.7)
@@ -563,7 +564,9 @@ class DiagnosticPlotter(BasePlotter):
             g.map_lower(sns.kdeplot, fill=True, alpha=0.4)
         g.fig.set_size_inches(*figsize)
         g.fig.tight_layout()
-        plt.show()
+        if show:
+            plt.show()
+            return None
         return g
 
     @classmethod
@@ -625,6 +628,57 @@ class DiagnosticPlotter(BasePlotter):
                 weight="bold",
                 bbox=dict(boxstyle="round,pad=0.3", fc="white", alpha=0.8, ec="gray"),
             )
+
+
+class ClassificationPlotter(BasePlotter):
+    """Visualizer for classifier evaluation: confusion matrices and ROC curves from pre-computed values."""
+
+    @classmethod
+    def plot_confusion_matrix(
+        cls,
+        cm: Any,
+        labels: Optional[Sequence[Any]] = None,
+        title: str = "Confusion Matrix",
+        figsize: Tuple[float, float] = (6.5, 5.5),
+        ax: Optional[Axes] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
+        """Annotated heatmap of a pre-computed confusion matrix (rows: true class $t$, columns: predicted class)."""
+        fig, ax = cls.canvas(figsize=figsize, ax=ax)
+        counts = cls.to_numpy(cm)
+        names = list(labels) if labels is not None else list(range(counts.shape[0]))
+        df_cm = pd.DataFrame(
+            counts,
+            index=pd.Index(names, name="True Label $t$"),
+            columns=pd.Index(names, name=r"Predicted $\hat{t}$"),
+        )
+        sns.heatmap(df_cm, cmap="Blues", annot=True, fmt="d", annot_kws={"size": 14}, ax=ax)
+        ax.set_title(title, fontsize=12)
+        return cls.finalize(fig, ax, show=show)
+
+    @classmethod
+    def plot_roc_curves(
+        cls,
+        curves: Dict[str, Tuple[Sequence[float], Sequence[float]]],
+        points: Optional[Dict[str, Tuple[float, float]]] = None,
+        title: Optional[str] = None,
+        figsize: Tuple[float, float] = (5.2, 4.6),
+        ax: Optional[Axes] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
+        """ROC curves from pre-computed (false positive rate, true positive rate) pairs, with the chance diagonal
+        and optional marked operating points {label: (FPR, TPR)}."""
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel="False positive rate (1 - specificity)",
+                             ylabel="True positive rate (sensitivity)")
+        for label, (fpr, tpr) in curves.items():
+            ax.plot(cls.to_numpy(fpr, ravel=True), cls.to_numpy(tpr, ravel=True), lw=2.2, label=label)
+        ax.plot([0, 1], [0, 1], color="gray", linestyle="--", lw=1.0, label="chance")
+        for label, (fpr, tpr) in (points or {}).items():
+            ax.plot([fpr], [tpr], marker="o", markersize=9, linestyle="none", color="firebrick", zorder=5, label=label)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1.01)
+        ax.legend(loc="lower right", fontsize=9.5)
+        return cls.finalize(fig, ax, show=show)
 
 
 class ImagePlotter(BasePlotter):
@@ -994,6 +1048,8 @@ plot_fitted_curves = RegressionPlotter.plot_fitted_curves
 plot_binary = BoundaryPlotter.plot_binary
 plot_correlation_matrix = DiagnosticPlotter.plot_correlation_matrix
 plot_pairgrid = DiagnosticPlotter.plot_pairgrid
+plot_confusion_matrix = ClassificationPlotter.plot_confusion_matrix
+plot_roc_curves = ClassificationPlotter.plot_roc_curves
 annotate = DiagnosticPlotter.annotate
 load_image = ImagePlotter.load_image
 plot_image = ImagePlotter.plot_image
