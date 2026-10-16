@@ -455,10 +455,11 @@ class FunctionPlotter(BasePlotter):
         curve_label: Optional[str] = None,
         marker_label: Optional[str] = None,
         vline_at: Optional[float] = None,
+        hline_at: Optional[float] = None,
         figsize: Tuple[float, float] = (8.0, 4.2),
         ax: Optional[Axes] = None,
     ) -> Tuple[Figure, Axes]:
-        """Render 1D mathematical curve with dynamic highlighted parameter marker."""
+        """Render a pre-computed 1D curve with one highlighted point and optional vertical/horizontal guide lines."""
         if ax is None:
             fig, ax = plt.subplots(figsize=figsize)
         else:
@@ -468,6 +469,8 @@ class FunctionPlotter(BasePlotter):
         ax.scatter([x_val], [y_val], color="royalblue", s=75, zorder=5, label=marker_label)
         if vline_at is not None:
             ax.axvline(vline_at, color="gray", linestyle="--", alpha=0.6)
+        if hline_at is not None:
+            ax.axhline(hline_at, color="black", linestyle=":", alpha=0.7)
 
         if title:
             ax.set_title(title, fontsize=12)

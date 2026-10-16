@@ -136,7 +136,7 @@ CASES = [
     ("foundations", "plot_iris_pairplot", lambda hp: hp.plot_iris_pairplot(iris)),
     ("foundations", "plot_function_and_derivative", lambda hp: hp.plot_function_and_derivative(x_dense, t_dense, t_dense)),
     ("foundations", "plot_multi_curve_comparison", lambda hp: hp.plot_multi_curve_comparison(x_dense, {"sin": t_dense})),
-    ("foundations", "plot_curve_with_marker", lambda hp: hp.plot_curve_with_marker(x_dense, t_dense, 0.5, 0.0, vline_at=0.5)),
+    ("foundations", "plot_curve_with_marker", lambda hp: hp.plot_curve_with_marker(x_dense, t_dense, 0.5, 0.0, vline_at=0.5, hline_at=0.0)),
     ("foundations", "plot_categorical_probabilities", lambda hp: hp.plot_categorical_probabilities(["a", "b"], {"T=1": [0.3, 0.7]})),
     ("foundations", "plot_classifier_diagnostics", lambda hp: hp.plot_classifier_diagnostics(np.array([[3, 1], [1, 3]]), rng.uniform(size=20))),
     # deep_learning
