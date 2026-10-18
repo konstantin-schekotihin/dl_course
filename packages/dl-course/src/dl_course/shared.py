@@ -5,7 +5,7 @@ Provides unified asset resolution, aesthetics, image utilities, and diagnostic v
 Inherited and re-exported by course-specific helper modules across ML-DL and AI-ML.
 
 Modules:
-1. Course Aesthetics & Asset Resolution (get_file, get_url, get_data_path, setup_theme, print_math, format_number)
+1. Course Aesthetics & Asset Resolution (get_file, get_url, get_data_path, setup_theme, print_math, format_number, format_vector)
 2. Base & Specialized Plotter Classes (BasePlotter, RegressionPlotter, BoundaryPlotter, DiagnosticPlotter, ClassificationPlotter, ImagePlotter, ActivationPlotter, PCAPlotter)
 3. Image Loading, Processing & Display (load_image, plot_image, compress_image_svd)
 4. Functional Facades (plot_residuals, plot_binary, plot_correlation_matrix, plot_pairgrid, annotate)
@@ -56,7 +56,13 @@ def format_number(value: Any, digits: int = 4) -> str:
     value = float(value)
     if np.isinf(value):
         return r"-\infty" if value < 0 else r"\infty"
-    return f"{value:.{digits}f}"
+    return f"{round(value, digits) + 0.0:.{digits}f}"  # + 0.0 turns -0.0 into 0.0
+
+
+def format_vector(values: Any, digits: int = 3) -> str:
+    """Vector for display inside a LaTeX formula, as a column vector (v_1, ..., v_n)^T."""
+    entries = ", ".join(format_number(v, digits) for v in np.asarray(values, dtype=float).ravel())
+    return rf"({entries})^\mathrm{{T}}"
 
 
 def get_url(filename: str, category: Optional[str] = None) -> str:

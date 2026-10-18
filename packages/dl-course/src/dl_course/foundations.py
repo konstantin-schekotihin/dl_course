@@ -33,6 +33,7 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
     get_url,
     plot_confusion_matrix,
     format_number,
+    format_vector,
     plot_correlation_matrix,
     plot_directions,
     plot_explained_variance,

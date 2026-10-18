@@ -71,6 +71,7 @@ CASES = [
     # shared
     ("shared", "print_math", lambda hp: hp.print_math(r"$x$")),
     ("shared", "format_number", lambda hp: (hp.format_number(float("inf")), hp.format_number(0.5, digits=2))),
+    ("shared", "format_vector", lambda hp: hp.format_vector(np.array([0.5, -0.0001, 2.0]), digits=2)),
     ("shared", "get_url", lambda hp: hp.get_url("Advertising.csv")),
     ("shared", "get_file", lambda hp: hp.get_file("Advertising.csv")),
     ("shared", "get_data_path", lambda hp: hp.get_data_path("Advertising.csv")),
