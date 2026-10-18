@@ -59,10 +59,20 @@ def format_number(value: Any, digits: int = 4) -> str:
     return f"{round(value, digits) + 0.0:.{digits}f}"  # + 0.0 turns -0.0 into 0.0
 
 
-def format_vector(values: Any, digits: int = 3) -> str:
-    """Vector for display inside a LaTeX formula, as a column vector (v_1, ..., v_n)^T."""
-    entries = ", ".join(format_number(v, digits) for v in np.asarray(values, dtype=float).ravel())
-    return rf"({entries})^\mathrm{{T}}"
+def format_vector(values: Any, digits: int = 3, transpose: bool = True) -> str:
+    """Vector for display inside a LaTeX formula: (v_1, ..., v_n)^T, or (v_1, ..., v_n) with transpose=False.
+
+    Entries are rounded to `digits` decimals without trailing zeros (3.0 -> 3, 0.50 -> 0.5).
+    """
+    def entry(v: float) -> str:
+        if np.isinf(v):
+            return format_number(v)
+        if np.isnan(v):
+            return r"\mathrm{NaN}"
+        return np.format_float_positional(round(v, digits) + 0.0, trim="-")  # + 0.0 turns -0.0 into 0.0
+
+    text = "(" + ", ".join(entry(float(v)) for v in np.asarray(values, dtype=float).ravel()) + ")"
+    return text + r"^\mathrm{T}" if transpose else text
 
 
 def get_url(filename: str, category: Optional[str] = None) -> str:
