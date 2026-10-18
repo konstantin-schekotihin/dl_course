@@ -220,7 +220,7 @@ class FunctionPlotter(BasePlotter):
     def plot_categorical_probabilities(
         cls,
         categories: Sequence[str],
-        probs_dict: Dict[str, Sequence[float]],
+        probs_dict: Dict[str, Any],
         title: str = "Softmax Temperature Output Distribution",
         ylabel: str = "Probability $y_k$",
         ylim: Optional[Tuple[float, float]] = None,
