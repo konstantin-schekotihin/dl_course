@@ -555,6 +555,80 @@ class DeepRegressionPlotter(BasePlotter):
         ax.grid(True)
         return cls.finalize(fig, show=show)
 
+    @classmethod
+    def plot_least_squares_geometry(
+        cls,
+        Phi: Any,
+        t: Any,
+        y: Any,
+        w: Any,
+        figsize: Tuple[float, float] = (7.5, 5.0),
+        show: bool = True,
+    ) -> Optional[plt.Figure]:
+        """Draw t, its projection y = Phi w and the residual t - y over the plane spanned by the two columns of Phi (N = 3); receives pre-computed y and w."""
+        Phi_np = _to_numpy(Phi)
+        t_np = _to_numpy(t, ravel=True)
+        y_np = _to_numpy(y, ravel=True)
+        col_0, col_1 = Phi_np[:, 0], Phi_np[:, 1]
+
+        # Patch of the subspace S: coefficients around the columns and around y = Phi w
+        coef_y = _to_numpy(w, ravel=True)
+        a_lo, a_hi = min(0.0, coef_y[0]) - 0.2, max(1.0, coef_y[0]) + 0.2
+        b_lo, b_hi = min(0.0, coef_y[1]) - 0.2, max(1.0, coef_y[1]) + 0.2
+        A, B = np.meshgrid(np.linspace(a_lo, a_hi, 2), np.linspace(b_lo, b_hi, 2))
+        plane = A[..., None] * col_0 + B[..., None] * col_1
+
+        # Camera 35 degrees above S, rolled so that the normal of S (direction of e) points up on screen
+        n = np.cross(col_0, col_1)
+        n = n / np.linalg.norm(n) * np.sign(n @ (t_np - y_np))
+        u = np.cross(n, y_np) / np.linalg.norm(np.cross(n, y_np))
+        d = np.cos(np.radians(55)) * n + np.sin(np.radians(55)) * u
+        z_p = np.array([0.0, 0.0, 1.0]) - d[2] * d
+        n_p = n - (n @ d) * d
+        roll = np.degrees(np.arctan2(np.cross(z_p, n_p) @ d, z_p @ n_p))
+
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_subplot(111, projection="3d")
+        ax.view_init(np.degrees(np.arcsin(d[2])), np.degrees(np.arctan2(d[1], d[0])), -roll)
+        ax.plot_surface(plane[..., 0], plane[..., 1], plane[..., 2], color="lightsteelblue", alpha=0.35,
+                        edgecolor="steelblue", linewidth=0.8)
+        ax.text(*(plane[1, 1] * 0.92), r"$\mathcal{S}$", fontsize=16, color="steelblue")
+
+        origin = np.zeros(3)
+        arrows = [
+            (col_0, "dimgray", r"$\boldsymbol{\varphi}_0$"),
+            (col_1, "dimgray", r"$\boldsymbol{\varphi}_1$"),
+            (t_np, "royalblue", r"$\mathbf{t}$"),
+            (y_np, "firebrick", r"$\mathbf{y}$"),
+        ]
+        lift = 0.06 * np.linalg.norm(t_np) * n  # labels slightly above S, off the arrows
+        for vec, color, label in arrows:
+            ax.quiver(*origin, *vec, color=color, lw=2.2, arrow_length_ratio=0.08)
+            ax.text(*(vec * 1.05 + lift), label, fontsize=15, color=color)
+
+        # Residual e = t - y as a dashed segment from y to t
+        ax.plot(*np.stack([y_np, t_np]).T, color="black", lw=1.8, linestyle="--")
+        # The camera looks along u, so y runs horizontally on screen: put the label left of the dashed line
+        ax.text(*((y_np + t_np) / 2 + 0.04 * y_np), r"$\mathbf{e} = \mathbf{t} - \mathbf{y}$", fontsize=13, ha="right")
+
+        # Right-angle marker at y between e and the direction of y within S
+        size = 0.12 * min(np.linalg.norm(t_np - y_np), np.linalg.norm(y_np))
+        u_e = (t_np - y_np) / np.linalg.norm(t_np - y_np)
+        u_s = -y_np / np.linalg.norm(y_np)
+        corner = np.stack([y_np + size * u_e, y_np + size * (u_e + u_s), y_np + size * u_s])
+        ax.plot(*corner.T, color="black", lw=1.2)
+
+        ax.set_axis_off()
+        ax.set_title(r"Least squares in $\mathbb{R}^N$ ($N = 3$, $M = 2$)", fontsize=12)
+        # Equal scale on all axes, so that the right angle looks like one
+        pts = np.vstack([plane.reshape(-1, 3), t_np, y_np, origin])
+        lo, hi = pts.min(0), pts.max(0)
+        ax.set_xlim(lo[0], hi[0])
+        ax.set_ylim(lo[1], hi[1])
+        ax.set_zlim(lo[2], hi[2])
+        ax.set_box_aspect(hi - lo)
+        return cls.finalize(fig, show=show)
+
 
 # ---------------------------------------------------------------------------
 # 3. Classification & Decision Boundaries (05_classification, 06_deep_networks)
@@ -877,6 +951,7 @@ plot_ensemble_fits = DeepRegressionPlotter.plot_ensemble_fits
 plot_l1_l2_sparsity_geometry = DeepRegressionPlotter.plot_l1_l2_sparsity_geometry
 plot_l1_l2_outlier_comparison = DeepRegressionPlotter.plot_l1_l2_outlier_comparison
 plot_streaming_adaline_convergence = DeepRegressionPlotter.plot_streaming_adaline_convergence
+plot_least_squares_geometry = DeepRegressionPlotter.plot_least_squares_geometry
 
 # Classification Facades
 plot_decision_boundary_2d = DeepClassificationPlotter.plot_decision_boundary_2d

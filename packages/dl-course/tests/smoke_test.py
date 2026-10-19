@@ -152,6 +152,9 @@ CASES = [
     ("deep_learning", "plot_l1_l2_outlier_comparison", lambda hp: hp.plot_l1_l2_outlier_comparison(x, t, x_dense, t_dense, t_dense)),
     ("deep_learning", "plot_streaming_adaline_convergence", lambda hp: hp.plot_streaming_adaline_convergence(
         x, t, x_dense, torch.stack([torch.ones(100), x_dense], dim=1), [(0, w2), (1, w2), (3, w2)], w2)),
+    ("deep_learning", "plot_least_squares_geometry", lambda hp: hp.plot_least_squares_geometry(
+        torch.tensor([[1.0, 0.0], [1.0, 0.5], [1.0, 1.0]]), torch.tensor([1.2, 0.3, 1.8]),
+        torch.tensor([0.8, 1.1, 1.4]), torch.tensor([0.8, 0.6]))),
     ("deep_learning", "plot_loss_history", lambda hp: hp.plot_loss_history([1.0, 0.5, 0.1])),
     ("deep_learning", "plot_out", lambda hp: hp.plot_out([1.0, 0.5, 0.1])),
     ("deep_learning", "g_idea", lambda hp: hp.g_idea(lambda v: v ** 2, lambda v: 2 * v)),
