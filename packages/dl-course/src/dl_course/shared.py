@@ -59,7 +59,7 @@ def format_number(value: Any, digits: int = 4) -> str:
     return f"{round(value, digits) + 0.0:.{digits}f}"  # + 0.0 turns -0.0 into 0.0
 
 
-def format_vector(values: Any, digits: int = 3, transpose: bool = True) -> str:
+def format_vector(values: Any, digits: int = 4, transpose: bool = True) -> str:
     """Vector for display inside a LaTeX formula: (v_1, ..., v_n)^T, or (v_1, ..., v_n) with transpose=False.
 
     Entries are rounded to `digits` decimals without trailing zeros (3.0 -> 3, 0.50 -> 0.5).
