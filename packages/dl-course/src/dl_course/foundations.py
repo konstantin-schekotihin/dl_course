@@ -225,9 +225,11 @@ class FunctionPlotter(BasePlotter):
         ylabel: str = "Probability $y_k$",
         ylim: Optional[Tuple[float, float]] = None,
         figsize: Tuple[float, float] = (8.0, 4.0),
-    ) -> None:
+        ax: Optional[Axes] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
         """Bar chart of pre-computed categorical distributions (e.g. softmax outputs), one bar group per series."""
-        fig, ax = cls.canvas(figsize=figsize, title=title, ylabel=ylabel, ylim=ylim, grid=False)
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, ylabel=ylabel, ylim=ylim, grid=False)
         n_series = len(probs_dict)
         x = np.arange(len(categories))
         width = 0.8 / n_series
@@ -240,7 +242,7 @@ class FunctionPlotter(BasePlotter):
         ax.set_xticklabels(categories, fontsize=11)
         ax.legend(fontsize=10.0)
         ax.grid(True, axis="y", linestyle="--", alpha=0.5)
-        cls.finalize(fig, ax, show=True)
+        return cls.finalize(fig, ax, show=show)
 
 
 # ---------------------------------------------------------------------------
