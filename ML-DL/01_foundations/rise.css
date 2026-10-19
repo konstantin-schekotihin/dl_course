@@ -14,3 +14,10 @@
   background: rgba(0, 0, 0, 0.03);
   box-shadow: none;
 }
+
+/* Text size: RISE enlarges text cells twice (.slides 160 % and .text_cell 160 %), about 36 px on a laptop.
+   130 % (about 29 px) keeps the text large enough for a lecture hall and lets a slide fit a laptop
+   browser window (about 900 px of usable height); headings scale with it (lecturer, 2026-10-19). */
+.rise-enabled .text_cell {
+  font-size: 130%;
+}
