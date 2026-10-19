@@ -173,9 +173,12 @@ class IrisPlotter(BasePlotter):
     """Visualizer for the Iris dataset."""
 
     @classmethod
-    def plot_iris_pairplot(cls, df: pd.DataFrame) -> None:
-        """Render pairplot of Iris features colored by species with lower KDE contours."""
-        pair_grid = sns.pairplot(df, hue="species")
+    def plot_iris_pairplot(cls, df: pd.DataFrame, height: float = 2.5) -> None:
+        """Render pairplot of Iris features colored by species with lower KDE contours.
+
+        `height` is the size of one panel in inches; smaller values keep the grid on one slide.
+        """
+        pair_grid = sns.pairplot(df, hue="species", height=height)
         pair_grid.map_lower(sns.kdeplot, levels=4, color=".2")
         plt.show()
 
