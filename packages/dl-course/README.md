@@ -36,6 +36,8 @@ The package also installs the course's RISE slideshow settings into the environm
 
 Jupyter Notebook picks them up automatically, so the notebooks contain no slideshow configuration. Colab ignores the file.
 
+It also installs a small notebook extension (`dl_course/main`) for the classic Jupyter Notebook and RISE. It turns off MathJax's automatic line breaking, which would otherwise break formulas inside Markdown table cells. Colab, VS Code and JupyterLab do not need it.
+
 ## Development and releases
 
 - **Local development:** in the course repository, `uv sync` installs this package in editable mode. Changes take effect after a kernel restart.

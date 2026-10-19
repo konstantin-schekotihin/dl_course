@@ -25,5 +25,9 @@ packages = ["src/dl_course"]
 
 # RISE slideshow settings for all course notebooks. Installed into <env>/etc/jupyter/nbconfig/rise.d/,
 # which Jupyter Notebook reads automatically (notebook metadata would still override these).
+# The dl_course notebook extension turns off MathJax's automatic line breaking in the classic Notebook,
+# which otherwise breaks formulas inside Markdown table cells; notebook.d enables it automatically.
 [tool.hatch.build.targets.wheel.shared-data]
 "jupyter-config/nbconfig/rise.d/dl-course.json" = "etc/jupyter/nbconfig/rise.d/dl-course.json"
+"jupyter-config/nbconfig/notebook.d/dl-course.json" = "etc/jupyter/nbconfig/notebook.d/dl-course.json"
+"jupyter-config/nbextensions/dl_course/main.js" = "share/jupyter/nbextensions/dl_course/main.js"
