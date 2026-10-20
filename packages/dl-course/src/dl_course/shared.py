@@ -51,11 +51,26 @@ def print_math(text: str) -> None:
     display(Markdown(text))
 
 
-def format_number(value: Any, digits: int = 4) -> str:
-    """Number for display inside a LaTeX formula, with infinity as a symbol."""
+def format_number(value: Any, digits: int = 4, scientific: bool = False) -> str:
+    """Number for display inside a LaTeX formula, with infinity as a symbol; scientific=True writes a \\cdot 10^b for values below 0.01 or from 1000 on."""
     value = float(value)
     if np.isinf(value):
         return r"-\infty" if value < 0 else r"\infty"
+    if scientific:
+        if value == 0.0:
+            return "0"
+        exponent = int(np.floor(np.log10(abs(value))))
+        if -3 < exponent < 3:  # 0.056, 0.56, 5.6, 560: plain digits read better than a power of ten
+            return np.format_float_positional(float(f"{value:.{digits + 1}g}"), trim="-")
+        mantissa = round(value / 10.0**exponent, digits)
+        if abs(mantissa) == 10.0:  # rounding carried into the next power
+            mantissa, exponent = mantissa / 10.0, exponent + 1
+        if exponent == 0:
+            return np.format_float_positional(mantissa, trim="-")
+        power = f"10^{{{exponent}}}"
+        if mantissa == 1.0:
+            return power
+        return np.format_float_positional(mantissa, trim="-") + r" \cdot " + power
     return f"{round(value, digits) + 0.0:.{digits}f}"  # + 0.0 turns -0.0 into 0.0
 
 

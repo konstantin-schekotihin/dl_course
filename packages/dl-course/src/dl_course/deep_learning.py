@@ -228,53 +228,29 @@ class DeepRegressionPlotter(BasePlotter):
         return cls.finalize(fig, show=show)
 
     @classmethod
-    def plot_regularized_fits(
-        cls,
-        x_dense: Any,
-        h_dense: Any,
-        x_train: Any,
-        t_train: Any,
-        curves: Dict[str, Any],
-        figsize: Tuple[float, float] = (9.5, 3.8),
-        show: bool = True,
-    ) -> Optional[plt.Figure]:
-        """One panel per entry {title: fit pre-computed on x_dense}, with observations and h."""
-        fig, axes = plt.subplots(1, len(curves), figsize=figsize, sharey=True, squeeze=False)
-        x_d, h_d = _to_numpy(x_dense).ravel(), _to_numpy(h_dense).ravel()
-        for ax, (title, y_dense) in zip(axes[0], curves.items()):
-            ax.plot(x_d, h_d, "forestgreen", lw=1.5, label=r"$h(x)$")
-            ax.scatter(_to_numpy(x_train).ravel(), _to_numpy(t_train).ravel(), color="royalblue", s=35, alpha=0.85)
-            ax.plot(x_d, _to_numpy(y_dense).ravel(), "firebrick", lw=2, label="Fit")
-            ax.set_title(title, fontsize=10.5)
-            ax.set_xlabel("$x$")
-            ax.set_ylim(-1.6, 1.6)
-            ax.legend(loc="upper right", fontsize=8.5)
-            ax.grid(True)
-        return cls.finalize(fig, show=show)
-
-    @classmethod
     def plot_bias_variance_curve(
         cls,
-        ln_lambdas: Sequence[float],
+        lambdas: Sequence[float],
         bias2: Sequence[float],
         variance: Sequence[float],
         total: Sequence[float],
         test_error: Optional[Sequence[float]] = None,
-        xlabel: str = r"$\ln\lambda$",
+        xlabel: str = r"$\lambda$ (logarithmic axis)",
         ylabel: str = "Error",
         ylim: Optional[Tuple[float, float]] = None,
         figsize: Tuple[float, float] = (7.5, 3.8),
         ax: Optional[plt.Axes] = None,
         show: bool = True,
     ) -> Optional[plt.Axes]:
-        """Squared bias, variance, their sum and optionally the average test error, all pre-computed per ln lambda."""
+        """Squared bias, variance, their sum and optionally the average test error, all pre-computed per lambda (logarithmic axis)."""
         fig, ax_plot = cls.create_canvas(figsize=figsize, ax=ax)
-        ax_plot.plot(ln_lambdas, bias2, "royalblue", lw=2.5, label=r"$(\mathrm{bias})^2$")
-        ax_plot.plot(ln_lambdas, variance, "firebrick", lw=2.5, label=r"$\mathrm{variance}$")
-        ax_plot.plot(ln_lambdas, total, "purple", lw=2.5, linestyle="--", label=r"$(\mathrm{bias})^2 + \mathrm{variance}$")
+        ax_plot.plot(lambdas, bias2, "royalblue", lw=2.5, label=r"$(\mathrm{bias})^2$")
+        ax_plot.plot(lambdas, variance, "firebrick", lw=2.5, label=r"$\mathrm{variance}$")
+        ax_plot.plot(lambdas, total, "purple", lw=2.5, linestyle="--", label=r"$(\mathrm{bias})^2 + \mathrm{variance}$")
         if test_error is not None:
-            ax_plot.plot(ln_lambdas, test_error, "black", lw=2.0, label="test error")
-        ax_plot.set_title(r"Bias and variance against $\ln\lambda$", fontsize=11.5)
+            ax_plot.plot(lambdas, test_error, "black", lw=2.0, label="test error")
+        ax_plot.set_xscale("log")
+        ax_plot.set_title(r"Bias and variance against $\lambda$", fontsize=11.5)
         ax_plot.set_xlabel(xlabel, fontsize=11)
         ax_plot.set_ylabel(ylabel, fontsize=11)
         if ylim is not None:
@@ -752,7 +728,6 @@ plot_regression_fit = DeepRegressionPlotter.plot_regression_fit
 plot_conditional_density = DeepRegressionPlotter.plot_conditional_density
 plot_polynomial_extrapolation = DeepRegressionPlotter.plot_polynomial_extrapolation
 plot_dataset_size_remedy = DeepRegressionPlotter.plot_dataset_size_remedy
-plot_regularized_fits = DeepRegressionPlotter.plot_regularized_fits
 plot_bias_variance_curve = DeepRegressionPlotter.plot_bias_variance_curve
 plot_ensemble_fits = DeepRegressionPlotter.plot_ensemble_fits
 plot_l1_l2_sparsity_geometry = DeepRegressionPlotter.plot_l1_l2_sparsity_geometry

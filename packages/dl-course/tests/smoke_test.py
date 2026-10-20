@@ -70,7 +70,7 @@ def first_local_image():
 CASES = [
     # shared
     ("shared", "print_math", lambda hp: hp.print_math(r"$x$")),
-    ("shared", "format_number", lambda hp: (hp.format_number(float("inf")), hp.format_number(0.5, digits=2))),
+    ("shared", "format_number", lambda hp: (hp.format_number(float("inf")), hp.format_number(0.5, digits=2), hp.format_number(1.5e-8, 1, scientific=True))),
     ("shared", "format_vector", lambda hp: (hp.format_vector(np.array([0.5, -0.0001, 2.0]), digits=2), hp.format_vector([3.0, float("inf")], transpose=False))),
     ("shared", "get_url", lambda hp: hp.get_url("Advertising.csv")),
     ("shared", "get_file", lambda hp: hp.get_file("Advertising.csv")),
@@ -144,8 +144,7 @@ CASES = [
     ("deep_learning", "plot_conditional_density", lambda hp: hp.plot_conditional_density(x_dense, t_dense, 0.5, torch.linspace(-1, 1, 50), torch.exp(-torch.linspace(-1, 1, 50) ** 2), 0.0)),
     ("deep_learning", "plot_polynomial_extrapolation", lambda hp: hp.plot_polynomial_extrapolation(x, t, x_dense, t_dense, h_grid=t_dense, degree=3)),
     ("deep_learning", "plot_dataset_size_remedy", lambda hp: hp.plot_dataset_size_remedy(x_dense, t_dense, [(20, x, t, t_dense), (20, x, t, t_dense)], M=9)),
-    ("deep_learning", "plot_regularized_fits", lambda hp: hp.plot_regularized_fits(x_dense, t_dense, x, t, {"a": t_dense, "b": t_dense})),
-    ("deep_learning", "plot_bias_variance_curve", lambda hp: hp.plot_bias_variance_curve([-2, 0, 2], [0.1, 0.05, 0.01], [0.01, 0.05, 0.1], [0.11, 0.1, 0.11])),
+    ("deep_learning", "plot_bias_variance_curve", lambda hp: hp.plot_bias_variance_curve([0.1, 1.0, 10.0], [0.1, 0.05, 0.01], [0.01, 0.05, 0.1], [0.11, 0.1, 0.11])),
     ("deep_learning", "plot_ensemble_fits", lambda hp: hp.plot_ensemble_fits(x_dense, t_dense, {k: ([t_dense] * 3, t_dense) for k in ("a", "b", "c")})),
     ("deep_learning", "plot_l1_l2_sparsity_geometry", lambda hp: hp.plot_l1_l2_sparsity_geometry()),
     ("deep_learning", "plot_least_squares_geometry", lambda hp: hp.plot_least_squares_geometry(
