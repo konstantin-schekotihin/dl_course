@@ -149,16 +149,16 @@ class DeepRegressionPlotter(BasePlotter):
         figsize: Tuple[float, float] = (7.5, 3.8),
         show: bool = True,
     ) -> Optional[plt.Axes]:
-        """Regression function y(x) on the grid and the conditional density p(t | x0) drawn sideways at x0, its mean y0 marked (after Bishop & Bishop 2024, Fig. 4.5); all values pre-computed."""
+        """Regression function f*(x) = E[t | x] on the grid and the conditional density p(t | x0) drawn sideways at x0, its mean y0 marked (after Bishop & Bishop 2024, Fig. 4.5); all values pre-computed."""
         fig, ax_plot = cls.create_canvas(figsize=figsize)
         ax_plot.plot(_to_numpy(x_grid).ravel(), _to_numpy(y_grid).ravel(), color="firebrick", lw=2.2,
-                     label=r"$y(x) = \mathbb{E}[t \mid x]$")
+                     label=r"$f^\star(x) = \mathbb{E}[t \mid x]$")
         dens = _to_numpy(density).ravel()
         t_g = _to_numpy(t_grid).ravel()
         ax_plot.plot(x0 + width * dens / dens.max(), t_g, color="royalblue", lw=2.0, label=r"$p(t \mid x_0)$")
         ax_plot.axvline(x0, color="gray", lw=1.0, linestyle=":")
         ax_plot.plot([x0], [y0], "o", color="firebrick", ms=7)
-        ax_plot.annotate(r"$y(x_0)$", (x0, y0), xytext=(8, -14), textcoords="offset points", fontsize=11)
+        ax_plot.annotate(r"$f^\star(x_0)$", (x0, y0), xytext=(8, -14), textcoords="offset points", fontsize=11)
         ax_plot.set_xlabel("$x$", fontsize=11)
         ax_plot.set_ylabel("$t$", fontsize=11)
         ax_plot.legend(loc="upper right", fontsize=9.5)
@@ -299,13 +299,13 @@ class DeepRegressionPlotter(BasePlotter):
         for ax, (title, (preds_all, mean_pred)) in zip(axes[0], ensembles.items()):
             for l in range(min(n_show, len(preds_all))):
                 ax.plot(x_ev, _to_numpy(preds_all[l]).ravel(), color="firebrick", alpha=0.3, lw=0.9)
-            ax.plot(x_ev, _to_numpy(mean_pred).ravel(), color="darkred", lw=2.4, label=r"average $\bar{y}(x)$")
+            ax.plot(x_ev, _to_numpy(mean_pred).ravel(), color="darkred", lw=2.4, label=r"average $\mathbb{E}_\mathcal{D}[f(x; \mathcal{D})]$")
             ax.plot(x_ev, h_ev, color="forestgreen", lw=2.0, linestyle="--", label=r"$h(x)$")
             ax.set_title(title, fontsize=10.0)
             ax.set_xlabel("$x$")
             ax.set_ylim(-1.6, 1.6)
             ax.grid(True)
-        axes[0][0].set_ylabel("$y(x)$")
+        axes[0][0].set_ylabel(r"$f(x; \mathcal{D})$")
         axes[0][0].legend(loc="lower left", fontsize=8.0)
         return cls.finalize(fig, show=show)
 
