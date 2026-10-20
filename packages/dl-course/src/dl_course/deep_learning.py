@@ -36,6 +36,10 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
     get_data_path,
     get_file,
     get_url,
+    format_number,
+    format_vector,
+    plot_curves,
+    plot_fitted_curves,
     plot_function_panels,
     plot_residuals,
     print_math,
@@ -92,53 +96,36 @@ class DeepRegressionPlotter(BasePlotter):
     @classmethod
     def plot_regression_fit(
         cls,
-        x_train: torch.Tensor,
-        t_train: torch.Tensor,
-        x_eval: torch.Tensor,
-        y_eval: torch.Tensor,
-        y_true: Optional[torch.Tensor] = None,
+        x_train: Any,
+        t_train: Any,
+        x_eval: Any,
+        y_eval: Any,
+        y_true: Optional[Any] = None,
         residuals: bool = False,
+        band: Optional[Tuple[Any, Any]] = None,
+        band_label: str = r"$y \pm 2\sigma_\mathrm{ML}$",
         title: Optional[str] = None,
-        xlabel: str = "Input Feature ($x$)",
-        ylabel: str = "Target ($t$)",
+        xlabel: str = "$x$",
+        ylabel: str = "$t$",
         ylim: Optional[Tuple[float, float]] = (-1.5, 1.5),
         figsize: Tuple[float, float] = (7.5, 3.8),
         ax: Optional[plt.Axes] = None,
         show: bool = True,
     ) -> Optional[plt.Axes]:
-        """Decoupled 1D regression curve visualizer with observations, fitted curve, and optional residual drop-lines."""
+        """Observations, a fitted curve pre-computed on x_eval, optional h, residual drop-lines and a (lower, upper) band."""
         fig, ax_plot = cls.create_canvas(figsize=figsize, ax=ax)
-        x_tr = _to_numpy(x_train).ravel()
-        t_tr = _to_numpy(t_train).ravel()
-        x_ev = _to_numpy(x_eval).ravel()
-        y_ev = _to_numpy(y_eval).ravel()
-
+        x_tr, t_tr = _to_numpy(x_train).ravel(), _to_numpy(t_train).ravel()
+        x_ev, y_ev = _to_numpy(x_eval).ravel(), _to_numpy(y_eval).ravel()
+        if band is not None:
+            ax_plot.fill_between(x_ev, _to_numpy(band[0]).ravel(), _to_numpy(band[1]).ravel(), color="firebrick",
+                                 alpha=0.15, label=band_label)
         if y_true is not None:
-            y_tr_true = _to_numpy(y_true).ravel()
-            ax_plot.plot(x_ev, y_tr_true, color="forestgreen", lw=2, label="Ground Truth")
-
-        ax_plot.scatter(
-            x_tr,
-            t_tr,
-            color="royalblue",
-            s=45,
-            alpha=0.85,
-            label=f"Observations ($N={len(x_tr)}$)",
-        )
-        ax_plot.plot(x_ev, y_ev, color="firebrick", lw=2.2, label="Model Prediction")
-
+            ax_plot.plot(x_ev, _to_numpy(y_true).ravel(), color="forestgreen", lw=2, label=r"$h(x)$")
+        ax_plot.scatter(x_tr, t_tr, color="royalblue", s=45, alpha=0.85, label=f"Observations ($N = {len(x_tr)}$)")
+        ax_plot.plot(x_ev, y_ev, color="firebrick", lw=2.2, label="Model $y(x, \\mathbf{w})$")
         if residuals:
-            y_interp = np.interp(x_tr, x_ev, y_ev)
-            ax_plot.vlines(
-                x_tr,
-                t_tr,
-                y_interp,
-                colors="royalblue",
-                linestyles="--",
-                alpha=0.5,
-                label="Residuals",
-            )
-
+            y_at_train = np.interp(x_tr, x_ev, y_ev)  # drawing only: the curve's height at the observations
+            ax_plot.vlines(x_tr, t_tr, y_at_train, colors="royalblue", linestyles="--", alpha=0.6, label="Residuals")
         if title:
             ax_plot.set_title(title, fontsize=11.5)
         ax_plot.set_xlabel(xlabel, fontsize=11)
@@ -150,99 +137,68 @@ class DeepRegressionPlotter(BasePlotter):
         return cls.finalize(fig, ax=ax_plot, show=show)
 
     @classmethod
-    def plot_polynomial_fits(
+    def plot_conditional_density(
         cls,
-        x_dense: torch.Tensor,
-        t_dense: torch.Tensor,
-        x_train: torch.Tensor,
-        t_train: torch.Tensor,
-        fitted_models: Dict[int, torch.Tensor],
-        degrees: Sequence[int],
-        figsize: Tuple[float, float] = (9.5, 5.0),
+        x_grid: Any,
+        y_grid: Any,
+        x0: float,
+        t_grid: Any,
+        density: Any,
+        y0: float,
+        width: float = 0.25,
+        figsize: Tuple[float, float] = (7.5, 3.8),
         show: bool = True,
-    ) -> Optional[plt.Figure]:
-        """Plot 2x2 grid of polynomial curve fits for varying degrees M."""
-        fig, axes = plt.subplots(2, 2, figsize=figsize, sharex=True, sharey=True)
-        x_d = _to_numpy(x_dense).ravel()
-        t_d = _to_numpy(t_dense).ravel()
-        x_tr = _to_numpy(x_train).ravel()
-        t_tr = _to_numpy(t_train).ravel()
-
-        for ax, M in zip(axes.ravel(), degrees):
-            w_fit = fitted_models[M]
-            y_dense = torch.matmul(torch.vander(x_dense, N=M + 1, increasing=True), w_fit)
-            y_d = _to_numpy(y_dense).ravel()
-
-            ax.plot(x_d, t_d, "forestgreen", lw=1.5, label="True")
-            ax.scatter(x_tr, t_tr, color="royalblue", s=35, alpha=0.85)
-            ax.plot(x_d, y_d, "firebrick", lw=2, label=f"$M={M}$")
-            ax.set_title(f"Polynomial Degree $M={M}$", fontsize=10.5)
-            ax.set_ylim(-1.6, 1.6)
-            ax.legend(loc="upper right", fontsize=8.5)
-            ax.grid(True)
-
-        return cls.finalize(fig, show=show)
+    ) -> Optional[plt.Axes]:
+        """Regression function y(x) on the grid and the conditional density p(t | x0) drawn sideways at x0, its mean y0 marked (after Bishop & Bishop 2024, Fig. 4.5); all values pre-computed."""
+        fig, ax_plot = cls.create_canvas(figsize=figsize)
+        ax_plot.plot(_to_numpy(x_grid).ravel(), _to_numpy(y_grid).ravel(), color="firebrick", lw=2.2,
+                     label=r"$y(x) = \mathbb{E}[t \mid x]$")
+        dens = _to_numpy(density).ravel()
+        t_g = _to_numpy(t_grid).ravel()
+        ax_plot.plot(x0 + width * dens / dens.max(), t_g, color="royalblue", lw=2.0, label=r"$p(t \mid x_0)$")
+        ax_plot.axvline(x0, color="gray", lw=1.0, linestyle=":")
+        ax_plot.plot([x0], [y0], "o", color="firebrick", ms=7)
+        ax_plot.annotate(r"$y(x_0)$", (x0, y0), xytext=(8, -14), textcoords="offset points", fontsize=11)
+        ax_plot.set_xlabel("$x$", fontsize=11)
+        ax_plot.set_ylabel("$t$", fontsize=11)
+        ax_plot.legend(loc="upper right", fontsize=9.5)
+        ax_plot.grid(True)
+        return cls.finalize(fig, ax=ax_plot, show=show)
 
     @classmethod
     def plot_polynomial_extrapolation(
         cls,
-        x_train: torch.Tensor,
-        t_train: torch.Tensor,
-        w: torch.Tensor,
+        x_train: Any,
+        t_train: Any,
+        x_grid: Any,
+        y_grid: Any,
+        h_grid: Optional[Any] = None,
         degree: Optional[int] = None,
-        x_range: Tuple[float, float] = (0.0, 1.0),
         title: Optional[str] = None,
         figsize: Tuple[float, float] = (7.5, 3.8),
         ax: Optional[plt.Axes] = None,
         show: bool = True,
-        **kwargs: Any,
     ) -> Optional[plt.Axes]:
-        """Decoupled polynomial curve visualizer with interval extrapolation support."""
+        """Observations, the generating function h on the grid and a polynomial fit pre-computed on the grid; shades the training interval [0, 1] when the grid leaves it."""
         fig, ax_plot = cls.create_canvas(figsize=figsize, ax=ax)
-
-        if "x_min" in kwargs and "x_max" in kwargs:
-            x_min, x_max = float(kwargs["x_min"]), float(kwargs["x_max"])
-        elif isinstance(x_range, (tuple, list)) and len(x_range) == 2:
-            x_min, x_max = float(x_range[0]), float(x_range[1])
-        else:
-            x_min, x_max = 0.0, 1.0
-
-        w_t = w if isinstance(w, torch.Tensor) else torch.as_tensor(w, dtype=torch.float32)
-        deg = degree if degree is not None else (len(w_t) - 1)
-
-        x_grid = torch.linspace(x_min, x_max, 400)
-        Phi_grid = torch.vander(x_grid, N=deg + 1, increasing=True)
-        y_grid = torch.matmul(Phi_grid, w_t)
-
-        x_grid_np = _to_numpy(x_grid).ravel()
-        y_grid_np = _to_numpy(y_grid).ravel()
-        x_tr_np = _to_numpy(x_train).ravel()
-        t_tr_np = _to_numpy(t_train).ravel()
-        y_true_np = np.sin(2.0 * np.pi * x_grid_np)
-
-        ax_plot.plot(x_grid_np, y_true_np, color="forestgreen", lw=1.8, label=r"Ground Truth: $\sin(2\pi x)$")
-        ax_plot.scatter(
-            x_tr_np,
-            t_tr_np,
-            color="royalblue",
-            s=45,
-            alpha=0.85,
-            label=f"Observations ($N={len(x_tr_np)}$)",
-            zorder=4,
-        )
-        ax_plot.plot(x_grid_np, y_grid_np, color="firebrick", lw=2.2, label=f"Polynomial ($M={deg}$)")
-
+        x_g, y_g = _to_numpy(x_grid).ravel(), _to_numpy(y_grid).ravel()
+        x_min, x_max = float(x_g.min()), float(x_g.max())
+        if h_grid is not None:
+            ax_plot.plot(x_g, _to_numpy(h_grid).ravel(), color="forestgreen", lw=1.8, label=r"$h(x) = \sin(2\pi x)$")
+        x_tr = _to_numpy(x_train).ravel()
+        ax_plot.scatter(x_tr, _to_numpy(t_train).ravel(), color="royalblue", s=45, alpha=0.85,
+                        label=f"Observations ($N = {len(x_tr)}$)", zorder=4)
+        label = "Polynomial" if degree is None else f"Polynomial ($M = {degree}$)"
+        ax_plot.plot(x_g, y_g, color="firebrick", lw=2.2, label=label)
         if x_min < 0.0 or x_max > 1.0:
-            ax_plot.axvspan(0.0, 1.0, color="royalblue", alpha=0.08, label="Training Domain [0, 1]")
+            ax_plot.axvspan(0.0, 1.0, color="royalblue", alpha=0.08, label="Training interval $[0, 1]$")
             ax_plot.set_ylim(-3.5, 3.5)
         else:
             ax_plot.set_ylim(-1.6, 1.6)
-
         ax_plot.set_xlim(x_min, x_max)
-        plot_title = title if title is not None else f"Polynomial Fit ($M={deg}$) on Interval $[{x_min:.1f}, {x_max:.1f}]$"
-        ax_plot.set_title(plot_title, fontsize=11.5)
-        ax_plot.set_xlabel("Input Feature ($x$)", fontsize=11)
-        ax_plot.set_ylabel("Target ($t$)", fontsize=11)
+        ax_plot.set_title(title or label, fontsize=11.5)
+        ax_plot.set_xlabel("$x$", fontsize=11)
+        ax_plot.set_ylabel("$t$", fontsize=11)
         ax_plot.legend(loc="upper right", fontsize=8.5)
         ax_plot.grid(True)
         return cls.finalize(fig, ax=ax_plot, show=show)
@@ -250,127 +206,79 @@ class DeepRegressionPlotter(BasePlotter):
     @classmethod
     def plot_dataset_size_remedy(
         cls,
-        x_dense: torch.Tensor,
-        t_dense: torch.Tensor,
-        models_by_N: Sequence[Tuple[int, torch.Tensor, torch.Tensor, torch.Tensor]],
+        x_dense: Any,
+        h_dense: Any,
+        models_by_N: Sequence[Tuple[int, Any, Any, Any]],
+        M: int,
         figsize: Tuple[float, float] = (9.5, 3.8),
         show: bool = True,
     ) -> Optional[plt.Figure]:
-        """Plot 1x2 panel illustrating mitigating power of sample size N for flexible model M=9."""
-        fig, axes = plt.subplots(1, 2, figsize=figsize, sharey=True)
-        x_d = _to_numpy(x_dense).ravel()
-        t_d = _to_numpy(t_dense).ravel()
-
-        for ax, (N_val, x_sc, t_sc, y_dense_sc) in zip(axes, models_by_N):
-            x_s = _to_numpy(x_sc).ravel()
-            t_s = _to_numpy(t_sc).ravel()
-            y_s = _to_numpy(y_dense_sc).ravel()
-
-            ax.plot(x_d, t_d, "forestgreen", lw=1.5, label="True")
-            ax.scatter(x_s, t_s, color="royalblue", s=25, alpha=0.75)
-            ax.plot(x_d, y_s, "firebrick", lw=2, label="$M=9$")
-            ax.set_title(f"Model $M = 9$ with $N = {N_val}$ Samples", fontsize=10.5)
+        """One panel per data-set size: observations, h and the fit pre-computed on x_dense, given as (N, x, t, y_dense)."""
+        fig, axes = plt.subplots(1, len(models_by_N), figsize=figsize, sharey=True, squeeze=False)
+        x_d, h_d = _to_numpy(x_dense).ravel(), _to_numpy(h_dense).ravel()
+        for ax, (N_val, x_sc, t_sc, y_dense_sc) in zip(axes[0], models_by_N):
+            ax.plot(x_d, h_d, "forestgreen", lw=1.5, label=r"$h(x)$")
+            ax.scatter(_to_numpy(x_sc).ravel(), _to_numpy(t_sc).ravel(), color="royalblue", s=25, alpha=0.75)
+            ax.plot(x_d, _to_numpy(y_dense_sc).ravel(), "firebrick", lw=2, label=f"$M = {M}$")
+            ax.set_title(f"$M = {M}$, $N = {N_val}$", fontsize=10.5)
+            ax.set_xlabel("$x$")
             ax.set_ylim(-1.6, 1.6)
             ax.legend(loc="upper right", fontsize=8.5)
             ax.grid(True)
-
         return cls.finalize(fig, show=show)
 
     @classmethod
     def plot_regularized_fits(
         cls,
-        x_dense: torch.Tensor,
-        t_dense: torch.Tensor,
-        x_train: torch.Tensor,
-        t_train: torch.Tensor,
-        reg_fits: Dict[Any, torch.Tensor],
-        reg_lambdas: Sequence[Any],
+        x_dense: Any,
+        h_dense: Any,
+        x_train: Any,
+        t_train: Any,
+        curves: Dict[str, Any],
         figsize: Tuple[float, float] = (9.5, 3.8),
         show: bool = True,
     ) -> Optional[plt.Figure]:
-        """Plot 1x2 panel of regularized polynomial fits for M=9."""
-        Phi_dense_10 = torch.vander(x_dense, N=10, increasing=True)
-        fig, axes = plt.subplots(1, 2, figsize=figsize, sharey=True)
-        titles = [r"$\ln\lambda = -18$ (Optimal Regularization)", r"$\ln\lambda = 0$ (Heavy Damping)"]
-        x_d = _to_numpy(x_dense).ravel()
-        t_d = _to_numpy(t_dense).ravel()
-        x_tr = _to_numpy(x_train).ravel()
-        t_tr = _to_numpy(t_train).ravel()
-
-        for ax, lam, title in zip(axes, reg_lambdas, titles):
-            w_reg = reg_fits[lam]
-            y_reg_dense = torch.matmul(Phi_dense_10, w_reg)
-            y_reg = _to_numpy(y_reg_dense).ravel()
-
-            ax.plot(x_d, t_d, "forestgreen", lw=1.5, label="True")
-            ax.scatter(x_tr, t_tr, color="royalblue", s=35, alpha=0.85)
-            ax.plot(x_d, y_reg, "firebrick", lw=2, label="Fit")
+        """One panel per entry {title: fit pre-computed on x_dense}, with observations and h."""
+        fig, axes = plt.subplots(1, len(curves), figsize=figsize, sharey=True, squeeze=False)
+        x_d, h_d = _to_numpy(x_dense).ravel(), _to_numpy(h_dense).ravel()
+        for ax, (title, y_dense) in zip(axes[0], curves.items()):
+            ax.plot(x_d, h_d, "forestgreen", lw=1.5, label=r"$h(x)$")
+            ax.scatter(_to_numpy(x_train).ravel(), _to_numpy(t_train).ravel(), color="royalblue", s=35, alpha=0.85)
+            ax.plot(x_d, _to_numpy(y_dense).ravel(), "firebrick", lw=2, label="Fit")
             ax.set_title(title, fontsize=10.5)
+            ax.set_xlabel("$x$")
             ax.set_ylim(-1.6, 1.6)
             ax.legend(loc="upper right", fontsize=8.5)
             ax.grid(True)
-
-        return cls.finalize(fig, show=show)
-
-    @classmethod
-    def plot_basis_functions(
-        cls,
-        x_eval: torch.Tensor,
-        centers: Sequence[float],
-        s: float = 0.15,
-        figsize: Tuple[float, float] = (10.5, 3.4),
-        show: bool = True,
-    ) -> Optional[plt.Figure]:
-        """Plot 1x3 panel displaying canonical families of basis functions (polynomial, RBF, sigmoidal)."""
-        fig, axes = plt.subplots(1, 3, figsize=figsize)
-        x_ev = _to_numpy(x_eval).ravel()
-
-        for p in range(4):
-            axes[0].plot(x_ev, x_ev ** p, lw=2, label=f"$x^{p}$")
-        axes[0].set_title("Polynomial Basis", fontsize=10.5)
-        axes[0].legend(fontsize=8.5)
-
-        for mu in centers:
-            mu_val = cls.to_scalar(mu)
-            axes[1].plot(x_ev, np.exp(-0.5 * ((x_ev - mu_val) / s) ** 2), lw=2)
-        axes[1].set_title("Gaussian RBF Basis", fontsize=10.5)
-
-        for mu in centers:
-            mu_val = cls.to_scalar(mu)
-            axes[2].plot(x_ev, 1.0 / (1.0 + np.exp(-(x_ev - mu_val) / s)), lw=2)
-
-        axes[2].set_title("Sigmoidal Basis", fontsize=10.5)
-
-        for ax in axes:
-            ax.set_xlabel("$x$")
-            ax.set_ylim(-0.1, 1.2)
-            ax.grid(True)
-
         return cls.finalize(fig, show=show)
 
     @classmethod
     def plot_bias_variance_curve(
         cls,
         ln_lambdas: Sequence[float],
-        bias2_list: Sequence[float],
-        var_list: Sequence[float],
-        total_bv: Sequence[float],
+        bias2: Sequence[float],
+        variance: Sequence[float],
+        total: Sequence[float],
+        test_error: Optional[Sequence[float]] = None,
         xlabel: str = r"$\ln\lambda$",
         ylabel: str = "Error",
-        ylim: Tuple[float, float] = (0, 0.12),
+        ylim: Optional[Tuple[float, float]] = None,
         figsize: Tuple[float, float] = (7.5, 3.8),
         ax: Optional[plt.Axes] = None,
         show: bool = True,
     ) -> Optional[plt.Axes]:
-        """Plot canonical U-shaped bias-variance trade-off curve vs ln(lambda)."""
+        """Squared bias, variance, their sum and optionally the average test error, all pre-computed per ln lambda."""
         fig, ax_plot = cls.create_canvas(figsize=figsize, ax=ax)
-        ax_plot.plot(ln_lambdas, bias2_list, "royalblue", lw=2.5, label=r"$(\mathrm{bias})^2$")
-        ax_plot.plot(ln_lambdas, var_list, "firebrick", lw=2.5, label=r"$\mathrm{variance}$")
-        ax_plot.plot(ln_lambdas, total_bv, "purple", lw=2.5, linestyle="--", label=r"$(\mathrm{bias})^2 + \mathrm{variance}$")
-        ax_plot.set_title(r"The Bias–Variance Trade-Off vs $\ln\lambda$", fontsize=11.5)
+        ax_plot.plot(ln_lambdas, bias2, "royalblue", lw=2.5, label=r"$(\mathrm{bias})^2$")
+        ax_plot.plot(ln_lambdas, variance, "firebrick", lw=2.5, label=r"$\mathrm{variance}$")
+        ax_plot.plot(ln_lambdas, total, "purple", lw=2.5, linestyle="--", label=r"$(\mathrm{bias})^2 + \mathrm{variance}$")
+        if test_error is not None:
+            ax_plot.plot(ln_lambdas, test_error, "black", lw=2.0, label="test error")
+        ax_plot.set_title(r"Bias and variance against $\ln\lambda$", fontsize=11.5)
         ax_plot.set_xlabel(xlabel, fontsize=11)
         ax_plot.set_ylabel(ylabel, fontsize=11)
-        ax_plot.set_ylim(ylim)
+        if ylim is not None:
+            ax_plot.set_ylim(ylim)
         ax_plot.legend(loc="upper center", fontsize=9.0)
         ax_plot.grid(True)
         return cls.finalize(fig, ax=ax_plot, show=show)
@@ -378,40 +286,27 @@ class DeepRegressionPlotter(BasePlotter):
     @classmethod
     def plot_ensemble_fits(
         cls,
-        x_dense_ev: torch.Tensor,
-        y_true_ev: torch.Tensor,
-        ensembles: Dict[float, Tuple[Sequence[torch.Tensor], torch.Tensor]],
+        x_dense: Any,
+        h_dense: Any,
+        ensembles: Dict[str, Tuple[Any, Any]],
+        n_show: int = 20,
         figsize: Tuple[float, float] = (11, 3.8),
         show: bool = True,
     ) -> Optional[plt.Figure]:
-        """Render 1x3 panel of model ensembles across High, Optimal, and Low regularization."""
-        fig, axes = plt.subplots(1, 3, figsize=figsize, sharey=True)
-        panel_specs = [
-            (2.0, r"High Regularization ($\ln\lambda = 2.0$)\nHigh Bias, Low Variance"),
-            (-0.5, r"Optimal Balance ($\ln\lambda = -0.5$)\nBalanced Bias & Variance"),
-            (-4.0, r"Low Regularization ($\ln\lambda = -4.0$)\nLow Bias, High Variance"),
-        ]
-        x_ev = _to_numpy(x_dense_ev).ravel()
-        y_tr = _to_numpy(y_true_ev).ravel()
-
-        for ax, (ln_lam, title) in zip(axes, panel_specs):
-            preds_all, mean_pred = ensembles[ln_lam]
-            mean_p = _to_numpy(mean_pred).ravel()
-
-            for l in range(min(20, len(preds_all))):
-                pred_l = _to_numpy(preds_all[l]).ravel()
-                ax.plot(x_ev, pred_l, color="firebrick", alpha=0.3, lw=0.9)
-
-            ax.plot(x_ev, mean_p, color="darkred", lw=2.4, label=r"Ensemble Mean $\bar{y}(x)$")
-            ax.plot(x_ev, y_tr, color="forestgreen", lw=2.0, linestyle="--", label="Ground Truth")
+        """One panel per entry {title: (fits of the L data sets, their average)}, all pre-computed on x_dense."""
+        fig, axes = plt.subplots(1, len(ensembles), figsize=figsize, sharey=True, squeeze=False)
+        x_ev, h_ev = _to_numpy(x_dense).ravel(), _to_numpy(h_dense).ravel()
+        for ax, (title, (preds_all, mean_pred)) in zip(axes[0], ensembles.items()):
+            for l in range(min(n_show, len(preds_all))):
+                ax.plot(x_ev, _to_numpy(preds_all[l]).ravel(), color="firebrick", alpha=0.3, lw=0.9)
+            ax.plot(x_ev, _to_numpy(mean_pred).ravel(), color="darkred", lw=2.4, label=r"average $\bar{y}(x)$")
+            ax.plot(x_ev, h_ev, color="forestgreen", lw=2.0, linestyle="--", label=r"$h(x)$")
             ax.set_title(title, fontsize=10.0)
             ax.set_xlabel("$x$")
             ax.set_ylim(-1.6, 1.6)
             ax.grid(True)
-            if ax == axes[0]:
-                ax.set_ylabel("$y(x)$")
-                ax.legend(loc="lower left", fontsize=8.0)
-
+        axes[0][0].set_ylabel("$y(x)$")
+        axes[0][0].legend(loc="lower left", fontsize=8.0)
         return cls.finalize(fig, show=show)
 
     @classmethod
@@ -466,93 +361,6 @@ class DeepRegressionPlotter(BasePlotter):
         axes[1].legend(loc="lower left", fontsize=8.5)
         axes[1].grid(True)
 
-        return cls.finalize(fig, show=show)
-
-    @classmethod
-    def plot_l1_l2_outlier_comparison(
-        cls,
-        x_clean: torch.Tensor,
-        t_corrupt: torch.Tensor,
-        x_plot: torch.Tensor,
-        y_l2_plot: torch.Tensor,
-        y_l1_plot: torch.Tensor,
-        figsize: Tuple[float, float] = (7.5, 3.8),
-        show: bool = True,
-    ) -> Optional[plt.Figure]:
-        """Plot comparison of L2 squared loss vs L1 absolute loss on corrupted data."""
-        fig, ax = cls.create_canvas(figsize=figsize)
-        x_c = _to_numpy(x_clean).ravel()
-        t_c = _to_numpy(t_corrupt).ravel()
-        x_p = _to_numpy(x_plot).ravel()
-        y_l2 = _to_numpy(y_l2_plot).ravel()
-        y_l1 = _to_numpy(y_l1_plot).ravel()
-
-        ax.scatter(x_c, t_c, color="royalblue", s=40, label="Data with Sensor Spikes")
-        ax.plot(x_p, y_l2, "firebrick", lw=2, label=r"$L_2$ Squared Loss (Skewed)")
-        ax.plot(
-            x_p,
-            y_l1,
-            "forestgreen",
-            lw=2.5,
-            linestyle="--",
-            label=r"$L_1$ Absolute Loss (Robust Median)",
-        )
-        ax.set_title(r"Decision Theory: Robustness of $L_1$ vs $L_2$ Loss", fontsize=11.5)
-        ax.set_xlabel("Input Feature ($x$)")
-        ax.set_ylabel("Target ($t$)")
-        ax.legend(loc="upper left", fontsize=9.0)
-        ax.grid(True)
-        return cls.finalize(fig, show=show)
-
-    @classmethod
-    def plot_streaming_adaline_convergence(
-        cls,
-        X_synth: torch.Tensor,
-        t_synth: torch.Tensor,
-        x_line: torch.Tensor,
-        Phi_line: torch.Tensor,
-        epoch_snapshots: Sequence[Tuple[int, torch.Tensor]],
-        w_analytic: torch.Tensor,
-        figsize: Tuple[float, float] = (8, 3.8),
-        show: bool = True,
-    ) -> Optional[plt.Figure]:
-        """Plot streaming Adaline regression lines across epochs converging to analytical batch solution."""
-        fig, ax = cls.create_canvas(figsize=figsize)
-        X_s = _to_numpy(X_synth).ravel()
-        t_s = _to_numpy(t_synth).ravel()
-        x_l = _to_numpy(x_line).ravel()
-
-        ax.scatter(
-            X_s,
-            t_s,
-            color="royalblue",
-            s=45,
-            alpha=0.85,
-            label=f"Streaming Samples ($N={len(X_s)}$)",
-        )
-
-        colors = {"1": "orange", "3": "darkviolet", "15": "crimson"}
-        for ep, w_snap in epoch_snapshots[1:]:
-            y_snap = Phi_line @ w_snap
-            y_sn = _to_numpy(y_snap).ravel()
-            ax.plot(
-                x_l,
-                y_sn,
-                color=colors.get(str(ep), "gray"),
-                lw=1.8,
-                linestyle="--",
-                label=f"Adaline Epoch {ep}",
-            )
-
-        y_exact = Phi_line @ w_analytic
-        y_ex = _to_numpy(y_exact).ravel()
-        ax.plot(x_l, y_ex, "black", lw=2.5, label=r"Batch OLS $\mathbf{w}_\mathrm{ML}$")
-
-        ax.set_title("Adaline Online LMS: Progressive Convergence to Batch Least Squares", fontsize=11.5)
-        ax.set_xlabel("Input Feature ($x$)")
-        ax.set_ylabel("Target ($t$)")
-        ax.legend(loc="lower right", fontsize=9.0)
-        ax.grid(True)
         return cls.finalize(fig, show=show)
 
     @classmethod
@@ -941,16 +749,13 @@ class DeepArchitecturePlotter(BasePlotter):
 # Regression Facades
 plot_synthetic_regression_data = DeepRegressionPlotter.plot_synthetic_regression_data
 plot_regression_fit = DeepRegressionPlotter.plot_regression_fit
-plot_polynomial_fits = DeepRegressionPlotter.plot_polynomial_fits
+plot_conditional_density = DeepRegressionPlotter.plot_conditional_density
 plot_polynomial_extrapolation = DeepRegressionPlotter.plot_polynomial_extrapolation
 plot_dataset_size_remedy = DeepRegressionPlotter.plot_dataset_size_remedy
 plot_regularized_fits = DeepRegressionPlotter.plot_regularized_fits
-plot_basis_functions = DeepRegressionPlotter.plot_basis_functions
 plot_bias_variance_curve = DeepRegressionPlotter.plot_bias_variance_curve
 plot_ensemble_fits = DeepRegressionPlotter.plot_ensemble_fits
 plot_l1_l2_sparsity_geometry = DeepRegressionPlotter.plot_l1_l2_sparsity_geometry
-plot_l1_l2_outlier_comparison = DeepRegressionPlotter.plot_l1_l2_outlier_comparison
-plot_streaming_adaline_convergence = DeepRegressionPlotter.plot_streaming_adaline_convergence
 plot_least_squares_geometry = DeepRegressionPlotter.plot_least_squares_geometry
 
 # Classification Facades

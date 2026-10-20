@@ -38,6 +38,7 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
     plot_binary,
     plot_confusion_matrix,
     plot_correlation_matrix,
+    plot_curves,
     plot_directions,
     plot_fitted_curves,
     plot_image,
@@ -188,38 +189,6 @@ class AIMLRegressionPlotter(BasePlotter):
         ax_plot.legend(loc="best", fontsize=10.0)
         ax_plot.grid(True)
         return cls.finalize(fig, ax=ax_plot, show=show)
-
-    @classmethod
-    def plot_curves(
-        cls,
-        x: Sequence[float],
-        curves: Dict[str, Sequence[float]],
-        xlabel: Optional[str] = None,
-        ylabel: Optional[str] = None,
-        title: Optional[str] = None,
-        logx: bool = False,
-        mark_x: Optional[float] = None,
-        mark_label: Optional[str] = None,
-        figsize: Tuple[float, float] = (7.5, 4.2),
-        ax: Optional[plt.Axes] = None,
-        show: bool = True,
-    ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
-        """Draw pre-computed curves over a shared x axis (errors over flexibility, coefficient paths, losses)."""
-        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel=ylabel)
-        x_arr = _to_numpy(x, ravel=True)
-        marker = "o" if len(x_arr) <= 25 else None
-        colors = plt.cm.tab20.colors if len(curves) > 10 else [None] * len(curves)  # distinct colours for many curves
-        for (label, values), color in zip(curves.items(), colors):
-            ax.plot(x_arr, _to_numpy(values, ravel=True), lw=2.0, marker=marker, ms=4, label=label, color=color)
-        if logx:
-            ax.set_xscale("log")
-        if mark_x is not None:
-            ax.axvline(mark_x, color="gray", linestyle="--", lw=1.2, label=mark_label)
-        if len(curves) > 6:
-            ax.legend(fontsize=7.5, ncol=2, loc="upper left", bbox_to_anchor=(1.01, 1.0))
-        else:
-            ax.legend(fontsize=9.5, loc="best")
-        return cls.finalize(fig, ax, show=show)
 
     @classmethod
     def plot_confounding(
@@ -742,7 +711,6 @@ plot_residuals = AIMLRegressionPlotter.plot_residuals
 plot_linear_classification_fit = AIMLRegressionPlotter.plot_linear_classification_fit
 plot_logistic_response_curve = AIMLRegressionPlotter.plot_logistic_response_curve
 plot_positive_vs_log = AIMLRegressionPlotter.plot_positive_vs_log
-plot_curves = AIMLRegressionPlotter.plot_curves
 plot_residual_panels = AIMLRegressionPlotter.plot_residual_panels
 plot_confounding = AIMLRegressionPlotter.plot_confounding
 

@@ -489,6 +489,8 @@ class RegressionPlotter(BasePlotter):
         ylabel: Optional[str] = None,
         title: Optional[str] = None,
         ylim: Optional[Tuple[float, float]] = None,
+        colors: Optional[Dict[str, str]] = None,
+        linestyles: Optional[Dict[str, str]] = None,
         figsize: Tuple[float, float] = (7.5, 4.5),
         ax: Optional[Axes] = None,
         show: bool = True,
@@ -497,14 +499,14 @@ class RegressionPlotter(BasePlotter):
         fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel=ylabel)
         ax.scatter(cls.to_numpy(x, ravel=True), cls.to_numpy(t, ravel=True), color="royalblue", alpha=0.45, s=16, label="Observations")
         for label, values in curves.items():
-            ax.plot(cls.to_numpy(x_grid, ravel=True), cls.to_numpy(values, ravel=True), lw=2.2, label=label)
+            ax.plot(cls.to_numpy(x_grid, ravel=True), cls.to_numpy(values, ravel=True), lw=2.2, label=label,
+                    color=(colors or {}).get(label), linestyle=(linestyles or {}).get(label, "-"))
         for label, (px, py) in (points or {}).items():
             ax.plot(px, py, marker="o", markersize=9, color="forestgreen", linestyle="none", label=label)
         if ylim is not None:
             ax.set_ylim(*ylim)
         ax.legend(fontsize=9.5, loc="best")
         return cls.finalize(fig, ax, show=show)
-
 
 class BoundaryPlotter(BasePlotter):
     """Visualizer for 2D decision boundaries and surfaces."""
@@ -856,6 +858,48 @@ class ImagePlotter(BasePlotter):
         plt.show()
 
 
+class CurvePlotter(BasePlotter):
+    """Visualizer for pre-computed curves over a shared axis (errors over flexibility, losses, paths)."""
+
+    @classmethod
+    def plot_curves(
+        cls,
+        x: Sequence[float],
+        curves: Dict[str, Sequence[float]],
+        xlabel: Optional[str] = None,
+        ylabel: Optional[str] = None,
+        title: Optional[str] = None,
+        logx: bool = False,
+        logy: bool = False,
+        mark_x: Optional[float] = None,
+        mark_label: Optional[str] = None,
+        ylim: Optional[Tuple[float, float]] = None,
+        figsize: Tuple[float, float] = (7.5, 4.2),
+        ax: Optional[Axes] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
+        """Draw pre-computed curves over a shared x axis (errors over flexibility, coefficient paths, losses)."""
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel=ylabel)
+        x_arr = cls.to_numpy(x, ravel=True)
+        marker = "o" if len(x_arr) <= 25 else None
+        colors = plt.cm.tab20.colors if len(curves) > 10 else [None] * len(curves)  # distinct colours for many curves
+        for (label, values), color in zip(curves.items(), colors):
+            ax.plot(x_arr, cls.to_numpy(values, ravel=True), lw=2.0, marker=marker, ms=4, label=label, color=color)
+        if logx:
+            ax.set_xscale("log")
+        if logy:
+            ax.set_yscale("log")
+        if ylim is not None:
+            ax.set_ylim(*ylim)
+        if mark_x is not None:
+            ax.axvline(mark_x, color="gray", linestyle="--", lw=1.2, label=mark_label)
+        if len(curves) > 6:
+            ax.legend(fontsize=7.5, ncol=2, loc="upper left", bbox_to_anchor=(1.01, 1.0))
+        else:
+            ax.legend(fontsize=9.5, loc="best")
+        return cls.finalize(fig, ax, show=show)
+
+
 class ActivationPlotter(BasePlotter):
     """Visualizer for activation functions, output functions and their derivatives."""
 
@@ -1069,6 +1113,7 @@ class PCAPlotter(BasePlotter):
 
 plot_residuals = RegressionPlotter.plot_residuals
 plot_fitted_curves = RegressionPlotter.plot_fitted_curves
+plot_curves = CurvePlotter.plot_curves
 plot_binary = BoundaryPlotter.plot_binary
 plot_correlation_matrix = DiagnosticPlotter.plot_correlation_matrix
 plot_pairgrid = DiagnosticPlotter.plot_pairgrid
