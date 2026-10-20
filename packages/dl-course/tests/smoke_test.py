@@ -80,6 +80,12 @@ CASES = [
     ("shared", "plot_binary", lambda hp: hp.plot_binary(logreg.predict, X2, y2)),
     ("shared", "plot_correlation_matrix", lambda hp: hp.plot_correlation_matrix(df)),
     ("shared", "plot_pairgrid", lambda hp: hp.plot_pairgrid(df)),
+    ("shared", "plot_decision_surface", lambda hp: (
+        hp.plot_decision_surface(X2, y2, *hp.create_2d_grid(X2, resolution=20)[:2],
+                                 values=(hp.create_2d_grid(X2, resolution=20)[0] > 0).astype(int),
+                                 boundaries={"b": [0.0, 1.0, 1.0]}, highlight=[0]),
+        hp.plot_decision_surface(X2, y2, *hp.create_2d_grid(X2, resolution=20)[:2],
+                                 values=np.full((20, 20), 0.5) + 0.01 * rng.normal(size=(20, 20)), levels=[0.5]))),
     ("shared", "plot_confusion_matrix", lambda hp: hp.plot_confusion_matrix(np.array([[5, 1], [2, 4]]), labels=["neg", "pos"])),
     ("shared", "plot_roc_curves", lambda hp: hp.plot_roc_curves({"model": ([0.0, 0.2, 1.0], [0.0, 0.7, 1.0])}, points={"tau": (0.2, 0.7)})),
     ("shared", "annotate", lambda hp: (
@@ -138,7 +144,8 @@ CASES = [
     ("foundations", "plot_curve_with_marker", lambda hp: hp.plot_curve_with_marker(x_dense, t_dense, 0.5, 0.0, vline_at=0.5, hline_at=0.0)),
     ("foundations", "plot_categorical_probabilities", lambda hp: hp.plot_categorical_probabilities(["a", "b"], {"T=1": [0.3, 0.7]}, ylim=(0, 1))),
     # deep_learning
-    ("deep_learning", "plot_decision_boundary_2d", lambda hp: hp.plot_decision_boundary_2d(logreg.predict, X2, y2)),
+    ("deep_learning", "plot_hyperplane_geometry", lambda hp: hp.plot_hyperplane_geometry([2.0, 1.0], -2.0, [2.0, 2.0], [0.4, 1.2])),
+    ("deep_learning", "plot_reject_option", lambda hp: hp.plot_reject_option(x, {"a": x, "b": 1 - x}, 0.7, (x > 0.3) & (x < 0.7))),
     ("deep_learning", "plot_synthetic_regression_data", lambda hp: hp.plot_synthetic_regression_data(x_dense, t_dense, x, t)),
     ("deep_learning", "plot_regression_fit", lambda hp: hp.plot_regression_fit(x, t, x_dense, t_dense, y_true=t_dense, residuals=True, band=(t_dense - 0.2, t_dense + 0.2))),
     ("deep_learning", "plot_conditional_density", lambda hp: hp.plot_conditional_density(x_dense, t_dense, 0.5, torch.linspace(-1, 1, 50), torch.exp(-torch.linspace(-1, 1, 50) ** 2), 0.0)),

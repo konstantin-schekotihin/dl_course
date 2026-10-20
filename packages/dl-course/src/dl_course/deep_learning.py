@@ -38,10 +38,13 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
     get_url,
     format_number,
     format_vector,
+    plot_confusion_matrix,
     plot_curves,
+    plot_decision_surface,
     plot_fitted_curves,
     plot_function_panels,
     plot_residuals,
+    plot_roc_curves,
     print_math,
     setup_theme,
 )
@@ -422,33 +425,69 @@ class DeepClassificationPlotter(BasePlotter):
     """Encapsulated decision boundary visualizers for single-layer and deep classifiers."""
 
     @classmethod
-    def plot_decision_boundary_2d(
+    def plot_hyperplane_geometry(
         cls,
-        predictor: Callable[[np.ndarray], np.ndarray],
-        X: torch.Tensor | np.ndarray,
-        y: torch.Tensor | np.ndarray,
-        title: Optional[str] = None,
-        figsize: Tuple[float, float] = (8, 8),
-        ax: Optional[plt.Axes] = None,
+        w: Any,
+        w0: float,
+        x: Any,
+        x_perp: Any,
+        xlim: Tuple[float, float] = (-1.0, 3.5),
+        ylim: Tuple[float, float] = (-1.0, 3.5),
+        figsize: Tuple[float, float] = (6.0, 5.2),
         show: bool = True,
     ) -> Optional[plt.Axes]:
-        """Plot 2D decision boundary meshgrid and data points for classification."""
-        fig, ax_plot = cls.create_canvas(figsize=figsize, ax=ax)
-        X_np = cls.to_numpy(X)
-        y_np = cls.to_numpy(y, ravel=True)
+        """Decision boundary w^T x + w0 = 0 in 2D with the normal w, a point x, its projection x_perp, the signed
+        distance r and the distance -w0/||w|| of the boundary from the origin (after Fig. 5.1); values pre-computed."""
+        fig, ax = cls.create_canvas(figsize=figsize)
+        w_np, x_np, xp_np = (cls.to_numpy(v, ravel=True).astype(float) for v in (w, x, x_perp))
+        norm = float(np.linalg.norm(w_np))
+        x1 = np.linspace(*xlim, 200)
+        ax.plot(x1, -(w0 + w_np[0] * x1) / w_np[1], color="firebrick", lw=2.2, label=r"$y(\mathbf{x}) = 0$")
+        foot = -w0 / norm**2 * w_np                              # point of the boundary closest to the origin
+        ax.annotate("", xy=foot, xytext=(0, 0), arrowprops=dict(arrowstyle="<->", color="gray", lw=1.4))
+        ax.text(*(foot / 2 + np.array([0.08, -0.25])), r"$-w_0 / \|\mathbf{w}\|$", color="gray", fontsize=11)
+        ax.annotate("", xy=foot + w_np / norm, xytext=foot, arrowprops=dict(arrowstyle="-|>", color="black", lw=2))
+        ax.text(*(foot + w_np / norm + np.array([0.05, 0.05])), r"$\mathbf{w}$", fontsize=13)
+        ax.plot(*x_np, "o", color="royalblue", ms=8)
+        ax.text(*(x_np + np.array([0.08, 0.08])), r"$\mathbf{x}$", fontsize=13, color="royalblue")
+        ax.plot(*xp_np, "o", color="black", ms=6)
+        ax.text(*(xp_np + np.array([-0.35, -0.3])), r"$\mathbf{x}_\perp$", fontsize=13)
+        ax.plot([xp_np[0], x_np[0]], [xp_np[1], x_np[1]], color="royalblue", lw=1.6, linestyle="--")
+        ax.text(*((xp_np + x_np) / 2 + np.array([0.08, -0.15])), r"$r$", fontsize=13, color="royalblue")
+        ax.plot([0], [0], "k+", ms=10)
+        ax.text(xlim[1] - 1.2, ylim[1] - 0.5, r"$\mathcal{R}_1$: $y > 0$", fontsize=12)
+        ax.text(xlim[0] + 0.2, ylim[0] + 0.3, r"$\mathcal{R}_2$: $y < 0$", fontsize=12)
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        ax.set_aspect("equal")
+        ax.set_xlabel("$x_1$")
+        ax.set_ylabel("$x_2$")
+        ax.legend(loc="lower right", fontsize=9.5)
+        return cls.finalize(fig, ax=ax, show=show)
 
-        xm, ym, grid_pts = cls.create_2d_grid(X_np, padding=0.5, resolution=200)
-        p = cls.eval_predictor(predictor, grid_pts, as_tensor_like=X).reshape(xm.shape)
-
-        ax_plot.contourf(xm, ym, p, alpha=0.3, cmap="coolwarm")
-        ax_plot.scatter(X_np[:, 0], X_np[:, 1], c=y_np, cmap="coolwarm", edgecolors="k", s=80, lw=1.5)
-
-        if title:
-            ax_plot.set_title(title, fontsize=12)
-        ax_plot.set_xlabel("$x_1$", fontsize=11.5)
-        ax_plot.set_ylabel("$x_2$", fontsize=11.5)
-        ax_plot.grid(True)
-        return cls.finalize(fig, ax=ax_plot, show=show)
+    @classmethod
+    def plot_reject_option(
+        cls,
+        x: Any,
+        posteriors: Dict[str, Any],
+        theta: float,
+        reject: Any,
+        figsize: Tuple[float, float] = (7.5, 3.8),
+        show: bool = True,
+    ) -> Optional[plt.Axes]:
+        """Posterior curves {label: p(C_k | x)} over x, the threshold theta and the pre-computed reject region
+        (boolean mask over x) shaded (after Fig. 5.7)."""
+        fig, ax = cls.create_canvas(figsize=figsize)
+        x_np, mask = cls.to_numpy(x, ravel=True), cls.to_numpy(reject, ravel=True).astype(bool)
+        for (label, p), col in zip(posteriors.items(), ["royalblue", "firebrick", "forestgreen"]):
+            ax.plot(x_np, cls.to_numpy(p, ravel=True), color=col, lw=2.2, label=label)
+        ax.axhline(theta, color="black", linestyle="--", lw=1.2, label=rf"$\theta = {theta:g}$")
+        ax.fill_between(x_np, 0, 1, where=mask, color="gray", alpha=0.25, label="reject region")
+        ax.set_ylim(0, 1.02)
+        ax.set_xlabel("$x$")
+        ax.set_ylabel(r"$p(\mathcal{C}_k \mid x)$")
+        ax.legend(loc="center right", fontsize=9)
+        return cls.finalize(fig, ax=ax, show=show)
 
 
 # ---------------------------------------------------------------------------
@@ -734,8 +773,8 @@ plot_l1_l2_sparsity_geometry = DeepRegressionPlotter.plot_l1_l2_sparsity_geometr
 plot_least_squares_geometry = DeepRegressionPlotter.plot_least_squares_geometry
 
 # Classification Facades
-plot_decision_boundary_2d = DeepClassificationPlotter.plot_decision_boundary_2d
-plot_binary = DeepClassificationPlotter.plot_decision_boundary_2d
+plot_hyperplane_geometry = DeepClassificationPlotter.plot_hyperplane_geometry
+plot_reject_option = DeepClassificationPlotter.plot_reject_option
 
 # Optimization Facades
 plot_loss_history = DeepOptimizationPlotter.plot_loss_history

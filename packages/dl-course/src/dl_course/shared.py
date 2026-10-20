@@ -19,6 +19,8 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Sequence,
 from IPython.display import Markdown, display
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
+from matplotlib.colors import ListedColormap
+from matplotlib.patches import Patch
 from matplotlib.figure import Figure
 import numpy as np
 import pandas as pd
@@ -550,6 +552,78 @@ class BoundaryPlotter(BasePlotter):
         ax.contourf(xm, ym, p_arr, alpha=0.3, cmap="coolwarm")
         ax.scatter(X_np[:, 0], X_np[:, 1], c=y_np, cmap="coolwarm", edgecolors="k", s=80, lw=1.5)
 
+        return cls.finalize(fig, ax, show=show)
+
+
+    CLASS_COLORS = ("royalblue", "firebrick", "forestgreen", "darkorange", "purple", "gray")
+
+    @classmethod
+    def plot_decision_surface(
+        cls,
+        X: Any = None,
+        t: Any = None,
+        xx: Any = None,
+        yy: Any = None,
+        values: Any = None,
+        levels: Optional[Sequence[float]] = None,
+        boundaries: Optional[Dict[str, Sequence[float]]] = None,
+        class_names: Optional[Dict[Any, str]] = None,
+        highlight: Optional[Sequence[int]] = None,
+        title: Optional[str] = None,
+        xlabel: str = "$x_1$",
+        ylabel: str = "$x_2$",
+        xlim: Optional[Tuple[float, float]] = None,
+        ylim: Optional[Tuple[float, float]] = None,
+        figsize: Tuple[float, float] = (6.5, 5.0),
+        ax: Optional[Axes] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
+        """Data coloured by class over pre-computed grid values: class labels as regions, or probabilities with
+        contour lines at `levels`; optional linear boundaries {label: (w0, w1, w2)} drawn as w0 + w1 x1 + w2 x2 = 0."""
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel=ylabel, grid=False)
+        t_np = cls.to_numpy(t, ravel=True) if t is not None else np.array([])
+        v_np = cls.to_numpy(values) if values is not None else None
+        discrete = v_np is not None and levels is None
+        labels = sorted(set(np.unique(t_np).tolist()) | (set(np.unique(v_np).tolist()) if discrete else set()))
+        color = {lab: cls.CLASS_COLORS[i % len(cls.CLASS_COLORS)] for i, lab in enumerate(labels)}
+        names = class_names or {}
+        if v_np is not None:
+            xx_np, yy_np = cls.to_numpy(xx), cls.to_numpy(yy)
+            if discrete:  # one colour per class label
+                index = np.vectorize({lab: i for i, lab in enumerate(labels)}.get)(v_np)
+                cmap = ListedColormap([color[lab] for lab in labels])
+                ax.contourf(xx_np, yy_np, index, levels=np.arange(len(labels) + 1) - 0.5, cmap=cmap, alpha=0.22)
+            else:  # probabilities: shading and labelled contour lines
+                ax.contourf(xx_np, yy_np, v_np, levels=np.linspace(0.0, 1.0, 21), cmap="coolwarm", alpha=0.35)
+                lines = ax.contour(xx_np, yy_np, v_np, levels=list(levels), colors="black", linewidths=1.2)
+                ax.clabel(lines, fmt="%.1f", fontsize=9)
+            xlim = xlim or (float(xx_np.min()), float(xx_np.max()))
+            ylim = ylim or (float(yy_np.min()), float(yy_np.max()))
+        if X is not None:
+            X_np = cls.to_numpy(X)
+            if xlim is None or ylim is None:
+                bx, by = cls.get_boundaries(X_np, padding=0.5)
+                xlim, ylim = xlim or bx, ylim or by
+            for lab in np.unique(t_np):
+                mask = t_np == lab
+                ax.scatter(X_np[mask, 0], X_np[mask, 1], color=color[lab.item()], edgecolors="k", s=55, lw=0.8,
+                           label=names.get(lab.item(), f"$t = {lab.item():g}$"), zorder=3)
+            for n in highlight or []:
+                ax.scatter([X_np[n, 0]], [X_np[n, 1]], s=260, facecolors="none", edgecolors="black", lw=2.0, zorder=4)
+        for (label, w), style in zip((boundaries or {}).items(), ["--", "-", ":", "-."] * 3):
+            w0, w1, w2 = (float(v) for v in cls.to_numpy(w, ravel=True)[:3])
+            if abs(w2) > 1e-12:
+                x1 = np.linspace(xlim[0], xlim[1], 200)
+                ax.plot(x1, -(w0 + w1 * x1) / w2, color="black", linestyle=style, lw=2.0, label=label)
+            elif abs(w1) > 1e-12:
+                ax.axvline(-w0 / w1, color="black", linestyle=style, lw=2.0, label=label)
+        handles, _ = ax.get_legend_handles_labels()
+        if discrete and X is None:  # regions only: one legend entry per named region
+            handles += [Patch(color=color[lab], alpha=0.4, label=names[lab]) for lab in labels if lab in names]
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        if handles:
+            ax.legend(handles=handles, fontsize=9, loc="best")
         return cls.finalize(fig, ax, show=show)
 
 
@@ -1130,6 +1204,7 @@ plot_residuals = RegressionPlotter.plot_residuals
 plot_fitted_curves = RegressionPlotter.plot_fitted_curves
 plot_curves = CurvePlotter.plot_curves
 plot_binary = BoundaryPlotter.plot_binary
+plot_decision_surface = BoundaryPlotter.plot_decision_surface
 plot_correlation_matrix = DiagnosticPlotter.plot_correlation_matrix
 plot_pairgrid = DiagnosticPlotter.plot_pairgrid
 plot_confusion_matrix = ClassificationPlotter.plot_confusion_matrix
