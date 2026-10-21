@@ -144,6 +144,11 @@ CASES = [
     ("foundations", "plot_curve_with_marker", lambda hp: hp.plot_curve_with_marker(x_dense, t_dense, 0.5, 0.0, vline_at=0.5, hline_at=0.0)),
     ("foundations", "plot_categorical_probabilities", lambda hp: hp.plot_categorical_probabilities(["a", "b"], {"T=1": [0.3, 0.7]}, ylim=(0, 1))),
     # deep_learning
+    ("deep_learning", "plot_descent_1d", lambda hp: hp.plot_descent_1d(x, x ** 2, [1.0, 0.5, 0.25], [1.0, 0.25, 0.0625])),
+    ("deep_learning", "plot_contour_trajectories", lambda hp: hp.plot_contour_trajectories(
+        *np.meshgrid(np.linspace(-2, 2, 20), np.linspace(-2, 2, 20)),
+        np.add.outer(np.linspace(-2, 2, 20) ** 2, np.linspace(-2, 2, 20) ** 2),
+        {"a": np.array([[1.0, 1.0], [0.5, 0.2], [0.0, 0.0]])}, directions={"u": [1.0, 0.0]})),
     ("deep_learning", "plot_hyperplane_geometry", lambda hp: hp.plot_hyperplane_geometry([2.0, 1.0], -2.0, [2.0, 2.0], [0.4, 1.2])),
     ("deep_learning", "plot_reject_option", lambda hp: hp.plot_reject_option(x, {"a": x, "b": 1 - x}, 0.7, (x > 0.3) & (x < 0.7))),
     ("deep_learning", "plot_synthetic_regression_data", lambda hp: hp.plot_synthetic_regression_data(x_dense, t_dense, x, t)),
@@ -157,11 +162,6 @@ CASES = [
     ("deep_learning", "plot_least_squares_geometry", lambda hp: hp.plot_least_squares_geometry(
         torch.tensor([[1.0, 0.0], [1.0, 0.5], [1.0, 1.0]]), torch.tensor([1.2, 0.3, 1.8]),
         torch.tensor([0.8, 1.1, 1.4]), torch.tensor([0.8, 0.6]))),
-    ("deep_learning", "plot_loss_history", lambda hp: hp.plot_loss_history([1.0, 0.5, 0.1])),
-    ("deep_learning", "plot_out", lambda hp: hp.plot_out([1.0, 0.5, 0.1])),
-    ("deep_learning", "g_idea", lambda hp: hp.g_idea(lambda v: v ** 2, lambda v: 2 * v)),
-    ("deep_learning", "plot_trace", lambda hp: hp.plot_trace(lambda v: v ** 2, [1.0, 0.5, 0.25])),
-    ("deep_learning", "plot_grad", lambda hp: hp.plot_grad(lambda a, b: a ** 2 + b ** 2, 1.0, 1.0, 0.5, 0.5)),
     ("deep_learning", "plot_sobel_filtered", lambda hp: hp.plot_sobel_filtered(img2d, img2d)),
     ("deep_learning", "plot_time_series", lambda hp: hp.plot_time_series(list(range(10)), list(range(10)), label="s")),
     ("deep_learning", "plot_attention_heatmap", lambda hp: hp.plot_attention_heatmap(np.full((3, 3), 1 / 3), ["a", "b", "c"])),

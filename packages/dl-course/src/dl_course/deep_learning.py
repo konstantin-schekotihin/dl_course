@@ -9,7 +9,7 @@ Provides structured, decoupled visualization routines for:
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Optional, Sequence, Tuple
+from typing import Any, Dict, Optional, Sequence, Tuple
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -504,121 +504,73 @@ class DeepClassificationPlotter(BasePlotter):
 # ---------------------------------------------------------------------------
 
 class DeepOptimizationPlotter(BasePlotter):
-    """Encapsulated loss landscape and convergence trajectory visualizers."""
+    """Optimization paths on pre-computed error functions (07_gradient_descent)."""
 
     @classmethod
-    def plot_loss_history(
+    def plot_descent_1d(
         cls,
-        losses: Sequence[float],
-        log_scale: bool = True,
-        title: str = "Optimization Convergence",
-        xlabel: str = "Iteration",
-        ylabel: str = "Loss / Metric",
-        figsize: Tuple[float, float] = (8, 4.5),
+        w_grid: Any,
+        E_grid: Any,
+        trace_w: Any,
+        trace_E: Any,
+        title: Optional[str] = None,
+        ylim: Optional[Tuple[float, float]] = None,
+        figsize: Tuple[float, float] = (7.5, 4.0),
         ax: Optional[plt.Axes] = None,
         show: bool = True,
     ) -> Optional[plt.Axes]:
-        """Plot optimization convergence loss with optional logarithmic scaling."""
+        """Error function E(w) pre-computed on a grid and the iterates (w, E(w)) of a descent method, joined in order."""
         fig, ax_plot = cls.create_canvas(figsize=figsize, ax=ax)
-        ax_plot.plot(losses, lw=2.2, color="royalblue")
-        if log_scale:
-            ax_plot.set_yscale("log")
-        ax_plot.set_title(title, fontsize=12)
-        ax_plot.set_xlabel(xlabel, fontsize=11)
-        ax_plot.set_ylabel(ylabel, fontsize=11)
-        ax_plot.grid(True)
+        ax_plot.plot(cls.to_numpy(w_grid, ravel=True), cls.to_numpy(E_grid, ravel=True), color="royalblue", lw=2.2,
+                     label="$E(w)$")
+        tw, tE = cls.to_numpy(trace_w, ravel=True), cls.to_numpy(trace_E, ravel=True)
+        ax_plot.plot(tw, tE, "o-", color="firebrick", ms=5, lw=1.2, label="iterates $w^{(\\tau)}$")
+        ax_plot.plot(tw[:1], tE[:1], "s", color="black", ms=7, label="$w^{(0)}$")
+        if ylim is not None:
+            ax_plot.set_ylim(*ylim)
+        ax_plot.set_title(title or "", fontsize=11.5)
+        ax_plot.set_xlabel("$w$")
+        ax_plot.set_ylabel("$E(w)$")
+        ax_plot.legend(loc="best", fontsize=9.5)
         return cls.finalize(fig, ax=ax_plot, show=show)
 
     @classmethod
-    def plot_out(cls, out: Sequence[Any]) -> None:
-        """Plot optimization convergence loss on a logarithmic scale with formatted summary."""
-        grad_val = cls.to_scalar(out[-1])
-        print_math(rf"Finished optimization in {len(out)} iterations with final metric $\|\nabla E(\mathbf{{w}})\| = {grad_val:.4e}$")
-        cls.plot_loss_history(out, log_scale=True)
-
-    @classmethod
-    def plot_idea(
+    def plot_contour_trajectories(
         cls,
-        f: Callable[[Any], Any],
-        df: Callable[[Any], Any],
-        x: float = 1.0,
-        h: float = 0.05,
-        figsize: Tuple[float, float] = (8, 5),
+        xx: Any,
+        yy: Any,
+        E_grid: Any,
+        trajectories: Dict[str, Any],
+        directions: Optional[Dict[str, Any]] = None,
+        minimum: Optional[Sequence[float]] = None,
+        title: Optional[str] = None,
+        figsize: Tuple[float, float] = (7.5, 4.6),
+        ax: Optional[plt.Axes] = None,
         show: bool = True,
-    ) -> Optional[plt.Figure]:
-        """Illustrate 1D gradient step concept with direction arrow."""
-        fig, ax = cls.create_canvas(figsize=figsize)
-        sp = np.linspace(-0.5, 1, 100)
-        ax.plot(sp, f(sp), lw=2, color="royalblue")
-        x_n = x - h * df(x)
-        ax.arrow(
-            x,
-            f(x),
-            x_n - x,
-            f(x_n) - f(x),
-            head_width=0.04,
-            length_includes_head=True,
-            color="crimson",
-            linewidth=3,
-        )
-        ax.plot(x, f(x), "ro", markersize=8)
-        ax.set_title(f"Gradient Step: x={x:.2f} -> x_next={x_n:.2f}", fontsize=12)
-        ax.grid(True)
-        return cls.finalize(fig, show=show)
-
-    @classmethod
-    def plot_trace(
-        cls,
-        f: Callable[[Any], Any],
-        trace: Sequence[Any],
-        figsize: Tuple[float, float] = (8, 5),
-        show: bool = True,
-    ) -> Optional[plt.Figure]:
-        """Plot optimization parameter trajectory over 1D objective surface."""
-        fig, ax = cls.create_canvas(figsize=figsize)
-        max_bound = max(abs(min(trace)), abs(max(trace))) + 0.5
-        domain = torch.arange(-max_bound, max_bound, 0.01)
-        f_domain = cls.to_numpy(f(domain))
-        ax.plot(domain.numpy(), f_domain, "b-", lw=2, label="Objective f(x)")
-        trace_vals = [cls.to_scalar(f(x)) for x in trace]
-        ax.plot(trace, trace_vals, "-ro", markersize=6, label="Trajectory")
-        ax.legend()
-        ax.grid(True)
-        return cls.finalize(fig, show=show)
-
-
-    @classmethod
-    def plot_grad(
-        cls,
-        f: Callable[[Any, Any], Any],
-        x: float,
-        y: float,
-        x1: float,
-        y1: float,
-        angle: float = 60.0,
-        figsize: Tuple[float, float] = (8.0, 8.0),
-        show: bool = True,
-    ) -> Optional[plt.Figure]:
-        """Plot 3D loss surface and single gradient step projection."""
-        fig = plt.figure(figsize=figsize)
-        sp = np.linspace(-10, 10, 200)
-        X, Y = np.meshgrid(sp, sp)
-        Z = f(X, Y)
-
-        ax = fig.add_subplot(111, projection="3d")
-        ax.view_init(30, angle)
-        ax.set_xlabel("x")
-        ax.set_ylabel("y")
-        ax.set_zlabel("f")
-
-        ax.plot_surface(X, Y, Z, alpha=0.3, cmap=plt.cm.summer, linewidth=0.1)
-        ax.scatter([x, x], [y, y], [0, f(x, y)], s=40, c="r")
-        ax.scatter([x1, x1], [y1, y1], [f(x1, y1), 0], s=40, c="b")
-        ax.plot([x, x1], [y, y1], [f(x, y), f(x1, y1)], color="black", lw=2)
-        ax.plot([x, x1], [y, y1], [0, 0], color="black", linestyle="--")
-
-        print_math(rf"Initial state $\mathbf{{w}}_0 = [{x:.2f}, {y:.2f}]^\mathrm{{T}}, E(\mathbf{{w}}_0) = {f(x, y):.2f}$; Step $\mathbf{{w}}_1 = [{x1:.2f}, {y1:.2f}]^\mathrm{{T}}, E(\mathbf{{w}}_1) = {f(x1, y1):.2f}$")
-        return cls.finalize(fig, show=show)
+    ) -> Optional[plt.Axes]:
+        """Contours of an error function pre-computed on a grid, optimization paths {label: (T, 2) iterates} and
+        optional direction arrows {label: 2-vector} (e.g. Hessian eigenvectors) drawn from the minimum."""
+        fig, ax_plot = cls.create_canvas(figsize=figsize, ax=ax, grid=False)
+        xx, yy, Z = cls.to_numpy(xx), cls.to_numpy(yy), cls.to_numpy(E_grid)
+        levels = np.quantile(Z, np.linspace(0.01, 0.95, 14))
+        ax_plot.contour(xx, yy, Z, levels=np.unique(levels), cmap="viridis", alpha=0.6)
+        for (label, path), col in zip(trajectories.items(), ["firebrick", "royalblue", "darkorange", "forestgreen",
+                                                              "purple"]):
+            P = cls.to_numpy(path).reshape(-1, 2)
+            ax_plot.plot(P[:, 0], P[:, 1], "o-", color=col, ms=3.5, lw=1.4, label=label)
+        origin = np.zeros(2) if minimum is None else np.asarray(minimum, dtype=float)
+        ax_plot.plot(*origin, "k*", ms=12, label="minimum")
+        for label, v in (directions or {}).items():
+            v = cls.to_numpy(v, ravel=True).astype(float)
+            ax_plot.annotate("", xy=origin + v, xytext=origin, arrowprops=dict(arrowstyle="-|>", color="black", lw=1.8))
+            ax_plot.text(*(origin + 1.1 * v), label, fontsize=12, ha="center", va="center")
+        ax_plot.set_xlim(float(np.min(xx)), float(np.max(xx)))
+        ax_plot.set_ylim(float(np.min(yy)), float(np.max(yy)))
+        ax_plot.set_xlabel("$w_1$")
+        ax_plot.set_ylabel("$w_2$")
+        ax_plot.set_title(title or "", fontsize=11.5)
+        ax_plot.legend(loc="upper right", fontsize=9)
+        return cls.finalize(fig, ax=ax_plot, show=show)
 
 
 # ---------------------------------------------------------------------------
@@ -786,11 +738,8 @@ plot_hyperplane_geometry = DeepClassificationPlotter.plot_hyperplane_geometry
 plot_reject_option = DeepClassificationPlotter.plot_reject_option
 
 # Optimization Facades
-plot_loss_history = DeepOptimizationPlotter.plot_loss_history
-plot_out = DeepOptimizationPlotter.plot_out
-g_idea = DeepOptimizationPlotter.plot_idea
-plot_trace = DeepOptimizationPlotter.plot_trace
-plot_grad = DeepOptimizationPlotter.plot_grad
+plot_descent_1d = DeepOptimizationPlotter.plot_descent_1d
+plot_contour_trajectories = DeepOptimizationPlotter.plot_contour_trajectories
 
 # Architecture & Diagnostics Facades
 plot_sobel_filtered = DeepArchitecturePlotter.plot_sobel_filtered

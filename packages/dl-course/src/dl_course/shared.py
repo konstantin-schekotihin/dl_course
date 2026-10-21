@@ -1005,14 +1005,15 @@ class ActivationPlotter(BasePlotter):
         figsize: Optional[Tuple[float, float]] = None,
         show: bool = True,
     ) -> Optional[Tuple[Figure, Optional[Axes]]]:
-        """Curves pre-computed on the grid a, one panel per dict {label: values}; optional marked point per panel."""
+        """Curves pre-computed on the grid a, one panel per dict {label: values}; optional marked points per panel."""
         x = cls.to_numpy(a, ravel=True)
         fig, axes = plt.subplots(1, len(panels), figsize=figsize or (5.25 * len(panels), 4.0), squeeze=False)
         for i, (ax, curves) in enumerate(zip(axes[0], panels)):
             for label, values in curves.items():
                 ax.plot(x, cls.to_numpy(values, ravel=True), lw=2.2, ls="--" if label in dashed else "-", label=label)
-            if points is not None and points[i] is not None:
-                ax.scatter([float(points[i][0])], [float(points[i][1])], color="crimson", s=50, zorder=5)
+            if points is not None and points[i] is not None:  # one (x, y) pair or a list of pairs
+                marked = np.asarray(points[i], dtype=float).reshape(-1, 2)
+                ax.scatter(marked[:, 0], marked[:, 1], color="crimson", s=50, zorder=5)
             ax.axhline(0, color="black", lw=0.8, ls=":")
             ax.axvline(0, color="black", lw=0.8, ls=":")
             ax.set_xlabel(xlabel, fontsize=11)
