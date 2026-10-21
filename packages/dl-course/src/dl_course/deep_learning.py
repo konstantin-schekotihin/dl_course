@@ -43,6 +43,7 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
     plot_decision_surface,
     plot_fitted_curves,
     plot_function_panels,
+    plot_image_grid,
     plot_residuals,
     plot_roc_curves,
     print_math,
