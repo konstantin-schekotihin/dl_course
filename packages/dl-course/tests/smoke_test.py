@@ -149,6 +149,9 @@ CASES = [
         *np.meshgrid(np.linspace(-2, 2, 20), np.linspace(-2, 2, 20)),
         np.add.outer(np.linspace(-2, 2, 20) ** 2, np.linspace(-2, 2, 20) ** 2),
         {"a": np.array([[1.0, 1.0], [0.5, 0.2], [0.0, 0.0]])}, directions={"u": [1.0, 0.0]})),
+    ("deep_learning", "plot_computational_graph", lambda hp: hp.plot_computational_graph(
+        {"a": (0.0, 0.0, "$a$"), "b": (2.0, 0.0, "$b$")}, [("a", "b")], values={"a": "1"}, adjoints={"b": "2"},
+        edge_labels={("a", "b"): "x"})),
     ("deep_learning", "plot_hyperplane_geometry", lambda hp: hp.plot_hyperplane_geometry([2.0, 1.0], -2.0, [2.0, 2.0], [0.4, 1.2])),
     ("deep_learning", "plot_reject_option", lambda hp: hp.plot_reject_option(x, {"a": x, "b": 1 - x}, 0.7, (x > 0.3) & (x < 0.7))),
     ("deep_learning", "plot_synthetic_regression_data", lambda hp: hp.plot_synthetic_regression_data(x_dense, t_dense, x, t)),

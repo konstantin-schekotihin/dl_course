@@ -573,6 +573,53 @@ class DeepOptimizationPlotter(BasePlotter):
         return cls.finalize(fig, ax=ax_plot, show=show)
 
 
+class ComputationalGraphPlotter(BasePlotter):
+    """Computational graphs with pre-computed forward values and adjoints (08_backpropagation)."""
+
+    @classmethod
+    def plot_computational_graph(
+        cls,
+        nodes: Dict[str, Tuple[float, float, str]],
+        edges: Sequence[Tuple[str, str]],
+        values: Optional[Dict[str, str]] = None,
+        adjoints: Optional[Dict[str, str]] = None,
+        edge_labels: Optional[Dict[Tuple[str, str], str]] = None,
+        title: Optional[str] = None,
+        radius: float = 0.32,
+        figsize: Tuple[float, float] = (10.0, 4.0),
+        show: bool = True,
+    ) -> Optional[plt.Figure]:
+        """Nodes {name: (x, y, label)} and directed edges; forward values (black, above) and adjoints (red,
+        below) are pre-computed strings, so the figure shows exactly the numbers of the notebook."""
+        fig, ax = plt.subplots(figsize=figsize)
+        for u, v in edges:
+            (x0, y0, _), (x1, y1, _) = nodes[u], nodes[v]
+            d = np.hypot(x1 - x0, y1 - y0)
+            start = (x0 + radius * (x1 - x0) / d, y0 + radius * (y1 - y0) / d)
+            end = (x1 - radius * (x1 - x0) / d, y1 - radius * (y1 - y0) / d)
+            ax.annotate("", xy=end, xytext=start, arrowprops=dict(arrowstyle="-|>", color="#33415c", lw=1.4))
+            if edge_labels and (u, v) in edge_labels:
+                ax.text((x0 + x1) / 2, (y0 + y1) / 2 + 0.12, edge_labels[(u, v)], ha="center", va="bottom",
+                        fontsize=10, color="#33415c")
+        for name, (x, y, label) in nodes.items():
+            ax.add_patch(plt.Circle((x, y), radius, facecolor="#dbe7f5", edgecolor="#33415c", lw=1.6, zorder=3))
+            ax.text(x, y, label, ha="center", va="center", fontsize=12, zorder=4)
+            if values and name in values:
+                ax.text(x, y + radius + 0.08, values[name], ha="center", va="bottom", fontsize=10.5, zorder=4)
+            if adjoints and name in adjoints:
+                ax.text(x, y - radius - 0.08, adjoints[name], ha="center", va="top", fontsize=10.5,
+                        color="firebrick", zorder=4)
+        xs = [x for x, _, _ in nodes.values()]
+        ys = [y for _, y, _ in nodes.values()]
+        ax.set_xlim(min(xs) - 1.0, max(xs) + 1.0)
+        ax.set_ylim(min(ys) - 1.0, max(ys) + 1.0)
+        ax.set_aspect("equal")
+        ax.axis("off")
+        if title:
+            ax.set_title(title, fontsize=12)
+        return cls.finalize(fig, show=show)
+
+
 # ---------------------------------------------------------------------------
 # 5. Deep Diagnostics, Convolutions, Sequences & Graphs
 # ---------------------------------------------------------------------------
@@ -739,6 +786,7 @@ plot_reject_option = DeepClassificationPlotter.plot_reject_option
 
 # Optimization Facades
 plot_descent_1d = DeepOptimizationPlotter.plot_descent_1d
+plot_computational_graph = ComputationalGraphPlotter.plot_computational_graph
 plot_contour_trajectories = DeepOptimizationPlotter.plot_contour_trajectories
 
 # Architecture & Diagnostics Facades
