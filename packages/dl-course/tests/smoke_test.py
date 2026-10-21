@@ -148,7 +148,9 @@ CASES = [
     ("deep_learning", "plot_contour_trajectories", lambda hp: hp.plot_contour_trajectories(
         *np.meshgrid(np.linspace(-2, 2, 20), np.linspace(-2, 2, 20)),
         np.add.outer(np.linspace(-2, 2, 20) ** 2, np.linspace(-2, 2, 20) ** 2),
-        {"a": np.array([[1.0, 1.0], [0.5, 0.2], [0.0, 0.0]])}, directions={"u": [1.0, 0.0]})),
+        {"a": np.array([[1.0, 1.0], [0.5, 0.2], [0.0, 0.0]])}, directions={"u": [1.0, 0.0]},
+        curves={"c": np.array([[1.0, 0.0], [0.0, 1.0]])}, points={"p": (0.5, 0.5)}, equal_aspect=True,
+        minimum_label="m", legend_loc="lower right")),
     ("deep_learning", "plot_computational_graph", lambda hp: hp.plot_computational_graph(
         {"a": (0.0, 0.0, "$a$"), "b": (2.0, 0.0, "$b$")}, [("a", "b")], values={"a": "1"}, adjoints={"b": "2"},
         edge_labels={("a", "b"): "x"})),
@@ -161,7 +163,6 @@ CASES = [
     ("deep_learning", "plot_dataset_size_remedy", lambda hp: hp.plot_dataset_size_remedy(x_dense, t_dense, [(20, x, t, t_dense), (20, x, t, t_dense)], M=9)),
     ("deep_learning", "plot_bias_variance_curve", lambda hp: hp.plot_bias_variance_curve([0.1, 1.0, 10.0], [0.1, 0.05, 0.01], [0.01, 0.05, 0.1], [0.11, 0.1, 0.11])),
     ("deep_learning", "plot_ensemble_fits", lambda hp: hp.plot_ensemble_fits(x_dense, t_dense, {k: ([t_dense] * 3, t_dense) for k in ("a", "b", "c")})),
-    ("deep_learning", "plot_l1_l2_sparsity_geometry", lambda hp: hp.plot_l1_l2_sparsity_geometry()),
     ("deep_learning", "plot_least_squares_geometry", lambda hp: hp.plot_least_squares_geometry(
         torch.tensor([[1.0, 0.0], [1.0, 0.5], [1.0, 1.0]]), torch.tensor([1.2, 0.3, 1.8]),
         torch.tensor([0.8, 1.1, 1.4]), torch.tensor([0.8, 0.6]))),

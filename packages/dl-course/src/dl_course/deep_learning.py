@@ -290,60 +290,6 @@ class DeepRegressionPlotter(BasePlotter):
         return cls.finalize(fig, show=show)
 
     @classmethod
-    def plot_l1_l2_sparsity_geometry(
-        cls,
-        figsize: Tuple[float, float] = (9.5, 3.8),
-        show: bool = True,
-    ) -> Optional[plt.Figure]:
-        """Plot 2D parameter space constraint geometry for L2 (circle) vs L1 (diamond) regularization."""
-        w1 = np.linspace(-2.0, 2.5, 300)
-        w2 = np.linspace(-2.0, 2.5, 300)
-        W1, W2 = np.meshgrid(w1, w2)
-        w_opt = np.array([1.4, 1.1])
-        E_grid = 1.8 * (W1 - w_opt[0]) ** 2 + 0.9 * (W2 - w_opt[1]) ** 2 - 1.2 * (W1 - w_opt[0]) * (W2 - w_opt[1])
-
-        fig, axes = plt.subplots(1, 2, figsize=figsize)
-        axes[0].contour(W1, W2, E_grid, levels=[0.2, 0.6, 1.2, 2.0, 3.2], colors="royalblue", alpha=0.8)
-        circle = plt.Circle((0, 0), 1.0, color="crimson", fill=False, lw=2.5, label=r"Constraint: $\Vert\mathbf{w}\Vert_2^2 \leq \eta$")
-        axes[0].add_patch(circle)
-        axes[0].plot(w_opt[0], w_opt[1], "ko", markersize=6, label=r"Unconstrained $\mathbf{w}^*$")
-        axes[0].plot(0.7, 0.71, "ro", markersize=6, label="Solution (Off-axis)")
-        axes[0].axhline(0, color="gray", lw=0.8, linestyle="--")
-        axes[0].axvline(0, color="gray", lw=0.8, linestyle="--")
-        axes[0].set_title(r"$L_2$ Regularization (Ridge / Weight Decay)", fontsize=10.5)
-        axes[0].set_xlabel(r"$w_1$")
-        axes[0].set_ylabel(r"$w_2$")
-        axes[0].set_xlim(-1.8, 2.2)
-        axes[0].set_ylim(-1.8, 2.2)
-        axes[0].set_aspect("equal")
-        axes[0].legend(loc="lower left", fontsize=8.5)
-        axes[0].grid(True)
-
-        axes[1].contour(W1, W2, E_grid, levels=[0.2, 0.6, 1.2, 2.0, 3.2], colors="royalblue", alpha=0.8)
-        diamond = plt.Polygon(
-            [[1.1, 0], [0, 1.1], [-1.1, 0], [0, -1.1]],
-            color="crimson",
-            fill=False,
-            lw=2.5,
-            label=r"Constraint: $\Vert\mathbf{w}\Vert_1 \leq \eta$",
-        )
-        axes[1].add_patch(diamond)
-        axes[1].plot(w_opt[0], w_opt[1], "ko", markersize=6, label=r"Unconstrained $\mathbf{w}^*$")
-        axes[1].plot(0.0, 1.1, "ro", markersize=6, label=r"Solution ($w_1 = 0$, Sparse!)")
-        axes[1].axhline(0, color="gray", lw=0.8, linestyle="--")
-        axes[1].axvline(0, color="gray", lw=0.8, linestyle="--")
-        axes[1].set_title(r"$L_1$ Regularization (Lasso / Sparse)", fontsize=10.5)
-        axes[1].set_xlabel(r"$w_1$")
-        axes[1].set_ylabel(r"$w_2$")
-        axes[1].set_xlim(-1.8, 2.2)
-        axes[1].set_ylim(-1.8, 2.2)
-        axes[1].set_aspect("equal")
-        axes[1].legend(loc="lower left", fontsize=8.5)
-        axes[1].grid(True)
-
-        return cls.finalize(fig, show=show)
-
-    @classmethod
     def plot_least_squares_geometry(
         cls,
         Phi: Any,
@@ -540,36 +486,51 @@ class DeepOptimizationPlotter(BasePlotter):
         xx: Any,
         yy: Any,
         E_grid: Any,
-        trajectories: Dict[str, Any],
+        trajectories: Optional[Dict[str, Any]] = None,
         directions: Optional[Dict[str, Any]] = None,
         minimum: Optional[Sequence[float]] = None,
+        curves: Optional[Dict[str, Any]] = None,
+        points: Optional[Dict[str, Sequence[float]]] = None,
+        show_minimum: bool = True,
+        minimum_label: str = "minimum",
+        equal_aspect: bool = False,
+        legend_loc: str = "upper right",
         title: Optional[str] = None,
         figsize: Tuple[float, float] = (7.5, 4.6),
         ax: Optional[plt.Axes] = None,
         show: bool = True,
     ) -> Optional[plt.Axes]:
-        """Contours of an error function pre-computed on a grid, optimization paths {label: (T, 2) iterates} and
-        optional direction arrows {label: 2-vector} (e.g. Hessian eigenvectors) drawn from the minimum."""
+        """Contours of an error function pre-computed on a grid, optimization paths {label: (T, 2) iterates},
+        optional direction arrows {label: 2-vector} drawn from the minimum, plain curves {label: (T, 2)} (e.g.
+        constraint boundaries) and marked points {label: (x, y)}."""
         fig, ax_plot = cls.create_canvas(figsize=figsize, ax=ax, grid=False)
         xx, yy, Z = cls.to_numpy(xx), cls.to_numpy(yy), cls.to_numpy(E_grid)
         levels = np.quantile(Z, np.linspace(0.01, 0.95, 14))
         ax_plot.contour(xx, yy, Z, levels=np.unique(levels), cmap="viridis", alpha=0.6)
-        for (label, path), col in zip(trajectories.items(), ["firebrick", "royalblue", "darkorange", "forestgreen",
-                                                              "purple"]):
+        for (label, path), col in zip((trajectories or {}).items(), ["firebrick", "royalblue", "darkorange",
+                                                                      "forestgreen", "purple"]):
             P = cls.to_numpy(path).reshape(-1, 2)
             ax_plot.plot(P[:, 0], P[:, 1], "o-", color=col, ms=3.5, lw=1.4, label=label)
+        for (label, curve), col in zip((curves or {}).items(), ["crimson", "darkorange", "purple"]):
+            C = cls.to_numpy(curve).reshape(-1, 2)
+            ax_plot.plot(C[:, 0], C[:, 1], "-", color=col, lw=2.2, label=label)
+        for (label, point), marker in zip((points or {}).items(), ["o", "s", "D", "^"]):
+            ax_plot.plot(*np.asarray(point, dtype=float), marker, color="black", ms=8, linestyle="none", label=label)
         origin = np.zeros(2) if minimum is None else np.asarray(minimum, dtype=float)
-        ax_plot.plot(*origin, "k*", ms=12, label="minimum")
+        if show_minimum:
+            ax_plot.plot(*origin, "k*", ms=12, label=minimum_label)
         for label, v in (directions or {}).items():
             v = cls.to_numpy(v, ravel=True).astype(float)
             ax_plot.annotate("", xy=origin + v, xytext=origin, arrowprops=dict(arrowstyle="-|>", color="black", lw=1.8))
             ax_plot.text(*(origin + 1.1 * v), label, fontsize=12, ha="center", va="center")
         ax_plot.set_xlim(float(np.min(xx)), float(np.max(xx)))
         ax_plot.set_ylim(float(np.min(yy)), float(np.max(yy)))
+        if equal_aspect:
+            ax_plot.set_aspect("equal")
         ax_plot.set_xlabel("$w_1$")
         ax_plot.set_ylabel("$w_2$")
         ax_plot.set_title(title or "", fontsize=11.5)
-        ax_plot.legend(loc="upper right", fontsize=9)
+        ax_plot.legend(loc=legend_loc, fontsize=9)
         return cls.finalize(fig, ax=ax_plot, show=show)
 
 
@@ -777,7 +738,6 @@ plot_polynomial_extrapolation = DeepRegressionPlotter.plot_polynomial_extrapolat
 plot_dataset_size_remedy = DeepRegressionPlotter.plot_dataset_size_remedy
 plot_bias_variance_curve = DeepRegressionPlotter.plot_bias_variance_curve
 plot_ensemble_fits = DeepRegressionPlotter.plot_ensemble_fits
-plot_l1_l2_sparsity_geometry = DeepRegressionPlotter.plot_l1_l2_sparsity_geometry
 plot_least_squares_geometry = DeepRegressionPlotter.plot_least_squares_geometry
 
 # Classification Facades
