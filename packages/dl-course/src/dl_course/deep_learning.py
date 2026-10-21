@@ -444,10 +444,18 @@ class DeepClassificationPlotter(BasePlotter):
         x1 = np.linspace(*xlim, 200)
         ax.plot(x1, -(w0 + w_np[0] * x1) / w_np[1], color="firebrick", lw=2.2, label=r"$y(\mathbf{x}) = 0$")
         foot = -w0 / norm**2 * w_np                              # point of the boundary closest to the origin
+        unit_w = w_np / norm
+        along = np.array([-unit_w[1], unit_w[0]])                # direction within the boundary
+        side = 1.0 if along @ (xp_np - foot) > 0 else -1.0       # side of foot on which x_perp lies
+        # Distance of the boundary from the origin; its label sits beyond the origin, away from the boundary
         ax.annotate("", xy=foot, xytext=(0, 0), arrowprops=dict(arrowstyle="<->", color="gray", lw=1.4))
-        ax.text(*(foot / 2 + np.array([0.08, -0.25])), r"$-w_0 / \|\mathbf{w}\|$", color="gray", fontsize=11)
-        ax.annotate("", xy=foot + w_np / norm, xytext=foot, arrowprops=dict(arrowstyle="-|>", color="black", lw=2))
-        ax.text(*(foot + w_np / norm + np.array([0.05, 0.05])), r"$\mathbf{w}$", fontsize=13)
+        away = -foot / max(float(np.linalg.norm(foot)), 1e-12)
+        ax.text(*(0.12 * away), r"$-w_0 / \|\mathbf{w}\|$", color="gray", fontsize=11,
+                ha="right" if away[0] < 0 else "left", va="top" if away[1] < 0 else "bottom")
+        # The normal vector, drawn from a boundary point on the other side of the foot, away from x and x_perp
+        start = foot - side * 1.2 * along
+        ax.annotate("", xy=start + unit_w, xytext=start, arrowprops=dict(arrowstyle="-|>", color="black", lw=2))
+        ax.text(*(start + unit_w + 0.08 * unit_w), r"$\mathbf{w}$", fontsize=13, ha="left", va="bottom")
         ax.plot(*x_np, "o", color="royalblue", ms=8)
         ax.text(*(x_np + np.array([0.08, 0.08])), r"$\mathbf{x}$", fontsize=13, color="royalblue")
         ax.plot(*xp_np, "o", color="black", ms=6)
