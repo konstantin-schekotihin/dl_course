@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Sequence,
 
 from IPython.display import Markdown, display
 import matplotlib.pyplot as plt
+from matplotlib import patheffects
 from matplotlib.axes import Axes
 from matplotlib.colors import ListedColormap
 from matplotlib.patches import Patch
@@ -877,19 +878,65 @@ class ImagePlotter(BasePlotter):
         titles: Optional[Sequence[str]] = None,
         n_cols: int = 4,
         cmap: str = "gray",
+        signed: Union[bool, Sequence[bool]] = False,
+        annotate: bool = False,
+        digits: int = 2,
+        overlays: Optional[Any] = None,
         figsize: Optional[Tuple[float, float]] = None,
         show: bool = True,
     ) -> Optional[Tuple[Figure, Optional[Axes]]]:
-        """Show a stack of 2D images (e.g. CNN feature maps) in a grid; receives pre-computed images."""
-        arr = cls.to_numpy(images)
-        n_rows = (len(arr) + n_cols - 1) // n_cols
+        """Show a stack of pre-computed 2D (or H x W x 3) images in a grid. signed: diverging colours centred
+        at 0 (one flag or one per image); annotate: write each value into its pixel; overlays: heat maps of the
+        same size drawn semi-transparently on top (e.g. saliency maps)."""
+        images = [cls.to_numpy(image) for image in images]
+        flags = [signed] * len(images) if isinstance(signed, bool) else list(signed)
+        n_rows = (len(images) + n_cols - 1) // n_cols
         fig, axes = plt.subplots(n_rows, n_cols, figsize=figsize or (2.2 * n_cols, 2.2 * n_rows), squeeze=False)
         for i, ax in enumerate(axes.ravel()):
             ax.axis("off")
-            if i < len(arr):
-                ax.imshow(arr[i], cmap=cmap)
-                if titles is not None:
-                    ax.set_title(titles[i], fontsize=10)
+            if i >= len(images):
+                continue
+            image = images[i]
+            if flags[i]:
+                limit = float(np.abs(image).max()) or 1.0
+                ax.imshow(image, cmap="RdBu_r", vmin=-limit, vmax=limit)
+            else:
+                ax.imshow(image, cmap=cmap)
+            if overlays is not None:
+                ax.imshow(cls.to_numpy(overlays[i]), cmap="jet", alpha=0.45,
+                          extent=(-0.5, image.shape[1] - 0.5, image.shape[0] - 0.5, -0.5))
+            if annotate:
+                for (r, c), value in np.ndenumerate(image):
+                    ax.text(c, r, f"{value:.{digits}f}", ha="center", va="center", fontsize=10, color="crimson",
+                            weight="bold", path_effects=[patheffects.withStroke(linewidth=2.5, foreground="white")])
+            if titles is not None:
+                ax.set_title(titles[i], fontsize=10)
+        return cls.finalize(fig, show=show)
+
+    @classmethod
+    def plot_prediction(
+        cls,
+        image: Any,
+        probabilities: Any,
+        class_names: Sequence[str],
+        true_class: Optional[int] = None,
+        title: Optional[str] = None,
+        figsize: Tuple[float, float] = (10.0, 3.6),
+        show: bool = True,
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
+        """One image next to its pre-computed class probabilities; the true class is marked in green."""
+        probs = cls.to_numpy(probabilities, ravel=True)
+        fig, (ax_img, ax_bar) = plt.subplots(1, 2, figsize=figsize, gridspec_kw={"width_ratios": [1, 2.4]})
+        ax_img.imshow(cls.to_numpy(image), cmap="gray")
+        ax_img.axis("off")
+        ax_img.set_title(title or "", fontsize=11)
+        colors = ["forestgreen" if k == true_class else "firebrick" if k == probs.argmax() else "silver"
+                  for k in range(len(probs))]
+        ax_bar.barh(range(len(probs)), probs, color=colors)
+        ax_bar.set_yticks(range(len(probs)), class_names, fontsize=9.5)
+        ax_bar.invert_yaxis()
+        ax_bar.set_xlim(0, 1)
+        ax_bar.set_xlabel("predicted probability")
         return cls.finalize(fig, show=show)
 
     @classmethod
@@ -1214,6 +1261,7 @@ annotate = DiagnosticPlotter.annotate
 load_image = ImagePlotter.load_image
 plot_image = ImagePlotter.plot_image
 plot_image_grid = ImagePlotter.plot_image_grid
+plot_prediction = ImagePlotter.plot_prediction
 compress_image_svd = ImagePlotter.compress_image_svd
 plot_function_panels = ActivationPlotter.plot_function_panels
 plot_projection = PCAPlotter.plot_projection

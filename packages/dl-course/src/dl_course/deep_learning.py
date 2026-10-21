@@ -44,6 +44,7 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
     plot_fitted_curves,
     plot_function_panels,
     plot_image_grid,
+    plot_prediction,
     plot_residuals,
     plot_roc_curves,
     print_math,
@@ -589,38 +590,30 @@ class DeepArchitecturePlotter(BasePlotter):
     """Encapsulated diagnostics for activations, feature maps, attention, sequences, and graphs."""
 
     @classmethod
-    def plot_sobel_filtered(
+    def plot_boxes(
         cls,
-        h_filtered: torch.Tensor | np.ndarray,
-        v_filtered: torch.Tensor | np.ndarray,
-        filter_type: str = "both",
-        figsize: Tuple[float, float] = (7.0, 3.5),
+        image: Any,
+        boxes: Dict[str, Any],
+        scores: Optional[Dict[str, Sequence[float]]] = None,
+        title: Optional[str] = None,
+        figsize: Tuple[float, float] = (5.0, 5.0),
+        ax: Optional[plt.Axes] = None,
         show: bool = True,
-    ) -> Optional[plt.Figure]:
-        """Render original and Sobel edge-filtered images."""
-        h_np = cls.to_numpy(h_filtered)
-        v_np = cls.to_numpy(v_filtered)
-
-        if filter_type == "horizontal":
-            fig, ax = plt.subplots(figsize=(3.5, 3.5))
-            ax.imshow(h_np, cmap="gray")
-            ax.set_title("Horizontal Edges (Sobel)", fontsize=11)
-            ax.axis("off")
-        elif filter_type == "vertical":
-            fig, ax = plt.subplots(figsize=(3.5, 3.5))
-            ax.imshow(v_np, cmap="gray")
-            ax.set_title("Vertical Edges (Sobel)", fontsize=11)
-            ax.axis("off")
-        else:
-            fig, axes = plt.subplots(1, 2, figsize=figsize)
-            axes[0].imshow(h_np, cmap="gray")
-            axes[0].set_title("Horizontal Edges", fontsize=11)
-            axes[0].axis("off")
-            axes[1].imshow(v_np, cmap="gray")
-            axes[1].set_title("Vertical Edges", fontsize=11)
-            axes[1].axis("off")
-
-        return cls.finalize(fig, show=show)
+    ) -> Optional[plt.Axes]:
+        """An image with pre-computed bounding boxes {label: (n, 4) corners (x0, y0, x1, y1)}, one colour per label,
+        and optional scores written at the boxes."""
+        fig, ax_plot = cls.create_canvas(figsize=figsize, ax=ax, grid=False)
+        ax_plot.imshow(cls.to_numpy(image), cmap="gray")
+        for (label, group), col in zip(boxes.items(), ["royalblue", "firebrick", "forestgreen", "darkorange"]):
+            for k, (x0, y0, x1, y1) in enumerate(cls.to_numpy(group).reshape(-1, 4)):
+                ax_plot.add_patch(plt.Rectangle((x0, y0), x1 - x0, y1 - y0, fill=False, color=col, lw=2,
+                                                label=label if k == 0 else None))
+                if scores is not None and label in scores:
+                    ax_plot.text(x0, y0 - 1, f"{scores[label][k]:.2f}", color=col, fontsize=9, va="bottom")
+        ax_plot.axis("off")
+        ax_plot.set_title(title or "", fontsize=11)
+        ax_plot.legend(loc="lower right", fontsize=9)
+        return cls.finalize(fig, ax=ax_plot, show=show)
 
     @classmethod
     def plot_time_series(
@@ -750,7 +743,7 @@ plot_computational_graph = ComputationalGraphPlotter.plot_computational_graph
 plot_contour_trajectories = DeepOptimizationPlotter.plot_contour_trajectories
 
 # Architecture & Diagnostics Facades
-plot_sobel_filtered = DeepArchitecturePlotter.plot_sobel_filtered
+plot_boxes = DeepArchitecturePlotter.plot_boxes
 plot_time_series = DeepArchitecturePlotter.plot_time_series
 plot_series = DeepArchitecturePlotter.plot_time_series
 plot_attention_heatmap = DeepArchitecturePlotter.plot_attention_heatmap
