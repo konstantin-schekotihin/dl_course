@@ -923,6 +923,28 @@ class ImagePlotter(BasePlotter):
         return cls.finalize(fig, show=show)
 
     @classmethod
+    def plot_heatmap(
+        cls,
+        values: Any,
+        xlabel: Optional[str] = None,
+        ylabel: Optional[str] = None,
+        title: Optional[str] = None,
+        signed: bool = True,
+        figsize: Tuple[float, float] = (8.0, 4.0),
+        ax: Optional[Axes] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
+        """A pre-computed matrix as a heat map with a colour bar; signed: diverging colours centred at 0."""
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel=ylabel)
+        matrix = cls.to_numpy(values)
+        limit = float(np.abs(matrix).max()) or 1.0
+        image = ax.imshow(matrix, aspect="auto", cmap="RdBu_r" if signed else "viridis",
+                          vmin=-limit if signed else None, vmax=limit if signed else None)
+        ax.grid(False)
+        fig.colorbar(image, ax=ax)
+        return cls.finalize(fig, ax, show=show)
+
+    @classmethod
     def plot_prediction(
         cls,
         image: Any,
@@ -1271,6 +1293,7 @@ load_image = ImagePlotter.load_image
 plot_image = ImagePlotter.plot_image
 plot_image_grid = ImagePlotter.plot_image_grid
 plot_prediction = ImagePlotter.plot_prediction
+plot_heatmap = ImagePlotter.plot_heatmap
 compress_image_svd = ImagePlotter.compress_image_svd
 plot_function_panels = ActivationPlotter.plot_function_panels
 plot_projection = PCAPlotter.plot_projection

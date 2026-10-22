@@ -102,6 +102,7 @@ CASES = [
     ("shared", "plot_image_grid", lambda hp: hp.plot_image_grid(rng.uniform(size=(5, 8, 8)), n_cols=3)),
     ("shared", "plot_image_grid", lambda hp: hp.plot_image_grid([rng.normal(size=(3, 3)), rng.uniform(size=(3, 3))],
         signed=[True, False], annotate=True, overlays=[rng.uniform(size=(3, 3))] * 2)),
+    ("shared", "plot_heatmap", lambda hp: hp.plot_heatmap(rng.normal(size=(5, 8)), xlabel="i", ylabel="n", title="t")),
     ("shared", "plot_prediction", lambda hp: hp.plot_prediction(rng.uniform(size=(8, 8)), np.full(3, 1 / 3),
         ["a", "b", "c"], true_class=1, title="t")),
     ("deep_learning", "plot_boxes", lambda hp: hp.plot_boxes(rng.uniform(size=(20, 20)),
