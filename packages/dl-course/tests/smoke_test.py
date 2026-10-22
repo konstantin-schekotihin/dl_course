@@ -19,7 +19,6 @@ import traceback
 os.environ["MPLBACKEND"] = "Agg"
 
 import matplotlib.pyplot as plt  # noqa: E402
-import networkx as nx  # noqa: E402
 from pathlib import Path
 
 import numpy as np  # noqa: E402
@@ -105,6 +104,10 @@ CASES = [
     ("shared", "plot_heatmap", lambda hp: hp.plot_heatmap(rng.normal(size=(5, 8)), xlabel="i", ylabel="n", title="t")),
     ("shared", "plot_prediction", lambda hp: hp.plot_prediction(rng.uniform(size=(8, 8)), np.full(3, 1 / 3),
         ["a", "b", "c"], true_class=1, title="t")),
+    ("deep_learning", "plot_graph", lambda hp: hp.plot_graph([(0, 1), (1, 2), (2, 0)], classes=[0, 1, 1], highlight=[0],
+        labels=["A", "B", "C"], positions={"A": (0, 0), "B": (1, 0), "C": (0, 1)}, title="t")),
+    ("deep_learning", "plot_embedding", lambda hp: hp.plot_embedding({"a": rng.normal(size=(5, 2)), "b": rng.normal(size=(5, 2))},
+        classes=[0, 1, 0, 1, 2], highlight=[0])),
     ("deep_learning", "plot_boxes", lambda hp: hp.plot_boxes(rng.uniform(size=(20, 20)),
         {"truth": [[2, 2, 10, 10]], "pred": [[3, 3, 11, 12], [1, 1, 5, 5]]}, scores={"pred": [0.9, 0.4]})),
     ("shared", "compress_image_svd", lambda hp: hp.compress_image_svd(img, comps=3)),
@@ -180,8 +183,6 @@ CASES = [
     ("deep_learning", "plot_time_series", lambda hp: hp.plot_time_series(list(range(10)), list(range(10)), label="s")),
     ("deep_learning", "plot_attention_heatmap", lambda hp: hp.plot_attention_heatmap(np.full((2, 3), 1 / 3), ["a", "b", "c"],
         query_tokens=["x", "y"], show_values=False, title="t")),
-    ("deep_learning", "plot_graph", lambda hp: hp.plot_graph(nx.karate_club_graph())),
-    ("deep_learning", "plot_embedding", lambda hp: hp.plot_embedding(rng.normal(size=(10, 2)), list(range(10)), epoch=1, loss=0.5)),
 ]
 
 

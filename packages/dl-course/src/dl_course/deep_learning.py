@@ -674,44 +674,71 @@ class DeepArchitecturePlotter(BasePlotter):
         cls,
         G: Any,
         classes: Optional[Sequence[Any]] = None,
-        figsize: Tuple[float, float] = (7.0, 7.0),
+        highlight: Optional[Sequence[int]] = None,
+        labels: Optional[Sequence[str]] = None,
+        positions: Optional[Dict[Any, Tuple[float, float]]] = None,
+        seed: int = 0,
+        title: Optional[str] = None,
+        figsize: Tuple[float, float] = (6.0, 5.0),
+        ax: Optional[plt.Axes] = None,
         show: bool = True,
-    ) -> Optional[plt.Figure]:
-        """Render PyTorch Geometric / NetworkX graph using circular layout."""
-        if PYG_AVAILABLE and not isinstance(G, nx.Graph):
+    ) -> Optional[plt.Axes]:
+        """Draw a graph given as an edge list [(n, m), ...], a NetworkX graph or a PyG Data object; nodes coloured by
+        pre-computed classes, highlighted nodes with a thick red border, node names from labels; positions keyed by
+        node name (or index) keep the same picture for different node orders, otherwise a seeded spring layout."""
+        if isinstance(G, nx.Graph):
+            G_nx = G
+        elif PYG_AVAILABLE and hasattr(G, "edge_index"):
             G_nx = to_networkx(G, to_undirected=True)
         else:
-            G_nx = G
-
-        fig, ax = cls.create_canvas(figsize=figsize)
-        nx.draw_networkx(
-            G_nx,
-            pos=nx.circular_layout(G_nx),
-            with_labels=False,
-            node_color=classes,
-            ax=ax,
-        )
-        ax.axis("off")
-        return cls.finalize(fig, show=show)
+            G_nx = nx.Graph()
+            G_nx.add_edges_from(tuple(int(v) for v in edge) for edge in G)
+        nodes = sorted(G_nx.nodes)
+        names = {n: (labels[n] if labels is not None else str(n)) for n in nodes}
+        if positions is None:
+            layout = nx.spring_layout(G_nx, seed=seed)
+        else:
+            layout = {n: positions[names[n]] if names[n] in positions else positions[n] for n in nodes}
+        fig, ax_plot = cls.create_canvas(figsize=figsize, ax=ax, grid=False)
+        if classes is None:
+            colors = {"node_color": "#dbe7f5"}
+        else:
+            labels_np = cls.to_numpy(classes, ravel=True)
+            colors = {"node_color": [labels_np[n] for n in nodes], "cmap": "tab10", "vmin": 0, "vmax": 9}
+        nx.draw_networkx_edges(G_nx, layout, ax=ax_plot, edge_color="#9aa5b4", width=1.4)
+        nx.draw_networkx_nodes(G_nx, layout, nodelist=nodes, edgecolors="#33415c", node_size=420, ax=ax_plot,
+                               **colors)
+        if highlight is not None:
+            nx.draw_networkx_nodes(G_nx, layout, nodelist=[int(n) for n in highlight], node_color="none",
+                                   edgecolors="crimson", linewidths=3.0, node_size=560, ax=ax_plot)
+        nx.draw_networkx_labels(G_nx, layout, labels=names, font_size=9, ax=ax_plot)
+        ax_plot.set_title(title or "", fontsize=11)
+        ax_plot.axis("off")
+        return cls.finalize(fig, ax=ax_plot, show=show)
 
     @classmethod
     def plot_embedding(
         cls,
-        t: torch.Tensor | np.ndarray,
+        H: Any,
         classes: Any,
-        epoch: Optional[int] = None,
-        loss: Optional[Any] = None,
-        figsize: Tuple[float, float] = (7.0, 5.0),
+        highlight: Optional[Sequence[int]] = None,
+        title: Optional[str] = None,
+        figsize: Optional[Tuple[float, float]] = None,
         show: bool = True,
     ) -> Optional[plt.Figure]:
-        """Render 2D graph node embeddings colored by class labels."""
-        t_arr = cls.to_numpy(t)
-        fig, ax = cls.create_canvas(figsize=figsize)
-        ax.scatter(t_arr[:, 0], t_arr[:, 1], s=140, c=classes, cmap="tab10", edgecolors="k", alpha=0.85)
-        if epoch is not None and loss is not None:
-            loss_val = cls.to_scalar(loss)
-            ax.set_xlabel(f"Epoch: {epoch}, Loss: {loss_val:.4f}", fontsize=14)
-        ax.grid(True)
+        """Pre-computed 2-D node embeddings coloured by class; H is an (N, 2) array or a dict {panel title: (N, 2)}
+        for several snapshots side by side (e.g. during training)."""
+        panels = H if isinstance(H, dict) else {title or "": H}
+        fig, axes = plt.subplots(1, len(panels), figsize=figsize or (4.2 * len(panels), 4.0), squeeze=False)
+        labels = cls.to_numpy(classes, ravel=True)
+        for ax, (name, values) in zip(axes[0], panels.items()):
+            points = cls.to_numpy(values)
+            ax.scatter(points[:, 0], points[:, 1], s=90, c=labels, cmap="tab10", vmin=0, vmax=9, edgecolors="k")
+            if highlight is not None:
+                marked = points[[int(n) for n in highlight]]
+                ax.scatter(marked[:, 0], marked[:, 1], s=220, facecolors="none", edgecolors="crimson", linewidths=2.5)
+            ax.set_title(name, fontsize=11)
+            ax.grid(True, linestyle="--", alpha=0.5)
         return cls.finalize(fig, show=show)
 
 
