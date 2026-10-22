@@ -20,6 +20,8 @@ os.environ["MPLBACKEND"] = "Agg"
 
 import matplotlib.pyplot as plt  # noqa: E402
 import networkx as nx  # noqa: E402
+from pathlib import Path
+
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 import torch  # noqa: E402
@@ -75,6 +77,8 @@ CASES = [
     ("shared", "get_url", lambda hp: hp.get_url("Advertising.csv")),
     ("shared", "get_file", lambda hp: hp.get_file("Advertising.csv")),
     ("shared", "get_data_path", lambda hp: hp.get_data_path("Advertising.csv")),
+    ("shared", "download", lambda hp: os.remove(hp.download(Path(hp.get_data_path("Advertising.csv")).as_uri(),
+                                                            "smoke_download.csv"))),
     ("shared", "setup_theme", lambda hp: hp.setup_theme()),
     ("shared", "plot_residuals", lambda hp: hp.plot_residuals(lambda X: 2 * X, x, t)),
     ("shared", "plot_binary", lambda hp: hp.plot_binary(logreg.predict, X2, y2)),
@@ -173,7 +177,8 @@ CASES = [
         torch.tensor([[1.0, 0.0], [1.0, 0.5], [1.0, 1.0]]), torch.tensor([1.2, 0.3, 1.8]),
         torch.tensor([0.8, 1.1, 1.4]), torch.tensor([0.8, 0.6]))),
     ("deep_learning", "plot_time_series", lambda hp: hp.plot_time_series(list(range(10)), list(range(10)), label="s")),
-    ("deep_learning", "plot_attention_heatmap", lambda hp: hp.plot_attention_heatmap(np.full((3, 3), 1 / 3), ["a", "b", "c"])),
+    ("deep_learning", "plot_attention_heatmap", lambda hp: hp.plot_attention_heatmap(np.full((2, 3), 1 / 3), ["a", "b", "c"],
+        query_tokens=["x", "y"], show_values=False, title="t")),
     ("deep_learning", "plot_graph", lambda hp: hp.plot_graph(nx.karate_club_graph())),
     ("deep_learning", "plot_embedding", lambda hp: hp.plot_embedding(rng.normal(size=(10, 2)), list(range(10)), epoch=1, loss=0.5)),
 ]

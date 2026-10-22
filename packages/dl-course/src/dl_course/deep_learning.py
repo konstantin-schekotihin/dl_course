@@ -33,6 +33,7 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
     DATA_BASE_URL,
     BasePlotter,
     annotate,
+    download,
     get_data_path,
     get_file,
     get_url,
@@ -642,34 +643,29 @@ class DeepArchitecturePlotter(BasePlotter):
         cls,
         weights: torch.Tensor | np.ndarray,
         tokens: Optional[Sequence[str]] = None,
-        apply_causal_mask: bool = False,
+        query_tokens: Optional[Sequence[str]] = None,
+        show_values: bool = True,
         title: Optional[str] = None,
+        xlabel: str = "keys",
+        ylabel: str = "queries",
         figsize: Tuple[float, float] = (5.5, 4.2),
         show: bool = True,
     ) -> Optional[plt.Figure]:
-        """Render self-attention weights heatmap."""
+        """Heat map of pre-computed attention weights a_nm: rows n (queries, labelled by query_tokens, default
+        tokens), columns m (keys, labelled by tokens)."""
         w_np = cls.to_numpy(weights)
         if w_np.ndim > 2:
             w_np = w_np.squeeze()
-
         fig, ax = cls.create_canvas(figsize=figsize)
-        toks = list(tokens) if tokens is not None else True
-        sns.heatmap(
-            w_np,
-            annot=True,
-            fmt=".2f",
-            cmap="Blues",
-            xticklabels=toks,
-            yticklabels=toks,
-            cbar=False,
-            ax=ax,
-        )
-        if title:
-            ax.set_title(title, fontsize=11)
-        else:
-            ax.set_title(f"Self-Attention Weights (Causal Mask: {apply_causal_mask})", fontsize=11)
-        ax.set_xlabel("Key Tokens (Content)")
-        ax.set_ylabel("Query Tokens (Focus)")
+        columns = list(tokens) if tokens is not None else True
+        rows = list(query_tokens) if query_tokens is not None else columns
+        sns.heatmap(w_np, annot=show_values, fmt=".2f", cmap="Blues", xticklabels=columns, yticklabels=rows,
+                    cbar=not show_values, vmin=0.0, vmax=1.0, ax=ax)
+        ax.tick_params(axis="x", rotation=0)
+        ax.tick_params(axis="y", rotation=0)
+        ax.set_title(title or "", fontsize=11)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
         return cls.finalize(fig, show=show)
 
     @classmethod

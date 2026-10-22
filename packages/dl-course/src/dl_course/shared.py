@@ -217,6 +217,15 @@ def _download(url: str, target_path: str) -> None:
         raise
 
 
+def download(url: str, filename: str) -> str:
+    """Path of an external data set in the course data directory ('shared/data/' in the repository, './shared/data/'
+    in Colab), downloaded from url on first use."""
+    target_path = os.path.join(get_file("", category="data"), filename)
+    if not os.path.isfile(target_path):
+        _download(url, target_path)
+    return os.path.abspath(target_path)
+
+
 def get_data_path(filename: str = "") -> str:
     """
     Convenience resolver for datasets in 'shared/data/'.
