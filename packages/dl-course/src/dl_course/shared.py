@@ -18,7 +18,10 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Sequence,
 
 from IPython.display import Markdown, display
 import matplotlib.pyplot as plt
+from matplotlib import patheffects
 from matplotlib.axes import Axes
+from matplotlib.colors import ListedColormap
+from matplotlib.patches import Patch
 from matplotlib.figure import Figure
 import numpy as np
 import pandas as pd
@@ -212,6 +215,15 @@ def _download(url: str, target_path: str) -> None:
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
         raise
+
+
+def download(url: str, filename: str) -> str:
+    """Path of an external data set in the course data directory ('shared/data/' in the repository, './shared/data/'
+    in Colab), downloaded from url on first use."""
+    target_path = os.path.join(get_file("", category="data"), filename)
+    if not os.path.isfile(target_path):
+        _download(url, target_path)
+    return os.path.abspath(target_path)
 
 
 def get_data_path(filename: str = "") -> str:
@@ -553,6 +565,78 @@ class BoundaryPlotter(BasePlotter):
         return cls.finalize(fig, ax, show=show)
 
 
+    CLASS_COLORS = ("royalblue", "firebrick", "forestgreen", "darkorange", "purple", "gray")
+
+    @classmethod
+    def plot_decision_surface(
+        cls,
+        X: Any = None,
+        t: Any = None,
+        xx: Any = None,
+        yy: Any = None,
+        values: Any = None,
+        levels: Optional[Sequence[float]] = None,
+        boundaries: Optional[Dict[str, Sequence[float]]] = None,
+        class_names: Optional[Dict[Any, str]] = None,
+        highlight: Optional[Sequence[int]] = None,
+        title: Optional[str] = None,
+        xlabel: str = "$x_1$",
+        ylabel: str = "$x_2$",
+        xlim: Optional[Tuple[float, float]] = None,
+        ylim: Optional[Tuple[float, float]] = None,
+        figsize: Tuple[float, float] = (6.5, 5.0),
+        ax: Optional[Axes] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
+        """Data coloured by class over pre-computed grid values: class labels as regions, or probabilities with
+        contour lines at `levels`; optional linear boundaries {label: (w0, w1, w2)} drawn as w0 + w1 x1 + w2 x2 = 0."""
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel=ylabel, grid=False)
+        t_np = cls.to_numpy(t, ravel=True) if t is not None else np.array([])
+        v_np = cls.to_numpy(values) if values is not None else None
+        discrete = v_np is not None and levels is None
+        labels = sorted(set(np.unique(t_np).tolist()) | (set(np.unique(v_np).tolist()) if discrete else set()))
+        color = {lab: cls.CLASS_COLORS[i % len(cls.CLASS_COLORS)] for i, lab in enumerate(labels)}
+        names = class_names or {}
+        if v_np is not None:
+            xx_np, yy_np = cls.to_numpy(xx), cls.to_numpy(yy)
+            if discrete:  # one colour per class label
+                index = np.vectorize({lab: i for i, lab in enumerate(labels)}.get)(v_np)
+                cmap = ListedColormap([color[lab] for lab in labels])
+                ax.contourf(xx_np, yy_np, index, levels=np.arange(len(labels) + 1) - 0.5, cmap=cmap, alpha=0.22)
+            else:  # probabilities: shading and labelled contour lines
+                ax.contourf(xx_np, yy_np, v_np, levels=np.linspace(0.0, 1.0, 21), cmap="coolwarm", alpha=0.35)
+                lines = ax.contour(xx_np, yy_np, v_np, levels=list(levels), colors="black", linewidths=1.2)
+                ax.clabel(lines, fmt="%.1f", fontsize=9)
+            xlim = xlim or (float(xx_np.min()), float(xx_np.max()))
+            ylim = ylim or (float(yy_np.min()), float(yy_np.max()))
+        if X is not None:
+            X_np = cls.to_numpy(X)
+            if xlim is None or ylim is None:
+                bx, by = cls.get_boundaries(X_np, padding=0.5)
+                xlim, ylim = xlim or bx, ylim or by
+            for lab in np.unique(t_np):
+                mask = t_np == lab
+                ax.scatter(X_np[mask, 0], X_np[mask, 1], color=color[lab.item()], edgecolors="k", s=55, lw=0.8,
+                           label=names.get(lab.item(), f"$t = {lab.item():g}$"), zorder=3)
+            for n in highlight or []:
+                ax.scatter([X_np[n, 0]], [X_np[n, 1]], s=260, facecolors="none", edgecolors="black", lw=2.0, zorder=4)
+        for (label, w), style in zip((boundaries or {}).items(), ["--", "-", ":", "-."] * 3):
+            w0, w1, w2 = (float(v) for v in cls.to_numpy(w, ravel=True)[:3])
+            if abs(w2) > 1e-12:
+                x1 = np.linspace(xlim[0], xlim[1], 200)
+                ax.plot(x1, -(w0 + w1 * x1) / w2, color="black", linestyle=style, lw=2.0, label=label)
+            elif abs(w1) > 1e-12:
+                ax.axvline(-w0 / w1, color="black", linestyle=style, lw=2.0, label=label)
+        handles, _ = ax.get_legend_handles_labels()
+        if discrete and X is None:  # regions only: one legend entry per named region
+            handles += [Patch(color=color[lab], alpha=0.4, label=names[lab]) for lab in labels if lab in names]
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        if handles:
+            ax.legend(handles=handles, fontsize=9, loc="best")
+        return cls.finalize(fig, ax, show=show)
+
+
 
 class DiagnosticPlotter(BasePlotter):
     """Visualizer for statistical correlations, pairplots, and diagnostics."""
@@ -803,19 +887,87 @@ class ImagePlotter(BasePlotter):
         titles: Optional[Sequence[str]] = None,
         n_cols: int = 4,
         cmap: str = "gray",
+        signed: Union[bool, Sequence[bool]] = False,
+        annotate: bool = False,
+        digits: int = 2,
+        overlays: Optional[Any] = None,
         figsize: Optional[Tuple[float, float]] = None,
         show: bool = True,
     ) -> Optional[Tuple[Figure, Optional[Axes]]]:
-        """Show a stack of 2D images (e.g. CNN feature maps) in a grid; receives pre-computed images."""
-        arr = cls.to_numpy(images)
-        n_rows = (len(arr) + n_cols - 1) // n_cols
+        """Show a stack of pre-computed 2D (or H x W x 3) images in a grid. signed: diverging colours centred
+        at 0 (one flag or one per image); annotate: write each value into its pixel; overlays: heat maps of the
+        same size drawn semi-transparently on top (e.g. saliency maps)."""
+        images = [cls.to_numpy(image) for image in images]
+        flags = [signed] * len(images) if isinstance(signed, bool) else list(signed)
+        n_rows = (len(images) + n_cols - 1) // n_cols
         fig, axes = plt.subplots(n_rows, n_cols, figsize=figsize or (2.2 * n_cols, 2.2 * n_rows), squeeze=False)
         for i, ax in enumerate(axes.ravel()):
             ax.axis("off")
-            if i < len(arr):
-                ax.imshow(arr[i], cmap=cmap)
-                if titles is not None:
-                    ax.set_title(titles[i], fontsize=10)
+            if i >= len(images):
+                continue
+            image = images[i]
+            if flags[i]:
+                limit = float(np.abs(image).max()) or 1.0
+                ax.imshow(image, cmap="RdBu_r", vmin=-limit, vmax=limit)
+            else:
+                ax.imshow(image, cmap=cmap)
+            if overlays is not None:
+                ax.imshow(cls.to_numpy(overlays[i]), cmap="jet", alpha=0.45,
+                          extent=(-0.5, image.shape[1] - 0.5, image.shape[0] - 0.5, -0.5))
+            if annotate:
+                for (r, c), value in np.ndenumerate(image):
+                    ax.text(c, r, f"{value:.{digits}f}", ha="center", va="center", fontsize=10, color="crimson",
+                            weight="bold", path_effects=[patheffects.withStroke(linewidth=2.5, foreground="white")])
+            if titles is not None:
+                ax.set_title(titles[i], fontsize=10)
+        return cls.finalize(fig, show=show)
+
+    @classmethod
+    def plot_heatmap(
+        cls,
+        values: Any,
+        xlabel: Optional[str] = None,
+        ylabel: Optional[str] = None,
+        title: Optional[str] = None,
+        signed: bool = True,
+        figsize: Tuple[float, float] = (8.0, 4.0),
+        ax: Optional[Axes] = None,
+        show: bool = True,
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
+        """A pre-computed matrix as a heat map with a colour bar; signed: diverging colours centred at 0."""
+        fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel=ylabel)
+        matrix = cls.to_numpy(values)
+        limit = float(np.abs(matrix).max()) or 1.0
+        image = ax.imshow(matrix, aspect="auto", cmap="RdBu_r" if signed else "viridis",
+                          vmin=-limit if signed else None, vmax=limit if signed else None)
+        ax.grid(False)
+        fig.colorbar(image, ax=ax)
+        return cls.finalize(fig, ax, show=show)
+
+    @classmethod
+    def plot_prediction(
+        cls,
+        image: Any,
+        probabilities: Any,
+        class_names: Sequence[str],
+        true_class: Optional[int] = None,
+        title: Optional[str] = None,
+        figsize: Tuple[float, float] = (10.0, 3.6),
+        show: bool = True,
+    ) -> Optional[Tuple[Figure, Optional[Axes]]]:
+        """One image next to its pre-computed class probabilities; the true class is marked in green."""
+        probs = cls.to_numpy(probabilities, ravel=True)
+        fig, (ax_img, ax_bar) = plt.subplots(1, 2, figsize=figsize, gridspec_kw={"width_ratios": [1, 2.4]})
+        ax_img.imshow(cls.to_numpy(image), cmap="gray")
+        ax_img.axis("off")
+        ax_img.set_title(title or "", fontsize=11)
+        colors = ["forestgreen" if k == true_class else "firebrick" if k == probs.argmax() else "silver"
+                  for k in range(len(probs))]
+        ax_bar.barh(range(len(probs)), probs, color=colors)
+        ax_bar.set_yticks(range(len(probs)), class_names, fontsize=9.5)
+        ax_bar.invert_yaxis()
+        ax_bar.set_xlim(0, 1)
+        ax_bar.set_xlabel("predicted probability")
         return cls.finalize(fig, show=show)
 
     @classmethod
@@ -931,14 +1083,15 @@ class ActivationPlotter(BasePlotter):
         figsize: Optional[Tuple[float, float]] = None,
         show: bool = True,
     ) -> Optional[Tuple[Figure, Optional[Axes]]]:
-        """Curves pre-computed on the grid a, one panel per dict {label: values}; optional marked point per panel."""
+        """Curves pre-computed on the grid a, one panel per dict {label: values}; optional marked points per panel."""
         x = cls.to_numpy(a, ravel=True)
         fig, axes = plt.subplots(1, len(panels), figsize=figsize or (5.25 * len(panels), 4.0), squeeze=False)
         for i, (ax, curves) in enumerate(zip(axes[0], panels)):
             for label, values in curves.items():
                 ax.plot(x, cls.to_numpy(values, ravel=True), lw=2.2, ls="--" if label in dashed else "-", label=label)
-            if points is not None and points[i] is not None:
-                ax.scatter([float(points[i][0])], [float(points[i][1])], color="crimson", s=50, zorder=5)
+            if points is not None and points[i] is not None:  # one (x, y) pair or a list of pairs
+                marked = np.asarray(points[i], dtype=float).reshape(-1, 2)
+                ax.scatter(marked[:, 0], marked[:, 1], color="crimson", s=50, zorder=5)
             ax.axhline(0, color="black", lw=0.8, ls=":")
             ax.axvline(0, color="black", lw=0.8, ls=":")
             ax.set_xlabel(xlabel, fontsize=11)
@@ -1130,6 +1283,7 @@ plot_residuals = RegressionPlotter.plot_residuals
 plot_fitted_curves = RegressionPlotter.plot_fitted_curves
 plot_curves = CurvePlotter.plot_curves
 plot_binary = BoundaryPlotter.plot_binary
+plot_decision_surface = BoundaryPlotter.plot_decision_surface
 plot_correlation_matrix = DiagnosticPlotter.plot_correlation_matrix
 plot_pairgrid = DiagnosticPlotter.plot_pairgrid
 plot_confusion_matrix = ClassificationPlotter.plot_confusion_matrix
@@ -1138,6 +1292,8 @@ annotate = DiagnosticPlotter.annotate
 load_image = ImagePlotter.load_image
 plot_image = ImagePlotter.plot_image
 plot_image_grid = ImagePlotter.plot_image_grid
+plot_prediction = ImagePlotter.plot_prediction
+plot_heatmap = ImagePlotter.plot_heatmap
 compress_image_svd = ImagePlotter.compress_image_svd
 plot_function_panels = ActivationPlotter.plot_function_panels
 plot_projection = PCAPlotter.plot_projection

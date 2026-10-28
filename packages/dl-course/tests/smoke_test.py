@@ -19,7 +19,8 @@ import traceback
 os.environ["MPLBACKEND"] = "Agg"
 
 import matplotlib.pyplot as plt  # noqa: E402
-import networkx as nx  # noqa: E402
+from pathlib import Path
+
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 import torch  # noqa: E402
@@ -75,11 +76,19 @@ CASES = [
     ("shared", "get_url", lambda hp: hp.get_url("Advertising.csv")),
     ("shared", "get_file", lambda hp: hp.get_file("Advertising.csv")),
     ("shared", "get_data_path", lambda hp: hp.get_data_path("Advertising.csv")),
+    ("shared", "download", lambda hp: os.remove(hp.download(Path(hp.get_data_path("Advertising.csv")).as_uri(),
+                                                            "smoke_download.csv"))),
     ("shared", "setup_theme", lambda hp: hp.setup_theme()),
     ("shared", "plot_residuals", lambda hp: hp.plot_residuals(lambda X: 2 * X, x, t)),
     ("shared", "plot_binary", lambda hp: hp.plot_binary(logreg.predict, X2, y2)),
     ("shared", "plot_correlation_matrix", lambda hp: hp.plot_correlation_matrix(df)),
     ("shared", "plot_pairgrid", lambda hp: hp.plot_pairgrid(df)),
+    ("shared", "plot_decision_surface", lambda hp: (
+        hp.plot_decision_surface(X2, y2, *hp.create_2d_grid(X2, resolution=20)[:2],
+                                 values=(hp.create_2d_grid(X2, resolution=20)[0] > 0).astype(int),
+                                 boundaries={"b": [0.0, 1.0, 1.0]}, highlight=[0]),
+        hp.plot_decision_surface(X2, y2, *hp.create_2d_grid(X2, resolution=20)[:2],
+                                 values=np.full((20, 20), 0.5) + 0.01 * rng.normal(size=(20, 20)), levels=[0.5]))),
     ("shared", "plot_confusion_matrix", lambda hp: hp.plot_confusion_matrix(np.array([[5, 1], [2, 4]]), labels=["neg", "pos"])),
     ("shared", "plot_roc_curves", lambda hp: hp.plot_roc_curves({"model": ([0.0, 0.2, 1.0], [0.0, 0.7, 1.0])}, points={"tau": (0.2, 0.7)})),
     ("shared", "annotate", lambda hp: (
@@ -90,6 +99,17 @@ CASES = [
     ("shared", "load_image", lambda hp: hp.load_image(first_local_image(), as_tensor=True)),
     ("shared", "plot_image", lambda hp: hp.plot_image(img)),
     ("shared", "plot_image_grid", lambda hp: hp.plot_image_grid(rng.uniform(size=(5, 8, 8)), n_cols=3)),
+    ("shared", "plot_image_grid", lambda hp: hp.plot_image_grid([rng.normal(size=(3, 3)), rng.uniform(size=(3, 3))],
+        signed=[True, False], annotate=True, overlays=[rng.uniform(size=(3, 3))] * 2)),
+    ("shared", "plot_heatmap", lambda hp: hp.plot_heatmap(rng.normal(size=(5, 8)), xlabel="i", ylabel="n", title="t")),
+    ("shared", "plot_prediction", lambda hp: hp.plot_prediction(rng.uniform(size=(8, 8)), np.full(3, 1 / 3),
+        ["a", "b", "c"], true_class=1, title="t")),
+    ("deep_learning", "plot_graph", lambda hp: hp.plot_graph([(0, 1), (1, 2), (2, 0)], classes=[0, 1, 1], highlight=[0],
+        labels=["A", "B", "C"], positions={"A": (0, 0), "B": (1, 0), "C": (0, 1)}, title="t")),
+    ("deep_learning", "plot_embedding", lambda hp: hp.plot_embedding({"a": rng.normal(size=(5, 2)), "b": rng.normal(size=(5, 2))},
+        classes=[0, 1, 0, 1, 2], highlight=[0])),
+    ("deep_learning", "plot_boxes", lambda hp: hp.plot_boxes(rng.uniform(size=(20, 20)),
+        {"truth": [[2, 2, 10, 10]], "pred": [[3, 3, 11, 12], [1, 1, 5, 5]]}, scores={"pred": [0.9, 0.4]})),
     ("shared", "compress_image_svd", lambda hp: hp.compress_image_svd(img, comps=3)),
     ("shared", "plot_function_panels", lambda hp: hp.plot_function_panels(x_dense, [{"f": t_dense, "g": x_dense}, {"f'": t_dense}], titles=["a", "b"], ylims=[None, (-1, 1)], points=[(0.5, 0.0), None], dashed=["g"])),
     ("shared", "plot_projection", lambda hp: hp.plot_projection(X2, np.outer(X2 @ [0.6, 0.8], [0.6, 0.8]), [0.6, 0.8], xlabel="a", ylabel="b")),
@@ -138,7 +158,18 @@ CASES = [
     ("foundations", "plot_curve_with_marker", lambda hp: hp.plot_curve_with_marker(x_dense, t_dense, 0.5, 0.0, vline_at=0.5, hline_at=0.0)),
     ("foundations", "plot_categorical_probabilities", lambda hp: hp.plot_categorical_probabilities(["a", "b"], {"T=1": [0.3, 0.7]}, ylim=(0, 1))),
     # deep_learning
-    ("deep_learning", "plot_decision_boundary_2d", lambda hp: hp.plot_decision_boundary_2d(logreg.predict, X2, y2)),
+    ("deep_learning", "plot_descent_1d", lambda hp: hp.plot_descent_1d(x, x ** 2, [1.0, 0.5, 0.25], [1.0, 0.25, 0.0625])),
+    ("deep_learning", "plot_contour_trajectories", lambda hp: hp.plot_contour_trajectories(
+        *np.meshgrid(np.linspace(-2, 2, 20), np.linspace(-2, 2, 20)),
+        np.add.outer(np.linspace(-2, 2, 20) ** 2, np.linspace(-2, 2, 20) ** 2),
+        {"a": np.array([[1.0, 1.0], [0.5, 0.2], [0.0, 0.0]])}, directions={"u": [1.0, 0.0]},
+        curves={"c": np.array([[1.0, 0.0], [0.0, 1.0]])}, points={"p": (0.5, 0.5)}, equal_aspect=True,
+        minimum_label="m", legend_loc="lower right")),
+    ("deep_learning", "plot_computational_graph", lambda hp: hp.plot_computational_graph(
+        {"a": (0.0, 0.0, "$a$"), "b": (2.0, 0.0, "$b$")}, [("a", "b")], values={"a": "1"}, adjoints={"b": "2"},
+        edge_labels={("a", "b"): "x"})),
+    ("deep_learning", "plot_hyperplane_geometry", lambda hp: hp.plot_hyperplane_geometry([2.0, 1.0], -2.0, [2.0, 2.0], [0.4, 1.2])),
+    ("deep_learning", "plot_reject_option", lambda hp: hp.plot_reject_option(x, {"a": x, "b": 1 - x}, 0.7, (x > 0.3) & (x < 0.7))),
     ("deep_learning", "plot_synthetic_regression_data", lambda hp: hp.plot_synthetic_regression_data(x_dense, t_dense, x, t)),
     ("deep_learning", "plot_regression_fit", lambda hp: hp.plot_regression_fit(x, t, x_dense, t_dense, y_true=t_dense, residuals=True, band=(t_dense - 0.2, t_dense + 0.2))),
     ("deep_learning", "plot_conditional_density", lambda hp: hp.plot_conditional_density(x_dense, t_dense, 0.5, torch.linspace(-1, 1, 50), torch.exp(-torch.linspace(-1, 1, 50) ** 2), 0.0)),
@@ -146,20 +177,12 @@ CASES = [
     ("deep_learning", "plot_dataset_size_remedy", lambda hp: hp.plot_dataset_size_remedy(x_dense, t_dense, [(20, x, t, t_dense), (20, x, t, t_dense)], M=9)),
     ("deep_learning", "plot_bias_variance_curve", lambda hp: hp.plot_bias_variance_curve([0.1, 1.0, 10.0], [0.1, 0.05, 0.01], [0.01, 0.05, 0.1], [0.11, 0.1, 0.11])),
     ("deep_learning", "plot_ensemble_fits", lambda hp: hp.plot_ensemble_fits(x_dense, t_dense, {k: ([t_dense] * 3, t_dense) for k in ("a", "b", "c")})),
-    ("deep_learning", "plot_l1_l2_sparsity_geometry", lambda hp: hp.plot_l1_l2_sparsity_geometry()),
     ("deep_learning", "plot_least_squares_geometry", lambda hp: hp.plot_least_squares_geometry(
         torch.tensor([[1.0, 0.0], [1.0, 0.5], [1.0, 1.0]]), torch.tensor([1.2, 0.3, 1.8]),
         torch.tensor([0.8, 1.1, 1.4]), torch.tensor([0.8, 0.6]))),
-    ("deep_learning", "plot_loss_history", lambda hp: hp.plot_loss_history([1.0, 0.5, 0.1])),
-    ("deep_learning", "plot_out", lambda hp: hp.plot_out([1.0, 0.5, 0.1])),
-    ("deep_learning", "g_idea", lambda hp: hp.g_idea(lambda v: v ** 2, lambda v: 2 * v)),
-    ("deep_learning", "plot_trace", lambda hp: hp.plot_trace(lambda v: v ** 2, [1.0, 0.5, 0.25])),
-    ("deep_learning", "plot_grad", lambda hp: hp.plot_grad(lambda a, b: a ** 2 + b ** 2, 1.0, 1.0, 0.5, 0.5)),
-    ("deep_learning", "plot_sobel_filtered", lambda hp: hp.plot_sobel_filtered(img2d, img2d)),
     ("deep_learning", "plot_time_series", lambda hp: hp.plot_time_series(list(range(10)), list(range(10)), label="s")),
-    ("deep_learning", "plot_attention_heatmap", lambda hp: hp.plot_attention_heatmap(np.full((3, 3), 1 / 3), ["a", "b", "c"])),
-    ("deep_learning", "plot_graph", lambda hp: hp.plot_graph(nx.karate_club_graph())),
-    ("deep_learning", "plot_embedding", lambda hp: hp.plot_embedding(rng.normal(size=(10, 2)), list(range(10)), epoch=1, loss=0.5)),
+    ("deep_learning", "plot_attention_heatmap", lambda hp: hp.plot_attention_heatmap(np.full((2, 3), 1 / 3), ["a", "b", "c"],
+        query_tokens=["x", "y"], show_values=False, title="t")),
 ]
 
 

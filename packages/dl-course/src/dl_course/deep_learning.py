@@ -9,7 +9,7 @@ Provides structured, decoupled visualization routines for:
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Optional, Sequence, Tuple
+from typing import Any, Dict, Optional, Sequence, Tuple
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -33,15 +33,22 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
     DATA_BASE_URL,
     BasePlotter,
     annotate,
+    download,
     get_data_path,
     get_file,
     get_url,
     format_number,
     format_vector,
+    plot_confusion_matrix,
     plot_curves,
+    plot_decision_surface,
     plot_fitted_curves,
     plot_function_panels,
+    plot_heatmap,
+    plot_image_grid,
+    plot_prediction,
     plot_residuals,
+    plot_roc_curves,
     print_math,
     setup_theme,
 )
@@ -286,60 +293,6 @@ class DeepRegressionPlotter(BasePlotter):
         return cls.finalize(fig, show=show)
 
     @classmethod
-    def plot_l1_l2_sparsity_geometry(
-        cls,
-        figsize: Tuple[float, float] = (9.5, 3.8),
-        show: bool = True,
-    ) -> Optional[plt.Figure]:
-        """Plot 2D parameter space constraint geometry for L2 (circle) vs L1 (diamond) regularization."""
-        w1 = np.linspace(-2.0, 2.5, 300)
-        w2 = np.linspace(-2.0, 2.5, 300)
-        W1, W2 = np.meshgrid(w1, w2)
-        w_opt = np.array([1.4, 1.1])
-        E_grid = 1.8 * (W1 - w_opt[0]) ** 2 + 0.9 * (W2 - w_opt[1]) ** 2 - 1.2 * (W1 - w_opt[0]) * (W2 - w_opt[1])
-
-        fig, axes = plt.subplots(1, 2, figsize=figsize)
-        axes[0].contour(W1, W2, E_grid, levels=[0.2, 0.6, 1.2, 2.0, 3.2], colors="royalblue", alpha=0.8)
-        circle = plt.Circle((0, 0), 1.0, color="crimson", fill=False, lw=2.5, label=r"Constraint: $\Vert\mathbf{w}\Vert_2^2 \leq \eta$")
-        axes[0].add_patch(circle)
-        axes[0].plot(w_opt[0], w_opt[1], "ko", markersize=6, label=r"Unconstrained $\mathbf{w}^*$")
-        axes[0].plot(0.7, 0.71, "ro", markersize=6, label="Solution (Off-axis)")
-        axes[0].axhline(0, color="gray", lw=0.8, linestyle="--")
-        axes[0].axvline(0, color="gray", lw=0.8, linestyle="--")
-        axes[0].set_title(r"$L_2$ Regularization (Ridge / Weight Decay)", fontsize=10.5)
-        axes[0].set_xlabel(r"$w_1$")
-        axes[0].set_ylabel(r"$w_2$")
-        axes[0].set_xlim(-1.8, 2.2)
-        axes[0].set_ylim(-1.8, 2.2)
-        axes[0].set_aspect("equal")
-        axes[0].legend(loc="lower left", fontsize=8.5)
-        axes[0].grid(True)
-
-        axes[1].contour(W1, W2, E_grid, levels=[0.2, 0.6, 1.2, 2.0, 3.2], colors="royalblue", alpha=0.8)
-        diamond = plt.Polygon(
-            [[1.1, 0], [0, 1.1], [-1.1, 0], [0, -1.1]],
-            color="crimson",
-            fill=False,
-            lw=2.5,
-            label=r"Constraint: $\Vert\mathbf{w}\Vert_1 \leq \eta$",
-        )
-        axes[1].add_patch(diamond)
-        axes[1].plot(w_opt[0], w_opt[1], "ko", markersize=6, label=r"Unconstrained $\mathbf{w}^*$")
-        axes[1].plot(0.0, 1.1, "ro", markersize=6, label=r"Solution ($w_1 = 0$, Sparse!)")
-        axes[1].axhline(0, color="gray", lw=0.8, linestyle="--")
-        axes[1].axvline(0, color="gray", lw=0.8, linestyle="--")
-        axes[1].set_title(r"$L_1$ Regularization (Lasso / Sparse)", fontsize=10.5)
-        axes[1].set_xlabel(r"$w_1$")
-        axes[1].set_ylabel(r"$w_2$")
-        axes[1].set_xlim(-1.8, 2.2)
-        axes[1].set_ylim(-1.8, 2.2)
-        axes[1].set_aspect("equal")
-        axes[1].legend(loc="lower left", fontsize=8.5)
-        axes[1].grid(True)
-
-        return cls.finalize(fig, show=show)
-
-    @classmethod
     def plot_least_squares_geometry(
         cls,
         Phi: Any,
@@ -422,33 +375,77 @@ class DeepClassificationPlotter(BasePlotter):
     """Encapsulated decision boundary visualizers for single-layer and deep classifiers."""
 
     @classmethod
-    def plot_decision_boundary_2d(
+    def plot_hyperplane_geometry(
         cls,
-        predictor: Callable[[np.ndarray], np.ndarray],
-        X: torch.Tensor | np.ndarray,
-        y: torch.Tensor | np.ndarray,
-        title: Optional[str] = None,
-        figsize: Tuple[float, float] = (8, 8),
-        ax: Optional[plt.Axes] = None,
+        w: Any,
+        w0: float,
+        x: Any,
+        x_perp: Any,
+        xlim: Tuple[float, float] = (-1.0, 3.5),
+        ylim: Tuple[float, float] = (-1.0, 3.5),
+        figsize: Tuple[float, float] = (6.0, 5.2),
         show: bool = True,
     ) -> Optional[plt.Axes]:
-        """Plot 2D decision boundary meshgrid and data points for classification."""
-        fig, ax_plot = cls.create_canvas(figsize=figsize, ax=ax)
-        X_np = cls.to_numpy(X)
-        y_np = cls.to_numpy(y, ravel=True)
+        """Decision boundary w^T x + w0 = 0 in 2D with the normal w, a point x, its projection x_perp, the signed
+        distance r and the distance -w0/||w|| of the boundary from the origin (after Fig. 5.1); values pre-computed."""
+        fig, ax = cls.create_canvas(figsize=figsize)
+        w_np, x_np, xp_np = (cls.to_numpy(v, ravel=True).astype(float) for v in (w, x, x_perp))
+        norm = float(np.linalg.norm(w_np))
+        x1 = np.linspace(*xlim, 200)
+        ax.plot(x1, -(w0 + w_np[0] * x1) / w_np[1], color="firebrick", lw=2.2, label=r"$y(\mathbf{x}) = 0$")
+        foot = -w0 / norm**2 * w_np                              # point of the boundary closest to the origin
+        unit_w = w_np / norm
+        along = np.array([-unit_w[1], unit_w[0]])                # direction within the boundary
+        side = 1.0 if along @ (xp_np - foot) > 0 else -1.0       # side of foot on which x_perp lies
+        # Distance of the boundary from the origin; its label sits beyond the origin, away from the boundary
+        ax.annotate("", xy=foot, xytext=(0, 0), arrowprops=dict(arrowstyle="<->", color="gray", lw=1.4))
+        away = -foot / max(float(np.linalg.norm(foot)), 1e-12)
+        ax.text(*(0.12 * away), r"$-w_0 / \|\mathbf{w}\|$", color="gray", fontsize=11,
+                ha="right" if away[0] < 0 else "left", va="top" if away[1] < 0 else "bottom")
+        # The normal vector, drawn from a boundary point on the other side of the foot, away from x and x_perp
+        start = foot - side * 1.2 * along
+        ax.annotate("", xy=start + unit_w, xytext=start, arrowprops=dict(arrowstyle="-|>", color="black", lw=2))
+        ax.text(*(start + unit_w + 0.08 * unit_w), r"$\mathbf{w}$", fontsize=13, ha="left", va="bottom")
+        ax.plot(*x_np, "o", color="royalblue", ms=8)
+        ax.text(*(x_np + np.array([0.08, 0.08])), r"$\mathbf{x}$", fontsize=13, color="royalblue")
+        ax.plot(*xp_np, "o", color="black", ms=6)
+        ax.text(*(xp_np + np.array([-0.35, -0.3])), r"$\mathbf{x}_\perp$", fontsize=13)
+        ax.plot([xp_np[0], x_np[0]], [xp_np[1], x_np[1]], color="royalblue", lw=1.6, linestyle="--")
+        ax.text(*((xp_np + x_np) / 2 + np.array([0.08, -0.15])), r"$r$", fontsize=13, color="royalblue")
+        ax.plot([0], [0], "k+", ms=10)
+        ax.text(xlim[1] - 1.2, ylim[1] - 0.5, r"$\mathcal{R}_1$: $y > 0$", fontsize=12)
+        ax.text(xlim[0] + 0.2, ylim[0] + 0.3, r"$\mathcal{R}_2$: $y < 0$", fontsize=12)
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        ax.set_aspect("equal")
+        ax.set_xlabel("$x_1$")
+        ax.set_ylabel("$x_2$")
+        ax.legend(loc="lower right", fontsize=9.5)
+        return cls.finalize(fig, ax=ax, show=show)
 
-        xm, ym, grid_pts = cls.create_2d_grid(X_np, padding=0.5, resolution=200)
-        p = cls.eval_predictor(predictor, grid_pts, as_tensor_like=X).reshape(xm.shape)
-
-        ax_plot.contourf(xm, ym, p, alpha=0.3, cmap="coolwarm")
-        ax_plot.scatter(X_np[:, 0], X_np[:, 1], c=y_np, cmap="coolwarm", edgecolors="k", s=80, lw=1.5)
-
-        if title:
-            ax_plot.set_title(title, fontsize=12)
-        ax_plot.set_xlabel("$x_1$", fontsize=11.5)
-        ax_plot.set_ylabel("$x_2$", fontsize=11.5)
-        ax_plot.grid(True)
-        return cls.finalize(fig, ax=ax_plot, show=show)
+    @classmethod
+    def plot_reject_option(
+        cls,
+        x: Any,
+        posteriors: Dict[str, Any],
+        theta: float,
+        reject: Any,
+        figsize: Tuple[float, float] = (7.5, 3.8),
+        show: bool = True,
+    ) -> Optional[plt.Axes]:
+        """Posterior curves {label: p(C_k | x)} over x, the threshold theta and the pre-computed reject region
+        (boolean mask over x) shaded (after Fig. 5.7)."""
+        fig, ax = cls.create_canvas(figsize=figsize)
+        x_np, mask = cls.to_numpy(x, ravel=True), cls.to_numpy(reject, ravel=True).astype(bool)
+        for (label, p), col in zip(posteriors.items(), ["royalblue", "firebrick", "forestgreen"]):
+            ax.plot(x_np, cls.to_numpy(p, ravel=True), color=col, lw=2.2, label=label)
+        ax.axhline(theta, color="black", linestyle="--", lw=1.2, label=rf"$\theta = {theta:g}$")
+        ax.fill_between(x_np, 0, 1, where=mask, color="gray", alpha=0.25, label="reject region")
+        ax.set_ylim(0, 1.02)
+        ax.set_xlabel("$x$")
+        ax.set_ylabel(r"$p(\mathcal{C}_k \mid x)$")
+        ax.legend(loc="center right", fontsize=9)
+        return cls.finalize(fig, ax=ax, show=show)
 
 
 # ---------------------------------------------------------------------------
@@ -456,120 +453,134 @@ class DeepClassificationPlotter(BasePlotter):
 # ---------------------------------------------------------------------------
 
 class DeepOptimizationPlotter(BasePlotter):
-    """Encapsulated loss landscape and convergence trajectory visualizers."""
+    """Optimization paths on pre-computed error functions (07_gradient_descent)."""
 
     @classmethod
-    def plot_loss_history(
+    def plot_descent_1d(
         cls,
-        losses: Sequence[float],
-        log_scale: bool = True,
-        title: str = "Optimization Convergence",
-        xlabel: str = "Iteration",
-        ylabel: str = "Loss / Metric",
-        figsize: Tuple[float, float] = (8, 4.5),
+        w_grid: Any,
+        E_grid: Any,
+        trace_w: Any,
+        trace_E: Any,
+        title: Optional[str] = None,
+        ylim: Optional[Tuple[float, float]] = None,
+        figsize: Tuple[float, float] = (7.5, 4.0),
         ax: Optional[plt.Axes] = None,
         show: bool = True,
     ) -> Optional[plt.Axes]:
-        """Plot optimization convergence loss with optional logarithmic scaling."""
+        """Error function E(w) pre-computed on a grid and the iterates (w, E(w)) of a descent method, joined in order."""
         fig, ax_plot = cls.create_canvas(figsize=figsize, ax=ax)
-        ax_plot.plot(losses, lw=2.2, color="royalblue")
-        if log_scale:
-            ax_plot.set_yscale("log")
-        ax_plot.set_title(title, fontsize=12)
-        ax_plot.set_xlabel(xlabel, fontsize=11)
-        ax_plot.set_ylabel(ylabel, fontsize=11)
-        ax_plot.grid(True)
+        ax_plot.plot(cls.to_numpy(w_grid, ravel=True), cls.to_numpy(E_grid, ravel=True), color="royalblue", lw=2.2,
+                     label="$E(w)$")
+        tw, tE = cls.to_numpy(trace_w, ravel=True), cls.to_numpy(trace_E, ravel=True)
+        ax_plot.plot(tw, tE, "o-", color="firebrick", ms=5, lw=1.2, label="iterates $w^{(\\tau)}$")
+        ax_plot.plot(tw[:1], tE[:1], "s", color="black", ms=7, label="$w^{(0)}$")
+        if ylim is not None:
+            ax_plot.set_ylim(*ylim)
+        ax_plot.set_title(title or "", fontsize=11.5)
+        ax_plot.set_xlabel("$w$")
+        ax_plot.set_ylabel("$E(w)$")
+        ax_plot.legend(loc="best", fontsize=9.5)
         return cls.finalize(fig, ax=ax_plot, show=show)
 
     @classmethod
-    def plot_out(cls, out: Sequence[Any]) -> None:
-        """Plot optimization convergence loss on a logarithmic scale with formatted summary."""
-        grad_val = cls.to_scalar(out[-1])
-        print_math(rf"Finished optimization in {len(out)} iterations with final metric $\|\nabla E(\mathbf{{w}})\| = {grad_val:.4e}$")
-        cls.plot_loss_history(out, log_scale=True)
+    def plot_contour_trajectories(
+        cls,
+        xx: Any,
+        yy: Any,
+        E_grid: Any,
+        trajectories: Optional[Dict[str, Any]] = None,
+        directions: Optional[Dict[str, Any]] = None,
+        minimum: Optional[Sequence[float]] = None,
+        curves: Optional[Dict[str, Any]] = None,
+        points: Optional[Dict[str, Sequence[float]]] = None,
+        show_minimum: bool = True,
+        minimum_label: str = "minimum",
+        equal_aspect: bool = False,
+        legend_loc: str = "upper right",
+        title: Optional[str] = None,
+        figsize: Tuple[float, float] = (7.5, 4.6),
+        ax: Optional[plt.Axes] = None,
+        show: bool = True,
+    ) -> Optional[plt.Axes]:
+        """Contours of an error function pre-computed on a grid, optimization paths {label: (T, 2) iterates},
+        optional direction arrows {label: 2-vector} drawn from the minimum, plain curves {label: (T, 2)} (e.g.
+        constraint boundaries) and marked points {label: (x, y)}."""
+        fig, ax_plot = cls.create_canvas(figsize=figsize, ax=ax, grid=False)
+        xx, yy, Z = cls.to_numpy(xx), cls.to_numpy(yy), cls.to_numpy(E_grid)
+        levels = np.quantile(Z, np.linspace(0.01, 0.95, 14))
+        ax_plot.contour(xx, yy, Z, levels=np.unique(levels), cmap="viridis", alpha=0.6)
+        for (label, path), col in zip((trajectories or {}).items(), ["firebrick", "royalblue", "darkorange",
+                                                                      "forestgreen", "purple"]):
+            P = cls.to_numpy(path).reshape(-1, 2)
+            ax_plot.plot(P[:, 0], P[:, 1], "o-", color=col, ms=3.5, lw=1.4, label=label)
+        for (label, curve), col in zip((curves or {}).items(), ["crimson", "darkorange", "purple"]):
+            C = cls.to_numpy(curve).reshape(-1, 2)
+            ax_plot.plot(C[:, 0], C[:, 1], "-", color=col, lw=2.2, label=label)
+        for (label, point), marker in zip((points or {}).items(), ["o", "s", "D", "^"]):
+            ax_plot.plot(*np.asarray(point, dtype=float), marker, color="black", ms=8, linestyle="none", label=label)
+        origin = np.zeros(2) if minimum is None else np.asarray(minimum, dtype=float)
+        if show_minimum:
+            ax_plot.plot(*origin, "k*", ms=12, label=minimum_label)
+        for label, v in (directions or {}).items():
+            v = cls.to_numpy(v, ravel=True).astype(float)
+            ax_plot.annotate("", xy=origin + v, xytext=origin, arrowprops=dict(arrowstyle="-|>", color="black", lw=1.8))
+            ax_plot.text(*(origin + 1.1 * v), label, fontsize=12, ha="center", va="center")
+        ax_plot.set_xlim(float(np.min(xx)), float(np.max(xx)))
+        ax_plot.set_ylim(float(np.min(yy)), float(np.max(yy)))
+        if equal_aspect:
+            ax_plot.set_aspect("equal")
+        ax_plot.set_xlabel("$w_1$")
+        ax_plot.set_ylabel("$w_2$")
+        ax_plot.set_title(title or "", fontsize=11.5)
+        ax_plot.legend(loc=legend_loc, fontsize=9)
+        return cls.finalize(fig, ax=ax_plot, show=show)
+
+
+class ComputationalGraphPlotter(BasePlotter):
+    """Computational graphs with pre-computed forward values and adjoints (08_backpropagation)."""
 
     @classmethod
-    def plot_idea(
+    def plot_computational_graph(
         cls,
-        f: Callable[[Any], Any],
-        df: Callable[[Any], Any],
-        x: float = 1.0,
-        h: float = 0.05,
-        figsize: Tuple[float, float] = (8, 5),
+        nodes: Dict[str, Tuple[float, float, str]],
+        edges: Sequence[Tuple[str, str]],
+        values: Optional[Dict[str, str]] = None,
+        adjoints: Optional[Dict[str, str]] = None,
+        edge_labels: Optional[Dict[Tuple[str, str], str]] = None,
+        title: Optional[str] = None,
+        radius: float = 0.32,
+        figsize: Tuple[float, float] = (10.0, 4.0),
         show: bool = True,
     ) -> Optional[plt.Figure]:
-        """Illustrate 1D gradient step concept with direction arrow."""
-        fig, ax = cls.create_canvas(figsize=figsize)
-        sp = np.linspace(-0.5, 1, 100)
-        ax.plot(sp, f(sp), lw=2, color="royalblue")
-        x_n = x - h * df(x)
-        ax.arrow(
-            x,
-            f(x),
-            x_n - x,
-            f(x_n) - f(x),
-            head_width=0.04,
-            length_includes_head=True,
-            color="crimson",
-            linewidth=3,
-        )
-        ax.plot(x, f(x), "ro", markersize=8)
-        ax.set_title(f"Gradient Step: x={x:.2f} -> x_next={x_n:.2f}", fontsize=12)
-        ax.grid(True)
-        return cls.finalize(fig, show=show)
-
-    @classmethod
-    def plot_trace(
-        cls,
-        f: Callable[[Any], Any],
-        trace: Sequence[Any],
-        figsize: Tuple[float, float] = (8, 5),
-        show: bool = True,
-    ) -> Optional[plt.Figure]:
-        """Plot optimization parameter trajectory over 1D objective surface."""
-        fig, ax = cls.create_canvas(figsize=figsize)
-        max_bound = max(abs(min(trace)), abs(max(trace))) + 0.5
-        domain = torch.arange(-max_bound, max_bound, 0.01)
-        f_domain = cls.to_numpy(f(domain))
-        ax.plot(domain.numpy(), f_domain, "b-", lw=2, label="Objective f(x)")
-        trace_vals = [cls.to_scalar(f(x)) for x in trace]
-        ax.plot(trace, trace_vals, "-ro", markersize=6, label="Trajectory")
-        ax.legend()
-        ax.grid(True)
-        return cls.finalize(fig, show=show)
-
-
-    @classmethod
-    def plot_grad(
-        cls,
-        f: Callable[[Any, Any], Any],
-        x: float,
-        y: float,
-        x1: float,
-        y1: float,
-        angle: float = 60.0,
-        figsize: Tuple[float, float] = (8.0, 8.0),
-        show: bool = True,
-    ) -> Optional[plt.Figure]:
-        """Plot 3D loss surface and single gradient step projection."""
-        fig = plt.figure(figsize=figsize)
-        sp = np.linspace(-10, 10, 200)
-        X, Y = np.meshgrid(sp, sp)
-        Z = f(X, Y)
-
-        ax = fig.add_subplot(111, projection="3d")
-        ax.view_init(30, angle)
-        ax.set_xlabel("x")
-        ax.set_ylabel("y")
-        ax.set_zlabel("f")
-
-        ax.plot_surface(X, Y, Z, alpha=0.3, cmap=plt.cm.summer, linewidth=0.1)
-        ax.scatter([x, x], [y, y], [0, f(x, y)], s=40, c="r")
-        ax.scatter([x1, x1], [y1, y1], [f(x1, y1), 0], s=40, c="b")
-        ax.plot([x, x1], [y, y1], [f(x, y), f(x1, y1)], color="black", lw=2)
-        ax.plot([x, x1], [y, y1], [0, 0], color="black", linestyle="--")
-
-        print_math(rf"Initial state $\mathbf{{w}}_0 = [{x:.2f}, {y:.2f}]^\mathrm{{T}}, E(\mathbf{{w}}_0) = {f(x, y):.2f}$; Step $\mathbf{{w}}_1 = [{x1:.2f}, {y1:.2f}]^\mathrm{{T}}, E(\mathbf{{w}}_1) = {f(x1, y1):.2f}$")
+        """Nodes {name: (x, y, label)} and directed edges; forward values (black, above) and adjoints (red,
+        below) are pre-computed strings, so the figure shows exactly the numbers of the notebook."""
+        fig, ax = plt.subplots(figsize=figsize)
+        for u, v in edges:
+            (x0, y0, _), (x1, y1, _) = nodes[u], nodes[v]
+            d = np.hypot(x1 - x0, y1 - y0)
+            start = (x0 + radius * (x1 - x0) / d, y0 + radius * (y1 - y0) / d)
+            end = (x1 - radius * (x1 - x0) / d, y1 - radius * (y1 - y0) / d)
+            ax.annotate("", xy=end, xytext=start, arrowprops=dict(arrowstyle="-|>", color="#33415c", lw=1.4))
+            if edge_labels and (u, v) in edge_labels:
+                ax.text((x0 + x1) / 2, (y0 + y1) / 2 + 0.12, edge_labels[(u, v)], ha="center", va="bottom",
+                        fontsize=10, color="#33415c")
+        for name, (x, y, label) in nodes.items():
+            ax.add_patch(plt.Circle((x, y), radius, facecolor="#dbe7f5", edgecolor="#33415c", lw=1.6, zorder=3))
+            ax.text(x, y, label, ha="center", va="center", fontsize=12, zorder=4)
+            if values and name in values:
+                ax.text(x, y + radius + 0.08, values[name], ha="center", va="bottom", fontsize=10.5, zorder=4)
+            if adjoints and name in adjoints:
+                ax.text(x, y - radius - 0.08, adjoints[name], ha="center", va="top", fontsize=10.5,
+                        color="firebrick", zorder=4)
+        xs = [x for x, _, _ in nodes.values()]
+        ys = [y for _, y, _ in nodes.values()]
+        ax.set_xlim(min(xs) - 1.0, max(xs) + 1.0)
+        ax.set_ylim(min(ys) - 1.0, max(ys) + 1.0)
+        ax.set_aspect("equal")
+        ax.axis("off")
+        if title:
+            ax.set_title(title, fontsize=12)
         return cls.finalize(fig, show=show)
 
 
@@ -581,38 +592,30 @@ class DeepArchitecturePlotter(BasePlotter):
     """Encapsulated diagnostics for activations, feature maps, attention, sequences, and graphs."""
 
     @classmethod
-    def plot_sobel_filtered(
+    def plot_boxes(
         cls,
-        h_filtered: torch.Tensor | np.ndarray,
-        v_filtered: torch.Tensor | np.ndarray,
-        filter_type: str = "both",
-        figsize: Tuple[float, float] = (7.0, 3.5),
+        image: Any,
+        boxes: Dict[str, Any],
+        scores: Optional[Dict[str, Sequence[float]]] = None,
+        title: Optional[str] = None,
+        figsize: Tuple[float, float] = (5.0, 5.0),
+        ax: Optional[plt.Axes] = None,
         show: bool = True,
-    ) -> Optional[plt.Figure]:
-        """Render original and Sobel edge-filtered images."""
-        h_np = cls.to_numpy(h_filtered)
-        v_np = cls.to_numpy(v_filtered)
-
-        if filter_type == "horizontal":
-            fig, ax = plt.subplots(figsize=(3.5, 3.5))
-            ax.imshow(h_np, cmap="gray")
-            ax.set_title("Horizontal Edges (Sobel)", fontsize=11)
-            ax.axis("off")
-        elif filter_type == "vertical":
-            fig, ax = plt.subplots(figsize=(3.5, 3.5))
-            ax.imshow(v_np, cmap="gray")
-            ax.set_title("Vertical Edges (Sobel)", fontsize=11)
-            ax.axis("off")
-        else:
-            fig, axes = plt.subplots(1, 2, figsize=figsize)
-            axes[0].imshow(h_np, cmap="gray")
-            axes[0].set_title("Horizontal Edges", fontsize=11)
-            axes[0].axis("off")
-            axes[1].imshow(v_np, cmap="gray")
-            axes[1].set_title("Vertical Edges", fontsize=11)
-            axes[1].axis("off")
-
-        return cls.finalize(fig, show=show)
+    ) -> Optional[plt.Axes]:
+        """An image with pre-computed bounding boxes {label: (n, 4) corners (x0, y0, x1, y1)}, one colour per label,
+        and optional scores written at the boxes."""
+        fig, ax_plot = cls.create_canvas(figsize=figsize, ax=ax, grid=False)
+        ax_plot.imshow(cls.to_numpy(image), cmap="gray")
+        for (label, group), col in zip(boxes.items(), ["royalblue", "firebrick", "forestgreen", "darkorange"]):
+            for k, (x0, y0, x1, y1) in enumerate(cls.to_numpy(group).reshape(-1, 4)):
+                ax_plot.add_patch(plt.Rectangle((x0, y0), x1 - x0, y1 - y0, fill=False, color=col, lw=2,
+                                                label=label if k == 0 else None))
+                if scores is not None and label in scores:
+                    ax_plot.text(x0, y0 - 1, f"{scores[label][k]:.2f}", color=col, fontsize=9, va="bottom")
+        ax_plot.axis("off")
+        ax_plot.set_title(title or "", fontsize=11)
+        ax_plot.legend(loc="lower right", fontsize=9)
+        return cls.finalize(fig, ax=ax_plot, show=show)
 
     @classmethod
     def plot_time_series(
@@ -641,34 +644,29 @@ class DeepArchitecturePlotter(BasePlotter):
         cls,
         weights: torch.Tensor | np.ndarray,
         tokens: Optional[Sequence[str]] = None,
-        apply_causal_mask: bool = False,
+        query_tokens: Optional[Sequence[str]] = None,
+        show_values: bool = True,
         title: Optional[str] = None,
+        xlabel: str = "keys",
+        ylabel: str = "queries",
         figsize: Tuple[float, float] = (5.5, 4.2),
         show: bool = True,
     ) -> Optional[plt.Figure]:
-        """Render self-attention weights heatmap."""
+        """Heat map of pre-computed attention weights a_nm: rows n (queries, labelled by query_tokens, default
+        tokens), columns m (keys, labelled by tokens)."""
         w_np = cls.to_numpy(weights)
         if w_np.ndim > 2:
             w_np = w_np.squeeze()
-
         fig, ax = cls.create_canvas(figsize=figsize)
-        toks = list(tokens) if tokens is not None else True
-        sns.heatmap(
-            w_np,
-            annot=True,
-            fmt=".2f",
-            cmap="Blues",
-            xticklabels=toks,
-            yticklabels=toks,
-            cbar=False,
-            ax=ax,
-        )
-        if title:
-            ax.set_title(title, fontsize=11)
-        else:
-            ax.set_title(f"Self-Attention Weights (Causal Mask: {apply_causal_mask})", fontsize=11)
-        ax.set_xlabel("Key Tokens (Content)")
-        ax.set_ylabel("Query Tokens (Focus)")
+        columns = list(tokens) if tokens is not None else True
+        rows = list(query_tokens) if query_tokens is not None else columns
+        sns.heatmap(w_np, annot=show_values, fmt=".2f", cmap="Blues", xticklabels=columns, yticklabels=rows,
+                    cbar=not show_values, vmin=0.0, vmax=1.0, ax=ax)
+        ax.tick_params(axis="x", rotation=0)
+        ax.tick_params(axis="y", rotation=0)
+        ax.set_title(title or "", fontsize=11)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
         return cls.finalize(fig, show=show)
 
     @classmethod
@@ -676,44 +674,71 @@ class DeepArchitecturePlotter(BasePlotter):
         cls,
         G: Any,
         classes: Optional[Sequence[Any]] = None,
-        figsize: Tuple[float, float] = (7.0, 7.0),
+        highlight: Optional[Sequence[int]] = None,
+        labels: Optional[Sequence[str]] = None,
+        positions: Optional[Dict[Any, Tuple[float, float]]] = None,
+        seed: int = 0,
+        title: Optional[str] = None,
+        figsize: Tuple[float, float] = (6.0, 5.0),
+        ax: Optional[plt.Axes] = None,
         show: bool = True,
-    ) -> Optional[plt.Figure]:
-        """Render PyTorch Geometric / NetworkX graph using circular layout."""
-        if PYG_AVAILABLE and not isinstance(G, nx.Graph):
+    ) -> Optional[plt.Axes]:
+        """Draw a graph given as an edge list [(n, m), ...], a NetworkX graph or a PyG Data object; nodes coloured by
+        pre-computed classes, highlighted nodes with a thick red border, node names from labels; positions keyed by
+        node name (or index) keep the same picture for different node orders, otherwise a seeded spring layout."""
+        if isinstance(G, nx.Graph):
+            G_nx = G
+        elif PYG_AVAILABLE and hasattr(G, "edge_index"):
             G_nx = to_networkx(G, to_undirected=True)
         else:
-            G_nx = G
-
-        fig, ax = cls.create_canvas(figsize=figsize)
-        nx.draw_networkx(
-            G_nx,
-            pos=nx.circular_layout(G_nx),
-            with_labels=False,
-            node_color=classes,
-            ax=ax,
-        )
-        ax.axis("off")
-        return cls.finalize(fig, show=show)
+            G_nx = nx.Graph()
+            G_nx.add_edges_from(tuple(int(v) for v in edge) for edge in G)
+        nodes = sorted(G_nx.nodes)
+        names = {n: (labels[n] if labels is not None else str(n)) for n in nodes}
+        if positions is None:
+            layout = nx.spring_layout(G_nx, seed=seed)
+        else:
+            layout = {n: positions[names[n]] if names[n] in positions else positions[n] for n in nodes}
+        fig, ax_plot = cls.create_canvas(figsize=figsize, ax=ax, grid=False)
+        if classes is None:
+            colors = {"node_color": "#dbe7f5"}
+        else:
+            labels_np = cls.to_numpy(classes, ravel=True)
+            colors = {"node_color": [labels_np[n] for n in nodes], "cmap": "tab10", "vmin": 0, "vmax": 9}
+        nx.draw_networkx_edges(G_nx, layout, ax=ax_plot, edge_color="#9aa5b4", width=1.4)
+        nx.draw_networkx_nodes(G_nx, layout, nodelist=nodes, edgecolors="#33415c", node_size=420, ax=ax_plot,
+                               **colors)
+        if highlight is not None:
+            nx.draw_networkx_nodes(G_nx, layout, nodelist=[int(n) for n in highlight], node_color="none",
+                                   edgecolors="crimson", linewidths=3.0, node_size=560, ax=ax_plot)
+        nx.draw_networkx_labels(G_nx, layout, labels=names, font_size=9, ax=ax_plot)
+        ax_plot.set_title(title or "", fontsize=11)
+        ax_plot.axis("off")
+        return cls.finalize(fig, ax=ax_plot, show=show)
 
     @classmethod
     def plot_embedding(
         cls,
-        t: torch.Tensor | np.ndarray,
+        H: Any,
         classes: Any,
-        epoch: Optional[int] = None,
-        loss: Optional[Any] = None,
-        figsize: Tuple[float, float] = (7.0, 5.0),
+        highlight: Optional[Sequence[int]] = None,
+        title: Optional[str] = None,
+        figsize: Optional[Tuple[float, float]] = None,
         show: bool = True,
     ) -> Optional[plt.Figure]:
-        """Render 2D graph node embeddings colored by class labels."""
-        t_arr = cls.to_numpy(t)
-        fig, ax = cls.create_canvas(figsize=figsize)
-        ax.scatter(t_arr[:, 0], t_arr[:, 1], s=140, c=classes, cmap="tab10", edgecolors="k", alpha=0.85)
-        if epoch is not None and loss is not None:
-            loss_val = cls.to_scalar(loss)
-            ax.set_xlabel(f"Epoch: {epoch}, Loss: {loss_val:.4f}", fontsize=14)
-        ax.grid(True)
+        """Pre-computed 2-D node embeddings coloured by class; H is an (N, 2) array or a dict {panel title: (N, 2)}
+        for several snapshots side by side (e.g. during training)."""
+        panels = H if isinstance(H, dict) else {title or "": H}
+        fig, axes = plt.subplots(1, len(panels), figsize=figsize or (4.2 * len(panels), 4.0), squeeze=False)
+        labels = cls.to_numpy(classes, ravel=True)
+        for ax, (name, values) in zip(axes[0], panels.items()):
+            points = cls.to_numpy(values)
+            ax.scatter(points[:, 0], points[:, 1], s=90, c=labels, cmap="tab10", vmin=0, vmax=9, edgecolors="k")
+            if highlight is not None:
+                marked = points[[int(n) for n in highlight]]
+                ax.scatter(marked[:, 0], marked[:, 1], s=220, facecolors="none", edgecolors="crimson", linewidths=2.5)
+            ax.set_title(name, fontsize=11)
+            ax.grid(True, linestyle="--", alpha=0.5)
         return cls.finalize(fig, show=show)
 
 
@@ -730,22 +755,19 @@ plot_polynomial_extrapolation = DeepRegressionPlotter.plot_polynomial_extrapolat
 plot_dataset_size_remedy = DeepRegressionPlotter.plot_dataset_size_remedy
 plot_bias_variance_curve = DeepRegressionPlotter.plot_bias_variance_curve
 plot_ensemble_fits = DeepRegressionPlotter.plot_ensemble_fits
-plot_l1_l2_sparsity_geometry = DeepRegressionPlotter.plot_l1_l2_sparsity_geometry
 plot_least_squares_geometry = DeepRegressionPlotter.plot_least_squares_geometry
 
 # Classification Facades
-plot_decision_boundary_2d = DeepClassificationPlotter.plot_decision_boundary_2d
-plot_binary = DeepClassificationPlotter.plot_decision_boundary_2d
+plot_hyperplane_geometry = DeepClassificationPlotter.plot_hyperplane_geometry
+plot_reject_option = DeepClassificationPlotter.plot_reject_option
 
 # Optimization Facades
-plot_loss_history = DeepOptimizationPlotter.plot_loss_history
-plot_out = DeepOptimizationPlotter.plot_out
-g_idea = DeepOptimizationPlotter.plot_idea
-plot_trace = DeepOptimizationPlotter.plot_trace
-plot_grad = DeepOptimizationPlotter.plot_grad
+plot_descent_1d = DeepOptimizationPlotter.plot_descent_1d
+plot_computational_graph = ComputationalGraphPlotter.plot_computational_graph
+plot_contour_trajectories = DeepOptimizationPlotter.plot_contour_trajectories
 
 # Architecture & Diagnostics Facades
-plot_sobel_filtered = DeepArchitecturePlotter.plot_sobel_filtered
+plot_boxes = DeepArchitecturePlotter.plot_boxes
 plot_time_series = DeepArchitecturePlotter.plot_time_series
 plot_series = DeepArchitecturePlotter.plot_time_series
 plot_attention_heatmap = DeepArchitecturePlotter.plot_attention_heatmap
