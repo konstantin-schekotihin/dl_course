@@ -644,15 +644,13 @@ class DiagnosticPlotter(BasePlotter):
     @classmethod
     def plot_correlation_matrix(
         cls,
-        df: pd.DataFrame,
+        corr: pd.DataFrame,
         title: str = "Empirical Correlation Heatmap",
         figsize: Tuple[float, float] = (7.5, 5.5),
         cmap: str = "vlag",
         show: bool = True,
     ) -> Optional[Tuple[Figure, Axes]]:
-        """Render correlation matrix heatmap for numeric DataFrame columns."""
-        numeric_df = df.select_dtypes(include=[np.number])
-        corr = numeric_df.corr()
+        """Heatmap of a correlation matrix; receives the pre-computed matrix (e.g. df.corr())."""
         fig, ax = cls.canvas(figsize=figsize, title=title, grid=False)
         sns.heatmap(
             corr,

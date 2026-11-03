@@ -81,7 +81,7 @@ CASES = [
     ("shared", "setup_theme", lambda hp: hp.setup_theme()),
     ("shared", "plot_residuals", lambda hp: hp.plot_residuals(lambda X: 2 * X, x, t)),
     ("shared", "plot_binary", lambda hp: hp.plot_binary(logreg.predict, X2, y2)),
-    ("shared", "plot_correlation_matrix", lambda hp: hp.plot_correlation_matrix(df)),
+    ("shared", "plot_correlation_matrix", lambda hp: hp.plot_correlation_matrix(df.corr())),
     ("shared", "plot_pairgrid", lambda hp: hp.plot_pairgrid(df)),
     ("shared", "plot_decision_surface", lambda hp: (
         hp.plot_decision_surface(X2, y2, *hp.create_2d_grid(X2, resolution=20)[:2],

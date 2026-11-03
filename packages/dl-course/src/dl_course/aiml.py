@@ -227,10 +227,12 @@ class AIMLRegressionPlotter(BasePlotter):
         ylabel: str = r"Residual $e_n$",
         band: Optional[float] = None,
         n_labels: int = 0,
+        labels: Optional[Sequence[Any]] = None,
         figsize: Optional[Tuple[float, float]] = None,
         show: bool = True,
     ) -> Optional[Tuple[plt.Figure, Optional[plt.Axes]]]:
-        """Scatter pre-computed residuals against fitted values (or leverage), one panel per entry; label the largest."""
+        """Scatter pre-computed residuals against fitted values (or leverage), one panel per entry; label the
+        n_labels largest by labels[n] (default: row position n)."""
         fig, axes = plt.subplots(1, len(panels), figsize=figsize or (5.2 * len(panels), 3.9), squeeze=False)
         for ax, (title, (x_vals, r_vals)) in zip(axes[0], panels.items()):
             x_arr, r_arr = _to_numpy(x_vals, ravel=True), _to_numpy(r_vals, ravel=True)
@@ -240,7 +242,7 @@ class AIMLRegressionPlotter(BasePlotter):
                 ax.axhline(band, color="firebrick", linestyle="--", lw=1.2)
                 ax.axhline(-band, color="firebrick", linestyle="--", lw=1.2)
             for n in np.argsort(-np.abs(r_arr))[:n_labels]:
-                ax.annotate(str(n), (x_arr[n], r_arr[n]), xytext=(4, 2), textcoords="offset points", fontsize=8.5, color="firebrick")
+                ax.annotate(str(n if labels is None else labels[n]), (x_arr[n], r_arr[n]), xytext=(4, 2), textcoords="offset points", fontsize=8.5, color="firebrick")
             ax.set_title(title, fontsize=11.5)
             ax.set_xlabel(xlabel, fontsize=10.5)
             ax.set_ylabel(ylabel, fontsize=10.5)
@@ -348,8 +350,9 @@ class AIMLClassificationPlotter(BasePlotter):
         n_rows = (len(frames) + n_cols - 1) // n_cols
         fig, axes = plt.subplots(n_rows, n_cols, sharey=True, squeeze=False, figsize=figsize or (6.0 * n_cols, 3.0 * n_rows))
         hue_order = sorted(pd.concat([df[hue] for df in frames.values()]).unique())
+        order = sorted(pd.concat([df[x] for df in frames.values()]).unique())      # same x categories in all panels
         for ax, (title, df) in zip(axes.ravel(), frames.items()):
-            sns.countplot(x=x, data=df, hue=hue, hue_order=hue_order, ax=ax)
+            sns.countplot(x=x, data=df, hue=hue, order=order, hue_order=hue_order, ax=ax)
             ax.set_title(title, fontsize=11)
             ax.tick_params(axis="x", labelrotation=90, labelsize=7)
             ax.legend(fontsize=8)
