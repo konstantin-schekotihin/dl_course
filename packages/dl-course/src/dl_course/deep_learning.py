@@ -16,6 +16,8 @@ import networkx as nx
 import numpy as np
 import seaborn as sns
 import torch
+from IPython.display import display
+from ipywidgets import Button, Dropdown, HBox, Output, VBox
 
 try:
     from torch_geometric.utils import to_networkx
@@ -37,6 +39,7 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
     get_data_path,
     get_file,
     get_url,
+    format_matrix,
     format_number,
     format_vector,
     plot_confusion_matrix,
@@ -54,6 +57,41 @@ from .shared import (  # noqa: F401 -- re-exported for notebooks as hp.<name>
 )
 
 _to_numpy = BasePlotter.to_numpy  # short internal name used by the plotters below
+
+
+def epoch_applet(options, init_weights, run_epoch, draw, description="gate", controls=(),
+                 step_label="One epoch"):
+    """Buttons for training step by step: each click calls run_epoch, Reset calls init_weights.
+
+    run_epoch(w, choice) returns the new weights, draw(w_before, w, choice, clicks) shows them
+    (w_before is None after a reset); options fill a dropdown whose change resets the run, and
+    controls are further widgets (e.g. a learning-rate dropdown) read by the callbacks.
+    """
+    state = {}
+    choice = Dropdown(options=options or [], description=description)
+    step, reset = Button(description=step_label), Button(description="Reset")
+    output = Output()
+
+    def show(w_before):
+        with output:
+            output.clear_output(wait=True)
+            draw(w_before, state["w"], choice.value, state["clicks"])
+
+    def on_step(_):
+        w_before = state["w"]
+        state["w"], state["clicks"] = run_epoch(w_before, choice.value), state["clicks"] + 1
+        show(w_before)
+
+    def on_reset(_):
+        state["w"], state["clicks"] = init_weights(), 0
+        show(None)
+
+    step.on_click(on_step)
+    reset.on_click(on_reset)
+    choice.observe(on_reset, names="value")
+    choices = [choice] if options else []
+    display(VBox([HBox([*choices, *controls, step, reset]), output]))
+    on_reset(None)
 
 
 

@@ -5,7 +5,7 @@ Provides unified asset resolution, aesthetics, image utilities, and diagnostic v
 Inherited and re-exported by course-specific helper modules across ML-DL and AI-ML.
 
 Modules:
-1. Course Aesthetics & Asset Resolution (get_file, get_url, get_data_path, setup_theme, print_math, format_number, format_vector)
+1. Course Aesthetics & Asset Resolution (get_file, get_url, get_data_path, setup_theme, print_math, format_number, format_vector, format_matrix)
 2. Base & Specialized Plotter Classes (BasePlotter, RegressionPlotter, BoundaryPlotter, DiagnosticPlotter, ClassificationPlotter, ImagePlotter, ActivationPlotter, PCAPlotter)
 3. Image Loading, Processing & Display (load_image, plot_image, compress_image_svd)
 4. Functional Facades (plot_residuals, plot_binary, plot_correlation_matrix, plot_pairgrid, annotate)
@@ -77,20 +77,30 @@ def format_number(value: Any, digits: int = 4, scientific: bool = False) -> str:
     return f"{round(value, digits) + 0.0:.{digits}f}"  # + 0.0 turns -0.0 into 0.0
 
 
+def _format_entry(v: float, digits: int) -> str:
+    """One vector or matrix entry, rounded to `digits` decimals without trailing zeros."""
+    if np.isinf(v):
+        return format_number(v)
+    if np.isnan(v):
+        return r"\mathrm{NaN}"
+    return np.format_float_positional(round(v, digits) + 0.0, trim="-")  # + 0.0 turns -0.0 into 0.0
+
+
 def format_vector(values: Any, digits: int = 4, transpose: bool = True) -> str:
     """Vector for display inside a LaTeX formula: (v_1, ..., v_n)^T, or (v_1, ..., v_n) with transpose=False.
 
     Entries are rounded to `digits` decimals without trailing zeros (3.0 -> 3, 0.50 -> 0.5).
     """
-    def entry(v: float) -> str:
-        if np.isinf(v):
-            return format_number(v)
-        if np.isnan(v):
-            return r"\mathrm{NaN}"
-        return np.format_float_positional(round(v, digits) + 0.0, trim="-")  # + 0.0 turns -0.0 into 0.0
-
-    text = "(" + ", ".join(entry(float(v)) for v in np.asarray(values, dtype=float).ravel()) + ")"
+    entries = np.asarray(values, dtype=float).ravel()
+    text = "(" + ", ".join(_format_entry(float(v), digits) for v in entries) + ")"
     return text + r"^\mathrm{T}" if transpose else text
+
+
+def format_matrix(values: Any, digits: int = 4) -> str:
+    """Matrix for display inside a LaTeX formula, as a pmatrix; entries rounded as in format_vector."""
+    rows = np.atleast_2d(np.asarray(values, dtype=float))
+    body = r" \\ ".join(" & ".join(_format_entry(float(v), digits) for v in row) for row in rows)
+    return r"\begin{pmatrix}" + body + r"\end{pmatrix}"
 
 
 def get_url(filename: str, category: Optional[str] = None) -> str:
