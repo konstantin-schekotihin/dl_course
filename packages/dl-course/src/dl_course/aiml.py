@@ -276,7 +276,7 @@ class AIMLClassificationPlotter(BasePlotter):
         radius: float = 0.3,
         feature_names: Tuple[str, str] = ("Sepal Length ($x_1$)", "Petal Length ($x_2$)"),
         show_neighborhood: bool = False,
-        figsize: Tuple[float, float] = (7.5, 6.5),
+        figsize: Tuple[float, float] = (6.5, 6.5),
         ax: Optional[plt.Axes] = None,
         show: bool = True,
     ) -> Optional[plt.Axes]:
@@ -307,7 +307,7 @@ class AIMLClassificationPlotter(BasePlotter):
         ax_plot.set_title("Instance-Based Learning: Nearest Neighbor Radius", fontsize=12.5)
 
         if show_neighborhood:
-            ax_plot.scatter([query_pt[0]], [query_pt[1]], color="magenta", s=100, zorder=5, label=r"Query Point $\mathbf{x}_q$")
+            ax_plot.scatter([query_pt[0]], [query_pt[1]], color="magenta", s=50, zorder=5, label=r"Query Point $\mathbf{x}_q$")
             circle = plt.Circle(query_pt, radius=radius, color="magenta", alpha=0.25, zorder=4)
             ax_plot.add_artist(circle)
 
