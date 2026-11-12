@@ -9,6 +9,7 @@ Provides structured, decoupled visualization routines for:
 
 from __future__ import annotations
 
+import base64
 from typing import Any, Dict, Optional, Sequence, Tuple
 
 import matplotlib.pyplot as plt
@@ -17,6 +18,7 @@ import numpy as np
 import seaborn as sns
 import torch
 from IPython.display import display
+from IPython.utils.capture import capture_output
 from ipywidgets import Button, Dropdown, HBox, Output, VBox
 
 try:
@@ -73,9 +75,16 @@ def epoch_applet(options, init_weights, run_epoch, draw, description="gate", con
     output = Output()
 
     def show(w_before):
-        with output:
-            output.clear_output(wait=True)
+        # Capture the drawing in the kernel and replace the output area's content in one state
+        # update: VS Code repeats output routed into a visible Output widget (`with output:`)
+        with capture_output() as captured:
             draw(w_before, state["w"], choice.value, state["clicks"])
+        stream = [{"output_type": "stream", "name": "stdout", "text": captured.stdout}] if captured.stdout else []
+        output.outputs = tuple(stream + [
+            {"output_type": "display_data", "metadata": item.metadata or {},
+             "data": {kind: base64.b64encode(value).decode() if isinstance(value, bytes) else value
+                      for kind, value in item.data.items()}}
+            for item in captured.outputs])
 
     def on_step(_):
         w_before = state["w"]
