@@ -10,7 +10,7 @@ name: Publish dl-course
 on:
   push:
     branches: [master]
-    paths: ["packages/dl-course/**"]
+    paths: ["packages/dl-course/**", ".github/workflows/publish-dl-course.yml"]
   workflow_dispatch:
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
         run: |
           uv venv --python ${{ matrix.python-version }}
           uv pip install torch --index-url https://download.pytorch.org/whl/cpu
-          uv pip install ./packages/dl-course numpy pandas matplotlib seaborn scipy scikit-learn networkx pillow ipython
+          uv pip install ./packages/dl-course numpy pandas matplotlib seaborn scipy scikit-learn networkx pillow ipython ipywidgets
       - name: Smoke test
         run: .venv/bin/python packages/dl-course/tests/smoke_test.py
 
