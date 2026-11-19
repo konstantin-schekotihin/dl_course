@@ -89,7 +89,10 @@ CASES = [
                                  values=(hp.create_2d_grid(X2, resolution=20)[0] > 0).astype(int),
                                  boundaries={"b": [0.0, 1.0, 1.0]}, highlight=[0]),
         hp.plot_decision_surface(X2, y2, *hp.create_2d_grid(X2, resolution=20)[:2],
-                                 values=np.full((20, 20), 0.5) + 0.01 * rng.normal(size=(20, 20)), levels=[0.5]))),
+                                 values=np.full((20, 20), 0.5) + 0.01 * rng.normal(size=(20, 20)), levels=[0.5]),
+        hp.plot_decision_surface(X2, y2, *hp.create_2d_grid(X2, resolution=20)[:2],
+                                 values=np.where(np.eye(20) > 0, np.nan, (np.arange(400) % 2).reshape(20, 20)),
+                                 cell_edges=([-1.0, 0.0, 1.0], [-1.0, 0.0, 1.0]), query={"new": (0.5, 0.5)}))),
     ("shared", "plot_confusion_matrix", lambda hp: hp.plot_confusion_matrix(np.array([[5, 1], [2, 4]]), labels=["neg", "pos"])),
     ("shared", "plot_roc_curves", lambda hp: hp.plot_roc_curves({"model": ([0.0, 0.2, 1.0], [0.0, 0.7, 1.0])}, points={"tau": (0.2, 0.7)})),
     ("shared", "annotate", lambda hp: (
