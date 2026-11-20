@@ -589,6 +589,8 @@ class BoundaryPlotter(BasePlotter):
         boundaries: Optional[Dict[str, Sequence[float]]] = None,
         class_names: Optional[Dict[Any, str]] = None,
         highlight: Optional[Sequence[int]] = None,
+        cell_edges: Optional[Tuple[Sequence[float], Sequence[float]]] = None,
+        query: Optional[Dict[str, Sequence[float]]] = None,
         title: Optional[str] = None,
         xlabel: str = "$x_1$",
         ylabel: str = "$x_2$",
@@ -598,21 +600,26 @@ class BoundaryPlotter(BasePlotter):
         ax: Optional[Axes] = None,
         show: bool = True,
     ) -> Optional[Tuple[Figure, Optional[Axes]]]:
-        """Data coloured by class over pre-computed grid values: class labels as regions, or probabilities with
-        contour lines at `levels`; optional linear boundaries {label: (w0, w1, w2)} drawn as w0 + w1 x1 + w2 x2 = 0."""
+        """Data coloured by class over pre-computed grid values: class labels as regions (NaN left blank), or
+        probabilities with contour lines at `levels`; optional linear boundaries {label: (w0, w1, w2)} drawn as
+        w0 + w1 x1 + w2 x2 = 0, grid lines at `cell_edges` = (x1 edges, x2 edges), new points {label: (x1, x2)}
+        marked with a cross."""
         fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel=ylabel, grid=False)
         t_np = cls.to_numpy(t, ravel=True) if t is not None else np.array([])
         v_np = cls.to_numpy(values) if values is not None else None
         discrete = v_np is not None and levels is None
-        labels = sorted(set(np.unique(t_np).tolist()) | (set(np.unique(v_np).tolist()) if discrete else set()))
+        filled = ~np.isnan(v_np.astype(float)) if discrete else None
+        labels = sorted(set(np.unique(t_np).tolist()) | (set(np.unique(v_np[filled]).tolist()) if discrete else set()))
         color = {lab: cls.CLASS_COLORS[i % len(cls.CLASS_COLORS)] for i, lab in enumerate(labels)}
         names = class_names or {}
         if v_np is not None:
             xx_np, yy_np = cls.to_numpy(xx), cls.to_numpy(yy)
-            if discrete:  # one colour per class label
-                index = np.vectorize({lab: i for i, lab in enumerate(labels)}.get)(v_np)
+            if discrete:  # one colour per class label; NaN (e.g. an empty cell) stays blank
+                index = np.full(v_np.shape, np.nan)
+                index[filled] = np.vectorize({lab: i for i, lab in enumerate(labels)}.get)(v_np[filled])
                 cmap = ListedColormap([color[lab] for lab in labels])
-                ax.contourf(xx_np, yy_np, index, levels=np.arange(len(labels) + 1) - 0.5, cmap=cmap, alpha=0.22)
+                ax.contourf(xx_np, yy_np, np.ma.masked_invalid(index), levels=np.arange(len(labels) + 1) - 0.5,
+                            cmap=cmap, alpha=0.22)
             else:  # probabilities: shading and labelled contour lines
                 ax.contourf(xx_np, yy_np, v_np, levels=np.linspace(0.0, 1.0, 21), cmap="coolwarm", alpha=0.35)
                 lines = ax.contour(xx_np, yy_np, v_np, levels=list(levels), colors="black", linewidths=1.2)
@@ -630,6 +637,13 @@ class BoundaryPlotter(BasePlotter):
                            label=names.get(lab.item(), f"$t = {lab.item():g}$"), zorder=3)
             for n in highlight or []:
                 ax.scatter([X_np[n, 0]], [X_np[n, 1]], s=260, facecolors="none", edgecolors="black", lw=2.0, zorder=4)
+        if cell_edges is not None:
+            x_edges, y_edges = (cls.to_numpy(e, ravel=True) for e in cell_edges)
+            ax.grid(False)  # the cell edges replace the theme's axis grid
+            ax.vlines(x_edges, y_edges[0], y_edges[-1], colors="grey", lw=0.7, zorder=2)
+            ax.hlines(y_edges, x_edges[0], x_edges[-1], colors="grey", lw=0.7, zorder=2)
+        for label, point in (query or {}).items():
+            ax.scatter([point[0]], [point[1]], marker="x", s=160, color="black", lw=3.0, label=label, zorder=5)
         for (label, w), style in zip((boundaries or {}).items(), ["--", "-", ":", "-."] * 3):
             w0, w1, w2 = (float(v) for v in cls.to_numpy(w, ravel=True)[:3])
             if abs(w2) > 1e-12:
