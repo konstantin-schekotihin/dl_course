@@ -534,7 +534,9 @@ class RegressionPlotter(BasePlotter):
     ) -> Optional[Tuple[Figure, Optional[Axes]]]:
         """Scatter observations and overlay model curves pre-computed on x_grid; optionally mark single points."""
         fig, ax = cls.canvas(figsize=figsize, ax=ax, title=title, xlabel=xlabel, ylabel=ylabel)
-        ax.scatter(cls.to_numpy(x, ravel=True), cls.to_numpy(t, ravel=True), color="royalblue", alpha=0.45, s=16, label="Observations")
+        if len(x) > 0:  # no "Observations" legend entry when only curves are drawn
+            ax.scatter(cls.to_numpy(x, ravel=True), cls.to_numpy(t, ravel=True), color="royalblue", alpha=0.45, s=16,
+                       label="Observations")
         for label, values in curves.items():
             ax.plot(cls.to_numpy(x_grid, ravel=True), cls.to_numpy(values, ravel=True), lw=2.2, label=label,
                     color=(colors or {}).get(label), linestyle=(linestyles or {}).get(label, "-"))
