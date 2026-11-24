@@ -526,6 +526,7 @@ class RegressionPlotter(BasePlotter):
         ylabel: Optional[str] = None,
         title: Optional[str] = None,
         ylim: Optional[Tuple[float, float]] = None,
+        xlim: Optional[Tuple[float, float]] = None,
         colors: Optional[Dict[str, str]] = None,
         linestyles: Optional[Dict[str, str]] = None,
         figsize: Tuple[float, float] = (7.5, 4.5),
@@ -544,6 +545,8 @@ class RegressionPlotter(BasePlotter):
             ax.plot(px, py, marker="o", markersize=9, color="forestgreen", linestyle="none", label=label)
         if ylim is not None:
             ax.set_ylim(*ylim)
+        if xlim is not None:
+            ax.set_xlim(*xlim)
         ax.legend(fontsize=9.5, loc="best")
         return cls.finalize(fig, ax, show=show)
 
